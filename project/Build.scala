@@ -37,6 +37,7 @@ object Build extends Build {
       "-language:implicitConversions",
       "-language:postfixOps",
       "-language:experimental.macros",
+      "-language:existentials",
       "-Ywarn-unused-import",
       "-Xfatal-warnings")
   )

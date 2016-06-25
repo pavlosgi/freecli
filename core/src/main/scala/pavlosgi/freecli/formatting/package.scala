@@ -1,10 +1,9 @@
 package pavlosgi
 package freecli
-package core
 
 import cats.Show
 
-trait FormatterOps {
+package object formatting {
   implicit class FormatterOptionOps[A](s: Option[A])(implicit ev: Show[A]) {
     def orEmpty: String = s.fold("")(ev.show)
   }

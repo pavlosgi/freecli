@@ -1,16 +1,15 @@
 package pavlosgi
 package freecli
+package config
 package circe
 
-import core.dsl._
-import core.parser._
+import all._
 
 import cats.Show
-import io.circe.Decoder
-import io.circe.syntax._
-
-import org.scalatest.{FunSpec, Matchers}
 import io.circe.generic.auto._
+import io.circe.syntax._
+import io.circe.{Decoder, Json}
+import org.scalatest.{FunSpec, Matchers}
 
 class Test extends FunSpec with Matchers {
   describe("circe") {
@@ -23,10 +22,10 @@ class Test extends FunSpec with Matchers {
       }
 
       implicit val d = implicitly[Decoder[Foo]]
-      val c = parse(Seq(s"--json=${getClass.getResource("/file.json").getFile}"))(arg[Foo]("json", "json file"))
+      val c = parseConfig(Seq(s"--json=${getClass.getResource("/file.json").getFile}"))(arg[Foo]("json", "json file"))
       c.getOrElse(throw new Exception("Invalid")) should === (Foo("foo", Bar("bar")))
 
-      val c1 = parse(Seq(s"--json=${getClass.getResource("/file.json").getFile}"))(arg("json", "json file"))
+      val c1 = parseConfig(Seq(s"--json=${getClass.getResource("/file.json").getFile}"))(arg[Json]("json", "json file"))
       c1.getOrElse(throw new Exception("Invalid")) should === (Foo("foo", Bar("bar")).asJson)
     }
   }
