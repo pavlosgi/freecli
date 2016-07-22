@@ -4,7 +4,7 @@ package commands
 package parser
 
 import algebra._
-import dsl.CommandDsl
+import dsl.CommandsDsl
 import pavlosgi.freecli.config.algebra.{ApplyConfigAlgebra, Plugin}
 import pavlosgi.freecli.config.{parser => ConfigParser}
 import pavlosgi.freecli.config.parser.{Operations => ConfigParserOps}
@@ -20,7 +20,7 @@ trait Operations extends {
 
   def parse[G[_]: Plugin]
            (args: Seq[String])
-           (d: CommandDsl[G, Command])
+           (d: CommandsDsl[G, Command])
            (implicit nat: G ~> ConfigParser.Parser): ValidatedNel[ParsingError, Command] = {
 
     parseAndReturnExtraArgs(args)(d) match {
@@ -32,7 +32,7 @@ trait Operations extends {
 
   private def parseAndReturnExtraArgs[G[_]: Plugin, A]
     (args: Seq[String])
-    (d: CommandDsl[G, Command])
+    (d: CommandsDsl[G, Command])
     (implicit nat: G ~> ConfigParser.Parser):
     (Seq[String], NonEmptyList[ParsingError] Xor Command) = {
 

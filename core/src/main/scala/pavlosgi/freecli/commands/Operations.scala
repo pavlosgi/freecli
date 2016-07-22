@@ -2,7 +2,7 @@ package pavlosgi
 package freecli
 package commands
 
-import dsl.CommandDsl
+import dsl.CommandsDsl
 import formatting._
 import pavlosgi.freecli.config.algebra.Plugin
 import pavlosgi.freecli.config.parser.Parser
@@ -20,7 +20,7 @@ trait Operations
 
   def parseOrExit[A, G[_]: Plugin]
                  (args: Seq[String])
-                 (dsl: CommandDsl[G, Command])
+                 (dsl: CommandsDsl[G, Command])
                  (implicit ev: G ~> Show, ev2: G ~> Parser): Command = {
 
     parse(args)(dsl) match {

@@ -15,33 +15,33 @@ import config.algebra.Plugin
 import config.dsl.ConfigDsl
 
 trait Types {
-  type CommandDsl[G[_], A] = ApplyCommandAlgebra[G, A]
+  type CommandsDsl[G[_], A] = ApplyCommandAlgebra[G, A]
 
-  implicit def alternativeDsl[G[_]: Plugin]: Alternative[CommandDsl[G, ?]] =
-    new Alternative[CommandDsl[G, ?]] {
-      override def combineK[A](x: CommandDsl[G, A],
-                               y: CommandDsl[G, A]): CommandDsl[G, A] = {
+  implicit def alternativeDsl[G[_]: Plugin]: Alternative[CommandsDsl[G, ?]] =
+    new Alternative[CommandsDsl[G, ?]] {
+      override def combineK[A](x: CommandsDsl[G, A],
+                               y: CommandsDsl[G, A]): CommandsDsl[G, A] = {
 
-        new CommandDsl[G, A] {
+        new CommandsDsl[G, A] {
           override def apply[F[_] : CommandAlgebra[?[_], G]]: F[A] =
             x.apply[F].combineK(y.apply[F])
         }
       }
 
-      override def pure[A](x: A): CommandDsl[G, A] = new CommandDsl[G, A] {
+      override def pure[A](x: A): CommandsDsl[G, A] = new CommandsDsl[G, A] {
         def apply[F[_]: CommandAlgebra[?[_], G]] = x.pure[F]
       }
 
-      override def ap[A, B](ff: CommandDsl[G, (A) => B])
-                           (fa: CommandDsl[G, A]): CommandDsl[G, B] = {
+      override def ap[A, B](ff: CommandsDsl[G, (A) => B])
+                           (fa: CommandsDsl[G, A]): CommandsDsl[G, B] = {
 
-        new CommandDsl[G, B] {
+        new CommandsDsl[G, B] {
           override def apply[F[_] : CommandAlgebra[?[_], G]]: F[B] =
             ff.apply[F].ap(fa.apply[F])
         }
       }
 
-      override def empty[A]: CommandDsl[G, A] = new CommandDsl[G, A] {
+      override def empty[A]: CommandsDsl[G, A] = new CommandsDsl[G, A] {
         override def apply[F[_]: CommandAlgebra[?[_], G]]: F[A] =
           implicitly[Alternative[F]].empty
       }
@@ -79,7 +79,7 @@ object NameAdded {
   }
 
   implicit class NameAddedOps[G[_]: Plugin](n: NameAdded) {
-    def dsl: CommandDsl[G, Command] = Events.toCommandDsl(n)
+    def dsl: CommandsDsl[G, Command] = Events.toCommandDsl(n)
   }
 }
 
@@ -230,7 +230,7 @@ case class CommandAggregate[G[_]: Plugin, A]
   (name: String,
    description: Option[String],
    run: () => Unit,
-   subcommands: Seq[CommandDsl[G, Command]])
+   subcommands: Seq[CommandsDsl[G, Command]])
   extends Aggregate[G, A]
 
 case class CommandWithConfigAggregate[G[_]: Plugin, A]
@@ -238,7 +238,7 @@ case class CommandWithConfigAggregate[G[_]: Plugin, A]
    description: Option[String],
    config: ConfigDsl[G, A],
    run: A => Unit,
-   subcommands: Seq[CommandDsl[G, Command]])
+   subcommands: Seq[CommandsDsl[G, Command]])
   extends Aggregate[G, A]
 
 case class Events[E <: HList](events: E) {
@@ -258,9 +258,9 @@ object Events {
   implicit def toCommandDsl[E <: HList, G[_]: Plugin, B]
     (events: Events[NameAdded :: E])
     (implicit ev: LeftFolder.Aux[NameAdded :: E, Aggregate[G, Unit], aggregate.type, Aggregate[G, B]]):
-    CommandDsl[G, Command] = {
+    CommandsDsl[G, Command] = {
 
-    new CommandDsl[G, Command] {
+    new CommandsDsl[G, Command] {
       def apply[F[_]: CommandAlgebra[?[_], G]]: F[Command] = {
         val nameAdded = events.events.head
         val init: Aggregate[G, Unit] =
@@ -272,7 +272,7 @@ object Events {
               CommandField(CommandFieldName(name), description.map(Description.apply)),
               run(),
               subs.toList
-              .foldLeft(implicitly[Alternative[CommandDsl[G, ?]]].empty[Command]) {
+              .foldLeft(implicitly[Alternative[CommandsDsl[G, ?]]].empty[Command]) {
                 case (p, n) => p.combineK(n)
               })
 
@@ -282,7 +282,7 @@ object Events {
               config,
               run,
               subs.toList
-              .foldLeft(implicitly[Alternative[CommandDsl[G, ?]]].empty[Command]) {
+              .foldLeft(implicitly[Alternative[CommandsDsl[G, ?]]].empty[Command]) {
                 case (p, n) => p.combineK(n)
               })
         }

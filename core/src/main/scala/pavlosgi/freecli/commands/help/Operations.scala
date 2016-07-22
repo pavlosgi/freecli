@@ -4,7 +4,7 @@ package commands
 package help
 
 import algebra._
-import dsl.CommandDsl
+import dsl.CommandsDsl
 import formatting._
 import config.algebra.{ApplyConfigAlgebra, Plugin}
 import config.help.{ConfigHelp, Operations => ConfigHelpOps}
@@ -16,15 +16,15 @@ trait Operations {
   type ConfigPrinter[_] = State[CommandHelp, Unit]
 
   def usage[G[_]: Plugin, A]
-           (p: CommandDsl[G, A])
+           (p: CommandsDsl[G, A])
            (implicit nat: G ~> Show): String = {
 
-    s"${"Usage".underline}\n\n${genHelp(p).asString(1)}"
+    s"${"Usage".underline} (${CommandHelp.legend})\n\n${genHelp(p).asString(1)}"
   }
 
-  private def genHelp[G[_]: Plugin, A]
-                     (p: CommandDsl[G, A])
-                     (implicit nat: G ~> Show): CommandHelp = {
+  def genHelp[G[_]: Plugin, A]
+             (p: CommandsDsl[G, A])
+             (implicit nat: G ~> Show): CommandHelp = {
 
     p.apply(helpAlgebra).runS(CommandHelp()).value
   }
@@ -56,7 +56,7 @@ trait Operations {
       override def cmd(field: CommandField,
                        run: => Unit,
                        f: ApplyCommandAlgebra[G, Command]):
-                       ConfigPrinter[Command] = {
+                       ConfigPrinter[Unit] = {
 
         for {
           res <- State.modify[CommandHelp](s => s.copy(cmds = s.cmds :+
@@ -69,7 +69,7 @@ trait Operations {
                                     config: ApplyConfigAlgebra[G, A],
                                     run: A => Unit,
                                     f: ApplyCommandAlgebra[G, Command]):
-                                    ConfigPrinter[Command] = {
+                                    ConfigPrinter[Unit] = {
 
         for {
           res <- State.modify[CommandHelp](s => s.copy(cmds = s.cmds :+

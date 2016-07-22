@@ -32,7 +32,7 @@ object CommandField {
   implicit object showInstance extends Show[CommandField] {
     override def show(f: CommandField): String = {
       val descr = f.description.map { d =>
-                    s" ${Description.showInstance.show(d)}"
+                    s" - ${Description.showInstance.show(d)}"
                   }.getOrElse("")
 
       s"${CommandFieldName.showInstance.show(f.name)}$descr"

@@ -77,7 +77,7 @@ object SubField {
   implicit object showInstance extends Show[SubField] {
     override def show(f: SubField): String = {
       val descr = f.description.map { d =>
-                    s" ${Description.showInstance.show(d)}"
+                    s" - ${Description.showInstance.show(d)}"
                   }.getOrElse("")
 
       s"${SubFieldName.showInstance.show(f.name)}$descr"

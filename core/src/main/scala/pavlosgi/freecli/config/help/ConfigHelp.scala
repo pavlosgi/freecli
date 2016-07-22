@@ -12,14 +12,19 @@ case class ConfigHelp(
 ){
   def asString(indentation: Int): String = {
     val argsAsString = args.map(_.bold.indent(indentation)).mkString("\n")
-    val optsAsString = opts.map(_.indent(indentation)).mkString(s"\n")
+    val optsAsString = opts.map(_.indent(indentation)).mkString("\n")
     val subConfigsAsString = subConfigs.map { c =>
-      c._1.cyan.indent(indentation) + "\n" + c._2.asString(indentation + 1)
+      c._1.yellow.indent(indentation) + "\n" + c._2.asString(indentation + 1)
     }.mkString("\n\n")
 
     val all = Seq(
-      Seq(argsAsString, optsAsString, subConfigsAsString).mkString("\n"))
+      Seq(argsAsString, optsAsString, subConfigsAsString)
+        .filter(_.nonEmpty).mkString("\n"))
 
     all.filter(_.nonEmpty).mkString("\n")
   }
+}
+
+object ConfigHelp {
+  def legend: String = "Subconfigurations".yellow + " " + "Arguments"
 }

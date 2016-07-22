@@ -12,13 +12,17 @@ case class CommandHelp(
   cmds: Seq[CommandHelpNode] = Seq.empty
 ){
   def asString(indentation: Int): String = {
-    val cmdsAsString = cmds.map { c =>
-      c.name.cyan.indent(indentation) + "\n" +
-        c.config.asString(indentation + 1) +
-        "\n" + c.help.asString(indentation + 1)
 
-    }.mkString("\n\n")
+    val cmdsAsSeq = cmds.map { c =>
+      Seq(c.name.cyan.indent(indentation),
+          c.config.asString(indentation + 1),
+          c.help.asString(indentation + 1)).filter(_.nonEmpty)
+    }
 
-    cmdsAsString.mkString("\n")
+    cmdsAsSeq.map(_.mkString("\n")).mkString("\n\n")
   }
+}
+
+object CommandHelp {
+  def legend: String = "Commands".cyan + " " + ConfigHelp.legend
 }

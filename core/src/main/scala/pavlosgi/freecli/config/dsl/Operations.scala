@@ -34,12 +34,11 @@ trait Operations {
 
     new ConfigDsl[G, A] {
       def apply[F[_]: ConfigAlgebra[?[_], G]] =
-        implicitly[ConfigAlgebra[F, G]].sub(SubField(SubFieldName(name),
-                                                     description.orElse(Some("a sub-configuration"))
-                                               .map(Description.apply)),
-
-                                            dsl,
-                                            default)
+        implicitly[ConfigAlgebra[F, G]].sub(
+          SubField(SubFieldName(name),
+                   description.map(Description.apply)),
+                   dsl,
+                   default)
     }
   }
 

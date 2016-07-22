@@ -15,7 +15,5 @@ object Simple extends App {
 
   val serverConfig =
     (boolean("logging") |@| sub("auth")(authConfig)).map(ServerConfig)
-
-  println(usage(serverConfig))
 }
 
