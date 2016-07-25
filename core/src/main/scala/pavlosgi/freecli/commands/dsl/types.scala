@@ -57,16 +57,6 @@ object Event {
   implicit def ev2Events[E <: Event](e: E): Events[E :: HNil] = {
     Events(e :: HNil)
   }
-
-  implicit class EventOps[E <: Event](e: E) {
-    def apply[H <: HList]
-      (newEvents: Events[H])
-      (implicit eventConstraint: EventConstraint[E, H]):
-      Events[E :: H] = {
-
-      Events(e :: newEvents.events)
-    }
-  }
 }
 
 case class NameAdded(name: String) extends Event
@@ -80,6 +70,16 @@ object NameAdded {
 
   implicit class NameAddedOps[G[_]: Plugin](n: NameAdded) {
     def dsl: CommandsDsl[G, Command] = Events.toCommandDsl(n)
+  }
+
+  implicit class EventOps(e: NameAdded) {
+    def apply[H <: HList]
+      (newEvents: Events[H])
+      (implicit eventConstraint: EventConstraint[NameAdded, H]):
+      Events[NameAdded :: H] = {
+
+      Events(e :: newEvents.events)
+    }
   }
 }
 
