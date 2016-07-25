@@ -1,9 +1,12 @@
 package pavlosgi
 package freecli
+package testkit
 
 import cats.data.Validated
+import org.scalactic.TypeCheckedTripleEquals
+import org.scalatest.{FunSpec, Matchers}
 
-trait Helpers {
+trait Test extends FunSpec with Matchers with TypeCheckedTripleEquals {
   implicit class ValidatedOps[A, B](v: Validated[A, B]) {
     def invalid: A = v match {
       case valid@Validated.Valid(_) =>

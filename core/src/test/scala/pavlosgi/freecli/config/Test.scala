@@ -9,15 +9,8 @@ import dsl.ConfigDsl
 import java.io.File
 
 import cats.std.list._
-import org.scalactic.TypeCheckedTripleEquals
-import org.scalatest._
 
-class Test
-  extends FunSpec
-  with Matchers
-  with TypeCheckedTripleEquals
-  with Helpers {
-
+class Test extends testkit.Test {
   describe("Parser") {
 
     it("parse arg") {

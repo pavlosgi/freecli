@@ -50,23 +50,31 @@ object Build extends Build {
     .aggregate(freecli_circe)
     .aggregate(freecli_core)
     .aggregate(freecli_examples)
+    .aggregate(freecli_testkit)
 
   lazy val freecli_circe = Project("freecli-circe", file("circe"))
     .settings(allSettings:_*)
-    .settings(libraryDependencies ++= Dependencies.circe ++ Dependencies.scalatest)
+    .settings(libraryDependencies ++= Dependencies.circe)
     .dependsOn(freecli_core)
+    .dependsOn(freecli_testkit % Test)
 
   lazy val freecli_core = Project("freecli-core", file("core"))
     .settings(allSettings:_*)
     .settings(libraryDependencies ++=
       Dependencies.cats ++
       Dependencies.kittens ++
-      Dependencies.scalatest ++
       Dependencies.shapeless)
+    .dependsOn(freecli_testkit % Test)
 
   lazy val freecli_examples = Project("freecli-examples", file("examples"))
     .settings(allSettings:_*)
     .dependsOn(freecli_core)
+
+  lazy val freecli_testkit = Project("freecli-testkit", file("testkit"))
+    .settings(allSettings:_*)
+    .settings(libraryDependencies ++=
+      Dependencies.cats ++
+      Dependencies.scalatest)
 }
 
 object Dependencies {
@@ -74,7 +82,7 @@ object Dependencies {
 
   val scalatest = Seq(
     "org.scalactic" %% "scalactic" % "3.0.0-M15",
-    "org.scalatest" % "scalatest_2.11" % "3.0.0-M15" % "test"
+    "org.scalatest" % "scalatest_2.11" % "3.0.0-M15"
   )
 
   val catsVersion = "0.5.0"

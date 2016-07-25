@@ -9,9 +9,8 @@ import cats.Show
 import io.circe.generic.auto._
 import io.circe.syntax._
 import io.circe.{Decoder, Json}
-import org.scalatest.{FunSpec, Matchers}
 
-class Test extends FunSpec with Matchers {
+class Test extends testkit.Test {
   describe("circe") {
     it("decode json files") {
       case class Foo(foo: String, bar: Bar)
@@ -22,11 +21,15 @@ class Test extends FunSpec with Matchers {
       }
 
       implicit val d = implicitly[Decoder[Foo]]
-      val c = parseConfig(Seq(s"--json=${getClass.getResource("/file.json").getFile}"))(arg[Foo]("json", "json file"))
-      c.getOrElse(throw new Exception("Invalid")) should === (Foo("foo", Bar("bar")))
+      val c = parseConfig(Seq("--json", s"${getClass.getResource("/file.json").getFile}"))(
+        arg[Foo]("json", Some("json file")))
 
-      val c1 = parseConfig(Seq(s"--json=${getClass.getResource("/file.json").getFile}"))(arg[Json]("json", "json file"))
-      c1.getOrElse(throw new Exception("Invalid")) should === (Foo("foo", Bar("bar")).asJson)
+      c.valid should === (Foo("foo", Bar("bar")))
+
+      val c1 = parseConfig(Seq("--json", s"${getClass.getResource("/file.json").getFile}"))(
+        arg[Json]("json", Some("json file")))
+
+      c1.valid should === (Foo("foo", Bar("bar")).asJson)
     }
   }
 }

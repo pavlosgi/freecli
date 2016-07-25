@@ -2,18 +2,12 @@ package pavlosgi
 package freecli
 package commands
 
-import org.scalactic.TypeCheckedTripleEquals
-import org.scalatest._
 import shapeless._
 
 import pavlosgi.freecli.commands.all._
 import pavlosgi.freecli.config.all._
 
-class Test
-  extends FunSpec
-  with Matchers
-  with TypeCheckedTripleEquals
-  with Helpers {
+class Test extends testkit.Test {
 
   describe("Parser") {
     it("parse empty command") {
