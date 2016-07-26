@@ -17,15 +17,15 @@ trait Operations {
   private type ConfigPrinter[_] = State[ConfigHelp, Unit]
 
   def usage[G[_]: Plugin, A]
-           (p: ConfigDsl[G, A])
-           (implicit nat: G ~> Show): String = {
+    (p: ConfigDsl[G, A])
+    (implicit nat: G ~> Show): String = {
 
     s"${"Usage".underline}\n\n${genHelp(p).asString(1)}"
   }
 
   def genHelp[G[_]: Plugin, A]
-             (p: ConfigDsl[G, A])
-             (implicit nat: G ~> Show): ConfigHelp = {
+    (p: ConfigDsl[G, A])
+    (implicit nat: G ~> Show): ConfigHelp = {
 
     p.apply(helpAlgebra).runS(ConfigHelp()).value
   }
@@ -100,4 +100,3 @@ trait Operations {
   }
 }
 
-object Operations extends Operations

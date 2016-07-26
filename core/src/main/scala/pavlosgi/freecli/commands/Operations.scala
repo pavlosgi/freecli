@@ -19,9 +19,9 @@ trait Operations
   with dsl.Operations {
 
   def parseOrExit[A, G[_]: Plugin]
-                 (args: Seq[String])
-                 (dsl: CommandsDsl[G, Command])
-                 (implicit ev: G ~> Show, ev2: G ~> Parser): Command = {
+    (args: Seq[String])
+    (dsl: CommandsDsl[G, Command])
+    (implicit ev: G ~> Show, ev2: G ~> Parser): Command = {
 
     parse(args)(dsl) match {
       case Validated.Invalid(e) =>

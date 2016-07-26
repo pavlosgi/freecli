@@ -18,11 +18,11 @@ trait Operations
   with dsl.Operations {
 
   def parseOrExit[A, G[_]: Plugin]
-                 (args: Seq[String])
-                 (config: ConfigDsl[G, A])
-                 (implicit ev: G ~> Show, ev2: G ~> Parser): A = {
+   (args: Seq[String])
+   (config: ConfigDsl[G, A])
+   (implicit ev: G ~> Show, ev2: G ~> Parser): A = {
 
-    parseConfig(args)(config) match {
+    parse(args)(config) match {
       case Validated.Invalid(e) =>
         val errors =
           s"""

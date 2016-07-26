@@ -9,11 +9,25 @@ import cats.Show
 import cats.data.{Validated, ValidatedNel}
 import cats.syntax.all._
 
-trait Parser[T] {
-  def apply(v: String): ValidatedNel[GenParsingError, T]
+trait Types {
+  type Parser[T] = parser.Parser[T]
+
+  type ParsingError = parser.ParsingError
+  val ParsingError = parser.ParsingError
+  type FieldMissing = parser.FieldMissing
+  val FieldMissing = parser.FieldMissing
+  type FieldValueMissing = parser.FieldValueMissing
+  val FieldValueMissing = parser.FieldValueMissing
+  type InvalidValueType = parser.InvalidValueType
+  val InvalidValueType = parser.InvalidValueType
+  type InvalidArgs = parser.InvalidArgs
+  val InvalidArgs = parser.InvalidArgs
+  type SubFieldMissing = parser.SubFieldMissing
+  val SubFieldMissing = parser.SubFieldMissing
 }
 
-object Parser {
+trait Parser[T] {
+  def apply(v: String): ValidatedNel[GenParsingError, T]
 }
 
 abstract class ParserF[F, T](implicit ev: Parser[F]) extends Parser[T] {

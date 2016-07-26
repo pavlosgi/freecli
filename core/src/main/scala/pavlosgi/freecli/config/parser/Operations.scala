@@ -16,19 +16,19 @@ trait Operations extends {
   private type StateResult[A] = State[Seq[String], A]
   private type Result[A] = XorT[StateResult, NonEmptyList[ParsingError], A]
 
-  def parseConfig[G[_]: Plugin, A]
-                 (args: Seq[String])
-                 (d: ConfigDsl[G, A])
-                 (implicit nat: G ~> Parser): ValidatedNel[ParsingError, A] = {
+  def parse[G[_]: Plugin, A]
+    (args: Seq[String])
+    (d: ConfigDsl[G, A])
+    (implicit nat: G ~> Parser): ValidatedNel[ParsingError, A] = {
 
-    parseConfigAndReturnExtraArgs(args)(d) match {
+    parseAndReturnExtraArgs(args)(d) match {
       case (Nil, r)     => r.toValidated
       case (remArgs, r) =>
         r.toValidated.leftMap(e => NonEmptyList(InvalidArgs(remArgs), e.toList))
     }
   }
 
-  def parseConfigAndReturnExtraArgs[G[_]: Plugin, A]
+  def parseAndReturnExtraArgs[G[_]: Plugin, A]
     (args: Seq[String])
     (d: ConfigDsl[G, A])
     (implicit nat: G ~> Parser):
@@ -39,7 +39,9 @@ trait Operations extends {
     }
   }
 
-  private def parserConfigAlgebra[G[_]: Plugin](implicit nat: G ~> Parser): ConfigAlgebra[Result, G] =
+  private def parserConfigAlgebra[G[_]: Plugin]
+    (implicit nat: G ~> Parser): ConfigAlgebra[Result, G] =
+
     new ConfigAlgebra[Result, G] {
       def arg[A, B](field: Field,
                     f: B => A,
@@ -75,7 +77,7 @@ trait Operations extends {
 
         for {
           subArgs <- findSubFieldArgs(field)
-          (remArgs, resX) = parseConfigAndReturnExtraArgs(subArgs)(f)
+          (remArgs, resX) = parseAndReturnExtraArgs(subArgs)(f)
           res <- XorT.fromXor[StateResult](resX)
           _   <- XorT.right(State.modify[Seq[String]](s => s ++ remArgs))
         } yield res
@@ -159,4 +161,4 @@ trait Operations extends {
 
 }
 
-object Operations extends Operations
+

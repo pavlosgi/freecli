@@ -6,8 +6,7 @@ package parser
 import algebra._
 import dsl.CommandsDsl
 import pavlosgi.freecli.config.algebra.{ApplyConfigAlgebra, Plugin}
-import pavlosgi.freecli.config.{parser => ConfigParser}
-import pavlosgi.freecli.config.parser.{Operations => ConfigParserOps}
+import pavlosgi.freecli.config.parser.{all => ConfigParser}
 
 import cats.data._
 import cats.std.list._
@@ -19,9 +18,9 @@ trait Operations extends {
   type Result[A] = XorT[StateResult, NonEmptyList[ParsingError], A]
 
   def parse[G[_]: Plugin]
-           (args: Seq[String])
-           (d: CommandsDsl[G, Command])
-           (implicit nat: G ~> ConfigParser.Parser): ValidatedNel[ParsingError, Command] = {
+   (args: Seq[String])
+   (d: CommandsDsl[G, Command])
+   (implicit nat: G ~> ConfigParser.Parser): ValidatedNel[ParsingError, Command] = {
 
     parseAndReturnExtraArgs(args)(d) match {
       case (Nil, r)     => r.toValidated
@@ -74,7 +73,7 @@ trait Operations extends {
         for {
           args <- findCommandArgs(field)
           (configRemArgs, configResX) =
-            ConfigParserOps.parseConfigAndReturnExtraArgs(args)(config)
+            ConfigParser.parseAndReturnExtraArgs(args)(config)
 
           configRes <- XorT.fromXor[StateResult](configResX.leftMap(toCommandError))
 
@@ -149,4 +148,4 @@ trait Operations extends {
 
 }
 
-object Operations extends Operations
+

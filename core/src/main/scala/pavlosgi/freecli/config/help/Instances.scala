@@ -25,4 +25,3 @@ trait Instances {
   }
 }
 
-object Instances extends Instances

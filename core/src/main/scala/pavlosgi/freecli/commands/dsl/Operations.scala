@@ -36,4 +36,3 @@ trait Operations {
   }
 }
 
-object Operations extends Operations

@@ -11,14 +11,14 @@ class Test extends testkit.Test {
 
   describe("Parser") {
     it("parse command") {
-      parse[ParserShow](Seq("my-command"))(cmd("my-command").dsl)
+      commands.all.parse(Seq("my-command"))(cmd("my-command").dsl)
     }
 
     it("parse command with run") {
       var commandRun = false
 
-      parse[ParserShow](Seq("my-command"))(cmd("my-command") {
-        commands.dsl.Operations.run(() => commandRun = true)
+      commands.all.parse(Seq("my-command"))(cmd("my-command") {
+        commands.all.run(() => commandRun = true)
       }).valid.run
 
       commandRun should === (true)
@@ -28,10 +28,10 @@ class Test extends testkit.Test {
       var commandRun = false
       var serverConfig = Option.empty[ServerConfig]
 
-      parse[ParserShow](Seq("my-command", "--host", "localhost", "--port", "5432"))(
+      commands.all.parse(Seq("my-command", "--host", "localhost", "--port", "5432"))(
         cmd("my-command") {
           config(getServerConfig) ~
-          commands.dsl.Operations.run((s: ServerConfig) => {
+          commands.all.run((s: ServerConfig) => {
             serverConfig = Some(s)
             commandRun = true
           })
@@ -44,10 +44,10 @@ class Test extends testkit.Test {
     it("parse command with single subcommand and run subcommand") {
       var subCommandRun = false
 
-      parse[ParserShow](Seq("my-command", "my-subcommand"))(cmd("my-command") {
+      commands.all.parse(Seq("my-command", "my-subcommand"))(cmd("my-command") {
         subcommand {
           cmd("my-subcommand") {
-            commands.dsl.Operations.run(() => subCommandRun = true)
+            commands.all.run(() => subCommandRun = true)
           }
         }
       }).valid.run
@@ -59,11 +59,11 @@ class Test extends testkit.Test {
       var subCommandRun = false
       var serverConfig = Option.empty[ServerConfig]
 
-      parse[ParserShow](Seq("my-command", "my-subcommand", "--host", "localhost", "--port", "5432"))(cmd("my-command") {
+      commands.all.parse(Seq("my-command", "my-subcommand", "--host", "localhost", "--port", "5432"))(cmd("my-command") {
         subcommand {
           cmd("my-subcommand") {
             config(getServerConfig) ~
-            commands.dsl.Operations.run((s: ServerConfig) => {
+            commands.all.run((s: ServerConfig) => {
               serverConfig = Some(s)
               subCommandRun = true
             })
@@ -88,7 +88,7 @@ class Test extends testkit.Test {
       val sub1 =
         cmd("my-subcommand1") {
             config(getServerConfig) ~
-            commands.dsl.Operations.run((s: ServerConfig) => {
+            commands.all.run((s: ServerConfig) => {
               serverConfig1 = Some(s)
               subCommandRun1 = true
             })
@@ -97,7 +97,7 @@ class Test extends testkit.Test {
       val sub2 =
         cmd("my-subcommand2") {
             config(getServerConfig) ~
-            commands.dsl.Operations.run((s: ServerConfig) => {
+            commands.all.run((s: ServerConfig) => {
               serverConfig2 = Some(s)
               subCommandRun2 = true
             })
@@ -106,7 +106,7 @@ class Test extends testkit.Test {
       val sub3 =
         cmd("my-subcommand3") {
             config(getServerConfig) ~
-            commands.dsl.Operations.run((s: ServerConfig) => {
+            commands.all.run((s: ServerConfig) => {
               serverConfig3 = Some(s)
               subCommandRun3 = true
             })
@@ -115,13 +115,13 @@ class Test extends testkit.Test {
       val sub4 =
         cmd("my-subcommand4") {
             config(getServerConfig) ~
-            commands.dsl.Operations.run((s: ServerConfig) => {
+            commands.all.run((s: ServerConfig) => {
               serverConfig4 = Some(s)
               subCommandRun4 = true
             })
           }
 
-      parse[ParserShow](
+      commands.all.parse(
         Seq(
           "my-command",
           "my-subcommand3",
@@ -153,7 +153,7 @@ class Test extends testkit.Test {
       var serverConfig4 = Option.empty[ServerConfig]
       var serverConfig5 = Option.empty[ServerConfig]
 
-      parse[ParserShow](
+      commands.all.parse(
         Seq(
           "my-command",
           "my-subcommand1",
@@ -171,7 +171,7 @@ class Test extends testkit.Test {
                 subcommand(cmd("my-subcommand3") {
                   subcommand(cmd("my-subcommand4") {
                     config(getServerConfig) ~
-                    commands.dsl.Operations.run((s: ServerConfig) => {
+                    commands.all.run((s: ServerConfig) => {
                       serverConfig4 = Some(s)
                       subCommandRun4 = true
                     })
@@ -181,7 +181,7 @@ class Test extends testkit.Test {
             }) ~
             subcommand(cmd("my-subcommand5") {
                config(getServerConfig) ~
-                  commands.dsl.Operations.run((s: ServerConfig) => {
+                  commands.all.run((s: ServerConfig) => {
                     serverConfig5 = Some(s)
                     subCommandRun5 = true
                   })

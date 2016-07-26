@@ -2,53 +2,51 @@ package pavlosgi
 package freecli
 package config
 
-import all._
-import parser._
-import dsl.ConfigDsl
-
 import java.io.File
 
 import cats.std.list._
+
+import pavlosgi.freecli.config.all._
 
 class Test extends testkit.Test {
   describe("Parser") {
 
     it("parse arg") {
-      val c = parseConfig(Seq("--logging", "true"))(arg[Boolean]("logging"))
+      val c = parse(Seq("--logging", "true"))(arg[Boolean]("logging"))
       c.valid should === (true)
 
-      val c1 = parseConfig(Seq("--logging", "false"))(arg[Boolean]("logging"))
+      val c1 = parse(Seq("--logging", "false"))(arg[Boolean]("logging"))
       c1.valid should === (false)
 
-      val c3 = parseConfig(Seq("--logging", "1"))(arg[Boolean]("logging"))
+      val c3 = parse(Seq("--logging", "1"))(arg[Boolean]("logging"))
       c3.invalid.head shouldBe a [InvalidValueType]
 
-      val c4 = parseConfig(Seq("--host", "localhost"))(string("host"))
+      val c4 = parse(Seq("--host", "localhost"))(string("host"))
       c4.valid should === ("localhost")
 
-      val c5 = parseConfig(Seq("--host"))(string("host"))
+      val c5 = parse(Seq("--host"))(string("host"))
       c5.invalid.map(_.getClass) should contain
         theSameElementsAs (List(InvalidArgs.getClass, FieldValueMissing.getClass))
 
-      val c6 = parseConfig(Seq("--host2", "localhost"))(string("host"))
+      val c6 = parse(Seq("--host2", "localhost"))(string("host"))
       c6.invalid.map(_.getClass) should contain
         theSameElementsAs (List(InvalidArgs.getClass, FieldMissing.getClass))
     }
 
     it("parse opt") {
-      val c = parseConfig(Seq.empty)(opt[Boolean]("logging"))
+      val c = parse(Seq.empty)(opt[Boolean]("logging"))
       c.valid should be (empty)
 
-      val c1 = parseConfig(Seq("--port", "5432"))(opt[Int]("port"))
+      val c1 = parse(Seq("--port", "5432"))(opt[Int]("port"))
       c1.valid.get should === (5432)
 
-      val c2 = parseConfig(Seq("--port"))(opt[Int]("port"))
+      val c2 = parse(Seq("--port"))(opt[Int]("port"))
       c2.invalid.map(_.getClass) should contain
         theSameElementsAs (List(InvalidArgs.getClass, FieldValueMissing.getClass))
     }
 
     it("parse file") {
-      val c = parseConfig(Seq("--file",
+      val c = parse(Seq("--file",
                         s"${getClass.getResource("/file.txt").getFile}")
 
                    )(arg[File]("file"))
@@ -64,7 +62,7 @@ class Test extends testkit.Test {
       val serverConfig =
         (boolean("logging") |@| sub("auth")(authConfig)).map(ServerConfig)
 
-      val c = parseConfig(Seq("--logging",
+      val c = parse(Seq("--logging",
                         "true",
                         "auth",
                         "--host",
@@ -85,7 +83,7 @@ class Test extends testkit.Test {
       val serverConfig =
         (boolean("logging") |@| sub("auth")(authConfig)).map(ServerConfig)
 
-      val c = parseConfig(Seq("--logging",
+      val c = parse(Seq("--logging",
                         "true",
                         "auth",
                         "--host",
@@ -111,7 +109,7 @@ class Test extends testkit.Test {
       val serverConfig =
         (boolean("logging") |@| sub("auth")(authConfig)).map(ServerConfig)
 
-      val c = parseConfig(Seq("--logging",
+      val c = parse(Seq("--logging",
                         "true",
                         "db",
                         "--db-host",
@@ -139,7 +137,7 @@ class Test extends testkit.Test {
         (boolean("logging") |@| sub("auth")(authConfig) |@| sub("db")(dbConfig))
           .map(ServerConfig)
 
-      val c = parseConfig(Seq("--logging",
+      val c = parse(Seq("--logging",
                         "true",
                         "db",
                         "--db-host",
@@ -168,7 +166,7 @@ class Test extends testkit.Test {
         (boolean("logging") |@| sub("auth")(authConfig) |@| sub("db")(dbConfig))
           .map(ServerConfig)
 
-      val c = parseConfig(Seq("--logging",
+      val c = parse(Seq("--logging",
                         "true",
                         "db",
                         "--db-host",

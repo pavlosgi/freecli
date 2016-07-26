@@ -1,10 +1,6 @@
-package pavlosgi
-package freecli
-package commands
-package examples
+package pavlosgi.freecli.commands.examples
 
 import pavlosgi.freecli.all._
-import pavlosgi.freecli.commands.algebra.Command
 
 object Simple extends App {
   object Configurations {
@@ -23,7 +19,7 @@ object Simple extends App {
        string("host", None, Some("database host"))).map(DatabaseConfig)
 
     val databaseConfig =
-      (boolean("logging") |@| sub("database")(dbConfig))
+      (boolean("logging", default = Some(true)) |@| sub("database")(dbConfig))
         .map(CommonConfig[DatabaseConfig])
   }
 
@@ -63,6 +59,11 @@ object Simple extends App {
       }
   }
 
-  println(usage[ParserShow, Command](Commands.serverOps))
+  println(parseOrExit(
+    Seq("server-ops", "create-sequences", "--logging", "true", "database",
+        "--user", "freecli", "--password", "password", "--database",
+        "freecli", "--host", "localhost")
+
+  )(Commands.serverOps))
 }
 

@@ -26,7 +26,10 @@ abstract class ConfigAlgebra[F[_], G[_]: Plugin] extends Applicative[F] {
              default: Option[A]): F[A]
 }
 
-case class Field(name: FieldName, abbreviation: Option[FieldAbbreviation], description: Option[Description])
+case class Field(name: FieldName,
+                 abbreviation: Option[FieldAbbreviation],
+                 description: Option[Description])
+
 object Field {
   implicit object showInstance extends Show[Field] {
     override def show(f: Field): String = {
@@ -56,7 +59,9 @@ class FieldName private(val name: String) {
 
 object FieldName {
   def apply(name: String): FieldName = {
-    val fname = name.replaceAll(" ", "-").replaceAll("([a-z])([A-Z])", "$1-$2").toLowerCase
+    val fname = name.replaceAll(" ", "-")
+                  .replaceAll("([a-z])([A-Z])", "$1-$2").toLowerCase
+
     new FieldName(fname)
   }
 
@@ -92,7 +97,9 @@ class SubFieldName private(val name: String) {
 
 object SubFieldName {
   def apply(name: String): SubFieldName = {
-    val fname = name.replaceAll(" ", "-").replaceAll("([a-z])([A-Z])", "$1-$2").toLowerCase
+    val fname = name.replaceAll(" ", "-").replaceAll("([a-z])([A-Z])", "$1-$2")
+                  .toLowerCase
+
     new SubFieldName(fname)
   }
 

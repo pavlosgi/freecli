@@ -3,7 +3,7 @@ package freecli
 package config
 package circe
 
-import all._
+import freecli.config.all._
 import parser.{GenParsingError, InvalidValueTypeGPE, ParserF}
 import java.io.File
 import scala.io.Source

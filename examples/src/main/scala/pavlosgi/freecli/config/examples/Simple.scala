@@ -1,9 +1,6 @@
-package pavlosgi
-package freecli
-package config
-package examples
+package pavlosgi.freecli.config.examples
 
-import all._
+import pavlosgi.freecli.all._
 
 object Simple extends App {
   case class AuthConfig(port: Int, host: Option[String])
@@ -15,5 +12,9 @@ object Simple extends App {
 
   val serverConfig =
     (boolean("logging") |@| sub("auth")(authConfig)).map(ServerConfig)
-}
 
+  println(
+    Config.parseOrExit(
+      Seq("auth", "--port", "5432", "--host", "localhost", "--logging", "false")
+    )(serverConfig))
+}

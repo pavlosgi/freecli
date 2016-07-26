@@ -8,10 +8,11 @@ import algebra._
 import java.io.File
 
 trait Operations {
-  def arg[B](field: String,
-             description: Option[String] = None,
-             abbreviation: Option[Char] = None,
-             default: Option[B] = None) =
+  def arg[B]
+    (field: String,
+     description: Option[String] = None,
+     abbreviation: Option[Char] = None,
+     default: Option[B] = None) =
 
     Arg(Field(FieldName(field),
               abbreviation.map(FieldAbbreviation.apply),
@@ -19,18 +20,20 @@ trait Operations {
 
         default)
 
-  def opt[B](field: String,
-             description: Option[String] = None,
-             abbreviation: Option[Char] = None) =
+  def opt[B]
+    (field: String,
+     description: Option[String] = None,
+     abbreviation: Option[Char] = None) =
 
     Opt[B](Field(FieldName(field),
                  abbreviation.map(FieldAbbreviation.apply),
                  description.map(Description.apply)))
 
-  def sub[A, G[_]: Plugin](name: String)
-                          (dsl: ConfigDsl[G, A],
-                           description: Option[String] = None,
-                           default: Option[A] = None): ConfigDsl[G, A] = {
+  def sub[A, G[_]: Plugin]
+    (name: String)
+    (dsl: ConfigDsl[G, A],
+     description: Option[String] = None,
+     default: Option[A] = None): ConfigDsl[G, A] = {
 
     new ConfigDsl[G, A] {
       def apply[F[_]: ConfigAlgebra[?[_], G]] =

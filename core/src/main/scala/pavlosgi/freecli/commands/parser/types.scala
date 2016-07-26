@@ -9,6 +9,17 @@ import pavlosgi.freecli.commands.algebra.CommandField
 import cats.Show
 import cats.syntax.all._
 
+trait Types {
+  type ParsingError = parser.ParsingError
+  type ConfigError = parser.ConfigError
+  val ConfigError = parser.ConfigError
+  val CommandNotMatched = parser.CommandNotMatched
+  type CommandNotFound = parser.CommandNotFound
+  val CommandNotFound = parser.CommandNotFound
+  type InvalidArgs = parser.InvalidArgs
+  val InvalidArgs = parser.InvalidArgs
+}
+
 sealed trait ParsingError
 
 object ParsingError {

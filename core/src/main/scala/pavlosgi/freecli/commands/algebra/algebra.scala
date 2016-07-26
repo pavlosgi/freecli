@@ -12,28 +12,25 @@ abstract class ApplyCommandAlgebra[G[_]: Plugin, A] {
 }
 
 abstract class CommandAlgebra[F[_], G[_]: Plugin] extends Alternative[F] {
-  def cmd(
-    field: CommandField,
-    run: => Unit,
-    f: ApplyCommandAlgebra[G, Command]
-  ): F[Command]
+  def cmd(field: CommandField,
+          run: => Unit,
+          f: ApplyCommandAlgebra[G, Command]): F[Command]
 
-  def cmdWithConfig[A](
-    field: CommandField,
-    config: ApplyConfigAlgebra[G, A],
-    run: A => Unit,
-    f: ApplyCommandAlgebra[G, Command]
-  ): F[Command]
+  def cmdWithConfig[A](field: CommandField,
+                       config: ApplyConfigAlgebra[G, A],
+                       run: A => Unit,
+                       f: ApplyCommandAlgebra[G, Command]): F[Command]
 
 }
 
 case class CommandField(name: CommandFieldName, description: Option[Description])
 object CommandField {
   implicit object showInstance extends Show[CommandField] {
+
     override def show(f: CommandField): String = {
       val descr = f.description.map { d =>
-                    s" - ${Description.showInstance.show(d)}"
-                  }.getOrElse("")
+        s" - ${Description.showInstance.show(d)}"
+      }.getOrElse("")
 
       s"${CommandFieldName.showInstance.show(f.name)}$descr"
     }

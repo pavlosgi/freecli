@@ -3,7 +3,7 @@ package freecli
 package config
 package circe
 
-import all._
+import freecli.config.all._
 
 import cats.Show
 import io.circe.generic.auto._
@@ -21,12 +21,12 @@ class Test extends testkit.Test {
       }
 
       implicit val d = implicitly[Decoder[Foo]]
-      val c = parseConfig(Seq("--json", s"${getClass.getResource("/file.json").getFile}"))(
+      val c = parse(Seq("--json", s"${getClass.getResource("/file.json").getFile}"))(
         arg[Foo]("json", Some("json file")))
 
       c.valid should === (Foo("foo", Bar("bar")))
 
-      val c1 = parseConfig(Seq("--json", s"${getClass.getResource("/file.json").getFile}"))(
+      val c1 = parse(Seq("--json", s"${getClass.getResource("/file.json").getFile}"))(
         arg[Json]("json", Some("json file")))
 
       c1.valid should === (Foo("foo", Bar("bar")).asJson)

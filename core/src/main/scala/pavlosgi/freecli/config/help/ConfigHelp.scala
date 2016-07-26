@@ -5,11 +5,10 @@ package help
 
 import pavlosgi.freecli.formatting._
 
-case class ConfigHelp(
-  args: Seq[String] = Seq.empty,
-  opts: Seq[String] = Seq.empty,
-  subConfigs: Seq[(String, ConfigHelp)] = Seq.empty
-){
+case class ConfigHelp(args: Seq[String] = Seq.empty,
+                      opts: Seq[String] = Seq.empty,
+                      subConfigs: Seq[(String, ConfigHelp)] = Seq.empty){
+
   def asString(indentation: Int): String = {
     val argsAsString = args.map(_.bold.indent(indentation)).mkString("\n")
     val optsAsString = opts.map(_.indent(indentation)).mkString("\n")
