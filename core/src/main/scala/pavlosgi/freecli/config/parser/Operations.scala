@@ -49,11 +49,9 @@ trait Operations extends {
                    (implicit ev: G[B]): Result[A] = {
 
         for {
-          v <- findFieldValue(field)
+          optV <- findOptFieldValue(field)
           parser = nat.apply(ev)
-          res <- XorT.fromXor[StateResult](parser(v).leftMap(e =>
-                  e.map(GenParsingError.toParsingError(field, _))).toXor)
-
+          res <- parseOrDefault(field, optV, parser, default)
         } yield f(res)
       }
 
@@ -93,15 +91,6 @@ trait Operations extends {
         })
       }
     }
-
-  private def findFieldValue(field: Field): Result[String] = {
-    for {
-      value <- findOptFieldValue(field)
-      res   <- XorT.fromXor[StateResult](value.toRightXor(
-                NonEmptyList[ParsingError](FieldMissing(field))))
-
-    } yield res
-  }
 
   private def findOptFieldValue(field: Field): Result[Option[String]] = {
     def findOpt(args: Seq[String]):
@@ -157,6 +146,26 @@ trait Operations extends {
       res <- State.pure(subArgs)
       _   <- State.set(remArgs)
     } yield res)
+  }
+
+  private def parseOrDefault[field, B]
+    (field: Field,
+     value: Option[String],
+     parser: Parser[B],
+     default: Option[B]): Result[B] = {
+
+    (value, default) match {
+      case (Some(v), _) =>
+        XorT.fromXor[StateResult](parser(v).leftMap(e =>
+          e.map(GenParsingError.toParsingError(field, _))).toXor)
+
+      case (None, Some(v)) =>
+        v.pure[Result]
+
+      case (None, None) =>
+        XorT.fromXor(
+          Xor.left(NonEmptyList[ParsingError](FieldMissingAndNoDefault(field))))
+    }
   }
 
 }

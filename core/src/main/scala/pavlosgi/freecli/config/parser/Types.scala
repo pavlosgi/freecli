@@ -14,8 +14,8 @@ trait Types {
 
   type ParsingError = parser.ParsingError
   val ParsingError = parser.ParsingError
-  type FieldMissing = parser.FieldMissing
-  val FieldMissing = parser.FieldMissing
+  type FieldMissingAndNoDefault = parser.FieldMissingAndNoDefault
+  val FieldMissingAndNoDefault = parser.FieldMissingAndNoDefault
   type FieldValueMissing = parser.FieldValueMissing
   val FieldValueMissing = parser.FieldValueMissing
   type InvalidValueType = parser.InvalidValueType
@@ -56,8 +56,8 @@ object ParsingError {
   implicit object showInstance extends Show[ParsingError] {
     override def show(f: ParsingError): String = {
       f match {
-        case FieldMissing(field) =>
-          s"${field.name.show} is missing"
+        case FieldMissingAndNoDefault(field) =>
+          s"${field.name.show} is missing and no default provided"
 
         case FieldValueMissing(field) =>
           s"${field.name.show} value is missing"
@@ -76,7 +76,7 @@ object ParsingError {
   }
 }
 
-case class FieldMissing(field: Field) extends ParsingError
+case class FieldMissingAndNoDefault(field: Field) extends ParsingError
 case class FieldValueMissing(field: Field) extends ParsingError
 case class InvalidValueType(field: Field, value: String) extends ParsingError
 case class InvalidArgs(args: Seq[String]) extends ParsingError

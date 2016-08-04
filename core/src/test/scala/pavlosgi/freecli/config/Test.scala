@@ -30,7 +30,19 @@ class Test extends testkit.Test {
 
       val c6 = parse(Seq("--host2", "localhost"))(string("host"))
       c6.invalid.map(_.getClass) should contain
-        theSameElementsAs (List(InvalidArgs.getClass, FieldMissing.getClass))
+        theSameElementsAs (List(InvalidArgs.getClass, FieldMissingAndNoDefault.getClass))
+    }
+
+    it("parse arg with defaults") {
+      val c = parse(Seq())(arg[Boolean]("logging", default = Some(true)))
+      c.valid should === (true)
+
+      val c1 = parse(Seq())(arg[String]("host", default = Some("localhost")))
+      c1.valid should === ("localhost")
+
+      val c2 = parse(Seq("--host"))(arg[String]("host", default = Some("localhost")))
+      c2.invalid.map(_.getClass) should contain
+        theSameElementsAs (List(InvalidArgs.getClass, FieldValueMissing.getClass))
     }
 
     it("parse opt") {

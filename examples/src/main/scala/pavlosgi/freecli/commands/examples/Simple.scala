@@ -60,7 +60,7 @@ object Simple extends App {
   }
 
   println(parseOrExit(
-    Seq("server-ops", "create-sequences", "--logging", "true", "database",
+    Seq("server-ops", "create-sequences", "database",
         "--user", "freecli", "--password", "password", "--database",
         "freecli", "--host", "localhost")
 

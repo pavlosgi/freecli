@@ -35,7 +35,6 @@ trait Operations extends {
     (implicit nat: G ~> ConfigParser.Parser):
     (Seq[String], NonEmptyList[ParsingError] Xor Command) = {
 
-    println(args)
     d.apply(parserAlgebra).value.run(args).value match {
       case (remArgs, r) => remArgs -> r
     }
