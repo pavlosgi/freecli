@@ -1,8 +1,5 @@
 package pavlosgi.freecli.core.interpreters.command
 
-import cats.std.all._
-import cats.syntax.all._
-
 import pavlosgi.freecli.core.api.command._
 import pavlosgi.freecli.testkit.Test
 import pavlosgi.freecli.core.dsl.command._

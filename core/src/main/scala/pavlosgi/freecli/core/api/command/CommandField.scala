@@ -1,7 +1,7 @@
 package pavlosgi.freecli.core.api.command
 
 import cats.Show
-import cats.std.all._
+import cats.instances.all._
 import cats.syntax.all._
 
 case class CommandField(name: CommandFieldName, description: Option[Description]) {

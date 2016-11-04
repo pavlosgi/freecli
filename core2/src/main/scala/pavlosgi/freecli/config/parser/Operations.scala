@@ -14,7 +14,7 @@ import cats.~>
 
 trait Operations extends {
   private type StateResult[A] = State[Seq[String], A]
-  private type Result[A] = XorT[StateResult, NonEmptyList[ParsingError], A]
+  private type Result[A] = EitherT[StateResult, NonEmptyList[ParsingError], A]
 
   def parse[G[_]: Plugin, A]
     (args: Seq[String])
@@ -32,7 +32,7 @@ trait Operations extends {
     (args: Seq[String])
     (d: ConfigDsl[G, A])
     (implicit nat: G ~> Parser):
-    (Seq[String], NonEmptyList[ParsingError] Xor A) = {
+    (Seq[String], NonEmptyList[ParsingError] Either A) = {
 
     d.apply(parserConfigAlgebra).value.run(args).value match {
       case (remArgs, r) => remArgs -> r
@@ -62,8 +62,8 @@ trait Operations extends {
         for {
           optV <- findOptFieldValue(field)
           parser = nat.apply(ev)
-          res <- XorT.fromXor[StateResult](optV.traverseU(v =>
-                  parser(v).toXor.leftMap(e =>
+          res <- EitherT.fromEither[StateResult](optV.traverseU(v =>
+                  parser(v).toLeftMap(e =>
                     e.map(GenParsingError.toParsingError(field, _)))))
 
         } yield f(res)
@@ -76,25 +76,25 @@ trait Operations extends {
         for {
           subArgs <- findSubFieldArgs(field)
           (remArgs, resX) = parseAndReturnExtraArgs(subArgs)(f)
-          res <- XorT.fromXor[StateResult](resX)
-          _   <- XorT.right(State.modify[Seq[String]](s => s ++ remArgs))
+          res <- EitherT.fromEither[StateResult](resX)
+          _   <- EitherT.right(State.modify[Seq[String]](s => s ++ remArgs))
         } yield res
       }
 
-      override def pure[A](x: A): Result[A] = XorT.pure(x)
+      override def pure[A](x: A): Result[A] = EitherT.pure(x)
       override def ap[A, B](ff: Result[A => B])(fa: Result[A]): Result[B] = {
-        XorT.apply(for {
-          faXor <- fa.value
-          ffXor <- ff.value
+        EitherT.apply(for {
+          faEither <- fa.value
+          ffEither <- ff.value
         } yield {
-          faXor.toValidated.ap(ffXor.toValidated).toXor
+          faEither.toValidated.ap(ffEither.toValidated).toEither
         })
       }
     }
 
   private def findOptFieldValue(field: Field): Result[Option[String]] = {
     def findOpt(args: Seq[String]):
-      (Seq[String], NonEmptyList[ParsingError] Xor Option[String]) = {
+      (Seq[String], NonEmptyList[ParsingError] Either Option[String]) = {
 
       val Pattern = s"^${field.name.show}$$".r
       val PatternAbreviation = s"^${field.abbreviation.show}$$".r
@@ -110,16 +110,16 @@ trait Operations extends {
           val remArgs = argsWithIndex.filter(a => a._2 != idx && a._2 != idx + 1)
                           .map(_._1)
 
-          remArgs -> Xor.right(Some(argsWithIndex.apply(idx + 1)._1))
+          remArgs -> Right(Some(argsWithIndex.apply(idx + 1)._1))
 
         case Some(idx) =>
-          args -> Xor.left(NonEmptyList[ParsingError](FieldValueMissing(field)))
+          args -> Left(NonEmptyList[ParsingError](FieldValueMissing(field)))
 
-        case None => args -> Xor.right(None)
+        case None => args -> Right(None)
       }
     }
 
-    XorT.apply(for {
+    EitherT.apply(for {
       args <- State.get[Seq[String]]
       (remArgs, optX) = findOpt(args)
       res <- State.pure(optX)
@@ -129,18 +129,18 @@ trait Operations extends {
 
   private def findSubFieldArgs(field: SubField): Result[Seq[String]] = {
     def findArgs(args: Seq[String]):
-      (Seq[String], NonEmptyList[ParsingError] Xor Seq[String]) = {
+      (Seq[String], NonEmptyList[ParsingError] Either Seq[String]) = {
 
         val Pattern = s"^${field.name.show}$$".r
         val index = args.indexWhere(Pattern.pattern.matcher(_).matches)
         if (index != -1) {
-          args.take(index) -> Xor.right(args.drop(index + 1))
+          args.take(index) -> Right(args.drop(index + 1))
         } else {
-          args -> Xor.left(NonEmptyList[ParsingError](SubFieldMissing(field)))
+          args -> Left(NonEmptyList[ParsingError](SubFieldMissing(field)))
         }
     }
 
-    XorT.apply(for {
+    EitherT.apply(for {
       args <- State.get[Seq[String]]
       (remArgs, subArgs) = findArgs(args)
       res <- State.pure(subArgs)
@@ -156,15 +156,15 @@ trait Operations extends {
 
     (value, default) match {
       case (Some(v), _) =>
-        XorT.fromXor[StateResult](parser(v).leftMap(e =>
-          e.map(GenParsingError.toParsingError(field, _))).toXor)
+        EitherT.fromEither[StateResult](parser(v).leftMap(e =>
+          e.map(GenParsingError.toParsingError(field, _))).toEither)
 
       case (None, Some(v)) =>
         v.pure[Result]
 
       case (None, None) =>
-        XorT.fromXor(
-          Xor.left(NonEmptyList[ParsingError](FieldMissingAndNoDefault(field))))
+        EitherT.fromEither(
+          Left(NonEmptyList[ParsingError](FieldMissingAndNoDefault(field))))
     }
   }
 

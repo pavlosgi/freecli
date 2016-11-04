@@ -1,7 +1,7 @@
 package pavlosgi.freecli.core.interpreters.config
 
 import cats.data._
-import cats.std.all._
+import cats.instances.all._
 import cats.syntax.all._
 
 import pavlosgi.freecli.core.api.config._
@@ -103,10 +103,10 @@ package object parser {
      (fa: ResultT[ParsingError, A]):
       ResultT[ParsingError, B] = {
 
-      XorT.apply[State[Arguments, ?], NonEmptyList[ParsingError], B](for {
+      EitherT.apply[State[Arguments, ?], NonEmptyList[ParsingError], B](for {
         ff1 <- ff.value
         fa1 <- fa.value
-      } yield fa1.toValidated.ap(ff1.toValidated).toXor)
+      } yield fa1.toValidated.ap(ff1.toValidated).toEither)
 
     }
 

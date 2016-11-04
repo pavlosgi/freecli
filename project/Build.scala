@@ -84,17 +84,17 @@ object Build extends Build {
 }
 
 object Dependencies {
-  val shapeless = Seq("com.chuusai" %% "shapeless" % "2.3.1")
+  val shapeless = Seq("com.chuusai" %% "shapeless" % "2.3.2")
 
   val scalatest = Seq(
-    "org.scalactic" %% "scalactic" % "3.0.0-M15",
-    "org.scalatest" % "scalatest_2.11" % "3.0.0-M15"
+    "org.scalactic" %% "scalactic" % "3.0.0",
+    "org.scalatest" % "scalatest_2.11" % "3.0.0"
   )
 
-  val catsVersion = "0.5.0"
+  val catsVersion = "0.8.0"
   val cats = Seq("org.typelevel" %% "cats" % catsVersion)
 
-  val circeVersion = "0.4.1"
+  val circeVersion = "0.6.0-RC1"
 
   val circe = Seq(
     "io.circe" %% "circe-core",

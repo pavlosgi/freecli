@@ -1,7 +1,7 @@
 package pavlosgi.freecli.core.interpreters.command
 
 import cats.data._
-import cats.std.all._
+import cats.instances.all._
 import cats.syntax.all._
 import cats.~>
 
@@ -91,16 +91,16 @@ package object parser {
         y: ResultT[CommandParsingError, A]):
         ResultT[CommandParsingError, A] = {
 
-        XorT.apply(for {
+        EitherT.apply(for {
           xS <- x.value
           yS <- y.value
         } yield {
           (xS, yS) match {
-            case (Xor.Right(c1), Xor.Left(_)) => Xor.Right(c1)
-            case (Xor.Left(_), Xor.Right(c2)) => Xor.Right(c2)
-            case (Xor.Left(c1), Xor.Left(c2)) => Xor.Left(c1.combine(c2))
-            case (Xor.Right(_), Xor.Right(_)) =>
-              Xor.Left(NonEmptyList(MultipleCommandsMatched))
+            case (Right(c1), Left(_)) => Right(c1)
+            case (Left(_), Right(c2)) => Right(c2)
+            case (Left(c1), Left(c2)) => Left(c1.combine(c2))
+            case (Right(_), Right(_)) =>
+              Left(NonEmptyList.of(MultipleCommandsMatched))
           }
         })
       }
@@ -117,11 +117,11 @@ package object parser {
        (fa: ResultT[CommandParsingError, A]):
         ResultT[CommandParsingError, B] = {
 
-        XorT.apply(for {
+        EitherT.apply(for {
           ff1 <- ff.value
           fa1 <- fa.value
         } yield {
-          fa1.toValidated.ap(ff1.toValidated).toXor
+          fa1.toValidated.ap(ff1.toValidated).toEither
         })
       }
   }

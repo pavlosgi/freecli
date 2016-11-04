@@ -5,7 +5,7 @@ package config
 import cats._
 import cats.data.Validated
 import cats.syntax.all._
-import cats.std.all._
+import cats.instances.all._
 
 import pavlosgi.freecli.config.algebra.Plugin
 import pavlosgi.freecli.dsl.config.ConfigDsl

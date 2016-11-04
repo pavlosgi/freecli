@@ -1,7 +1,7 @@
 package pavlosgi.freecli.core.api.config
 
 import cats.Show
-import cats.std.all._
+import cats.instances.all._
 import cats.syntax.all._
 
 sealed trait Field {

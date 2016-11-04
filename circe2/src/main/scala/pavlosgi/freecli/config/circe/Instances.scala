@@ -9,7 +9,7 @@ import java.io.File
 import scala.io.Source
 
 import cats.data.ValidatedNel
-import cats.std.all._
+import cats.instances.all._
 import io.circe.{Decoder, Json, jawn, Error}
 
 trait Instances {

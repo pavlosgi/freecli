@@ -15,7 +15,7 @@ import cats.~>
 
 trait Operations extends {
   type StateResult[A] = State[Seq[String], A]
-  type Result[A] = XorT[StateResult, NonEmptyList[ParsingError], A]
+  type Result[A] = EitherT[StateResult, NonEmptyList[ParsingError], A]
 
   def parse[G[_]: Plugin]
    (args: Seq[String])
@@ -33,7 +33,7 @@ trait Operations extends {
     (args: Seq[String])
     (d: CommandsDsl[G, Command])
     (implicit nat: G ~> ConfigParser.Parser):
-    (Seq[String], NonEmptyList[ParsingError] Xor Command) = {
+    (Seq[String], NonEmptyList[ParsingError] Either Command) = {
 
     d.apply(parserAlgebra).value.run(args).value match {
       case (remArgs, r) => remArgs -> r
@@ -52,14 +52,14 @@ trait Operations extends {
           args <- findCommandArgs(field)
           (cmdRemArgs, cmdResX) =
             if (args.isEmpty)
-              (args, Xor.right(new Command {
+              (args, Right(new Command {
                 def run: Unit = runF
               }))
 
             else parseAndReturnExtraArgs(args)(f)
 
-          cmdRes <- XorT.fromXor[StateResult](cmdResX)
-          _   <- XorT.right(State.modify[Seq[String]](s => s ++ cmdRemArgs))
+          cmdRes <- EitherT.fromEither[StateResult](cmdResX)
+          _   <- EitherT.right(State.modify[Seq[String]](s => s ++ cmdRemArgs))
 
         } yield cmdRes
       }
@@ -74,64 +74,64 @@ trait Operations extends {
           (configRemArgs, configResX) =
             ConfigParser.parseAndReturnExtraArgs(args)(config)
 
-          configRes <- XorT.fromXor[StateResult](configResX.leftMap(toCommandError))
+          configRes <- EitherT.fromEither[StateResult](configResX.leftMap(toCommandError))
 
           (cmdRemArgs, cmdResX) =
             if (configRemArgs.isEmpty)
-              (Seq.empty, Xor.right(new Command {
+              (Seq.empty, Right(new Command {
                 def run: Unit = runF(configRes)
               }))
 
             else parseAndReturnExtraArgs(configRemArgs)(f)
 
-          cmdRes <- XorT.fromXor[StateResult](cmdResX)
-          _   <- XorT.right(State.modify[Seq[String]](s => s ++ cmdRemArgs))
+          cmdRes <- EitherT.fromEither[StateResult](cmdResX)
+          _   <- EitherT.right(State.modify[Seq[String]](s => s ++ cmdRemArgs))
 
         } yield cmdRes
       }
 
       override def ap[A, B](ff: Result[(A) => B])(fa: Result[A]): Result[B] = {
-        XorT.apply(for {
-          faXor <- fa.value
-          ffXor <- ff.value
+        EitherT.apply(for {
+          faEither <- fa.value
+          ffEither <- ff.value
         } yield {
-          faXor.toValidated.ap(ffXor.toValidated).toXor
+          faEither.toValidated.ap(ffEither.toValidated).toEither
         })
       }
 
       override def empty[A]: Result[A] =
-        XorT.left(State.pure(NonEmptyList(CommandNotMatched)))
+        EitherT.left(State.pure(NonEmptyList(CommandNotMatched)))
 
       override def combineK[A](x: Result[A], y: Result[A]): Result[A] = {
-        XorT.apply(for {
+        EitherT.apply(for {
           xS <- x.value
           yS <- y.value
         } yield {
           (xS, yS) match {
-            case (r@Xor.Right(v), _) => r
-            case (_, r@Xor.Right(v)) => r
-            case (Xor.Left(e1), Xor.Left(e2)) => Xor.Left(e1.combine(e2))
+            case (r@Right(v), _) => r
+            case (_, r@Right(v)) => r
+            case (Left(e1), Left(e2)) => Left(e1.combine(e2))
           }
         })
       }
 
-      override def pure[A](x: A): Result[A] = XorT.pure(x)
+      override def pure[A](x: A): Result[A] = EitherT.pure(x)
     }
 
   def findCommandArgs(field: CommandField): Result[Seq[String]] = {
     def findArgs(args: Seq[String]):
-      (Seq[String], NonEmptyList[ParsingError] Xor Seq[String]) = {
+      (Seq[String], NonEmptyList[ParsingError] Either Seq[String]) = {
 
         val Pattern = s"^${field.name.show}$$".r
         val index = args.indexWhere(Pattern.pattern.matcher(_).matches)
         if (index != -1) {
-          args.take(index) -> Xor.right(args.drop(index + 1))
+          args.take(index) -> Right(args.drop(index + 1))
         } else {
-          args -> Xor.left(NonEmptyList[ParsingError](CommandNotFound(field)))
+          args -> Left(NonEmptyList[ParsingError](CommandNotFound(field)))
         }
     }
 
-    XorT.apply(for {
+    EitherT.apply(for {
       args <- State.get[Seq[String]]
       (remArgs, commandArgs) = findArgs(args)
       res <- State.pure(commandArgs)

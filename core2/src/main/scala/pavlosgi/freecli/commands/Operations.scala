@@ -7,7 +7,7 @@ import formatting._
 import pavlosgi.freecli.config.algebra.Plugin
 import pavlosgi.freecli.config.parser.Parser
 import cats._
-import cats.std.all._
+import cats.instances.all._
 import cats.syntax.all._
 import cats.data.Validated
 

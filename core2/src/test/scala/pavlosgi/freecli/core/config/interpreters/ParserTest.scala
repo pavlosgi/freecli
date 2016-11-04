@@ -1,6 +1,6 @@
 package pavlosgi.freecli.core.config.interpreters
 
-import cats.std.all._
+import cats.instances.all._
 import cats.syntax.all._
 import shapeless._
 
