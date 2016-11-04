@@ -5,16 +5,18 @@ import cats.instances.all._
 import cats.syntax.all._
 
 import pavlosgi.freecli.core.api.config._
-import pavlosgi.freecli.core.interpreters.{Arguments, ResultT}
+import pavlosgi.freecli.core.interpreters.{Arguments, ResultTS}
 
 package object parser {
+  type ResultT[A] = ResultTS[ParsingError, Arguments, A]
+
   def parseConfig[G, A](
     args: Seq[String])
    (dsl: G)
-   (implicit ev: G => ResultT[ParsingError, A]):
+   (implicit ev: G => ResultT[A]):
     ValidatedNel[ParsingError, A] = {
 
-    ResultT.run(Arguments(args))(
+    ResultTS.run(Arguments(args))(
       ev(dsl)) match {
         case (Arguments(Nil), res) => res.toValidated
         case (Arguments(argsLeft), res) =>
@@ -24,22 +26,22 @@ package object parser {
       }
   }
 
-  implicit object configAlgebraParser extends Algebra[ResultT[ParsingError, ?]] {
+  implicit object configAlgebraParser extends Algebra[ResultT[?]] {
 
     override def arg[T, A](
       field: Field,
       f: T => A,
       g: StringDecoder[T],
       default: Option[T]):
-      ResultT[ParsingError, A] = {
+      ResultT[A] = {
 
-      def mapping(o: Option[T]): ResultT[ParsingError, A] = {
+      def mapping(o: Option[T]): ResultT[A] = {
         o.orElse(default) match {
           case Some(s) =>
-            ResultT.right[ParsingError, A](f(s))
+            ResultTS.right(f(s))
 
           case None    =>
-            ResultT.leftNE[ParsingError, A](ConfigFieldValueMissingParsingError(field))
+            ResultTS.leftNE(ConfigFieldValueMissingParsingError(field))
         }
       }
 
@@ -53,12 +55,13 @@ package object parser {
       field: Field,
       f: Option[T] => A,
       g: StringDecoder[T]):
-      ResultT[ParsingError, A] = {
+      ResultT[A] = {
 
       for {
-        args  <- ResultT.get[ParsingError]
+        args  <- ResultTS.get[ParsingError, Arguments]
         value <- extractConfigFieldStringValue(field, args)
-        res   <- ResultT.fromValidated(value.traverseU(v => g.apply(field, v)))
+        res   <- ResultTS.fromValidated[StringDecoderError, Arguments, Option[T]](
+                  value.traverseU(v => g.apply(field, v)))
                   .leftMap(_.map[ParsingError](ParsingError.fromStringDecoderError))
 
       } yield f(res)
@@ -68,21 +71,21 @@ package object parser {
       field: Field,
       f: Boolean => A,
       default: Option[Boolean]):
-      ResultT[ParsingError, A] = {
+      ResultT[A] = {
 
       for {
-        args  <- ResultT.get[ParsingError]
+        args  <- ResultTS.get[ParsingError, Arguments]
         value <- extractConfigFieldAndValue(field, args)
 
         res <- value match {
                  case None =>
-                   ResultT.pure[ParsingError, Boolean](default.getOrElse(false))
+                   ResultTS.pure[ParsingError, Arguments, Boolean](default.getOrElse(false))
 
                  case Some(FieldOnlyOccurrence) =>
-                   ResultT.pure[ParsingError, Boolean](true)
+                   ResultTS.pure[ParsingError, Arguments, Boolean](true)
 
                  case Some(FieldAndValueOccurrence(v)) =>
-                   ResultT.fromValidated(
+                   ResultTS.fromValidated[StringDecoderError, Arguments, Boolean](
                      StringDecoder.booleanStringDecoder(field, v))
                      .leftMap(_.map[ParsingError](ParsingError.fromStringDecoderError))
                }
@@ -93,15 +96,15 @@ package object parser {
     override def sub[G, A](
       description: Description,
       dsl: G)
-     (implicit ev: G => ResultT[ParsingError, A]):
-      ResultT[ParsingError, A] = ev(dsl)
+     (implicit ev: G => ResultT[A]):
+      ResultT[A] = ev(dsl)
 
-    override def pure[A](x: A): ResultT[ParsingError, A] = ResultT.pure(x)
+    override def pure[A](x: A): ResultT[A] = ResultTS.pure(x)
 
     override def ap[A, B](
-      ff: ResultT[ParsingError, A => B])
-     (fa: ResultT[ParsingError, A]):
-      ResultT[ParsingError, B] = {
+      ff: ResultT[A => B])
+     (fa: ResultT[A]):
+      ResultT[B] = {
 
       EitherT.apply[State[Arguments, ?], NonEmptyList[ParsingError], B](for {
         ff1 <- ff.value
@@ -115,11 +118,11 @@ package object parser {
   def extractConfigFieldAndValue(
     field: Field,
     args: Arguments):
-    ResultT[ParsingError, Option[FieldValueOccurrence]] = {
+    ResultT[Option[FieldValueOccurrence]] = {
 
     args.args.indexWhere(field.matches) match {
       case idx if idx === -1 =>
-        ResultT.right(None)
+        ResultTS.right(None)
 
       case idx =>
         val value = args.args.lift(idx + 1).fold(FieldOnlyOccurrence.asBase) { v =>
@@ -137,14 +140,14 @@ package object parser {
             args.args.take(idx) ++ args.args.drop(idx + 2)
         }
 
-        ResultT.set[ParsingError](Arguments(remArgs)).map(_ => Some(value))
+        ResultTS.set(Arguments(remArgs)).map(_ => Some(value))
     }
   }
 
   def extractConfigFieldStringValue(
     field: Field,
     args: Arguments):
-    ResultT[ParsingError, Option[String]] = {
+    ResultT[Option[String]] = {
 
     for {
       value <- extractConfigFieldAndValue(field, args)
