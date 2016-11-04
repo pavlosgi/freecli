@@ -1,13 +1,12 @@
-package pavlosgi.freecli.core.interpreters.command
+package pavlosgi.freecli.core.interpreters.parser.command
 
 import pavlosgi.freecli.core.api.command._
-import pavlosgi.freecli.testkit.Test
 import pavlosgi.freecli.core.dsl.command._
 import pavlosgi.freecli.core.dsl.config._
-import pavlosgi.freecli.core.interpreters.config.parser._
-import pavlosgi.freecli.core.interpreters.command.parser._
+import pavlosgi.freecli.core.interpreters.parser.config._
+import pavlosgi.freecli.testkit.Test
 
-class ParserTest extends Test {
+class CommandParserTest extends Test {
   case class Config(host: String, port: Int)
   case class SubConfig(dbName: String, dbPort: Int)
   case class ParentSubConfig(parent: Config, sub: SubConfig)

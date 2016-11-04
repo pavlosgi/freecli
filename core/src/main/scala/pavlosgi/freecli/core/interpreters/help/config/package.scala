@@ -1,16 +1,15 @@
-package pavlosgi.freecli.core.interpreters.config
+package pavlosgi.freecli.core.interpreters.help
 
 import cats.data._
 import cats.syntax.all._
 
 import pavlosgi.freecli.core.api.config._
-import pavlosgi.freecli.core.interpreters.HelpState
 
-package object help {
+package object config {
 
   type Result[_] = State[HelpState, Unit]
 
-  def showConfigHelp[G, A]
+  def configHelp[G, A]
     (dsl: G)
     (implicit ev: G => Result[A]):
      String = {
@@ -19,7 +18,7 @@ package object help {
       ev(dsl).runS(HelpState(2, "")).value.text.newline
   }
 
-  implicit object helpConfigAlgebra extends Algebra[Result] {
+  implicit object configAlgebraHelp extends Algebra[Result] {
 
     def genHelp(text: String): Result[Unit] = {
       for {
@@ -106,13 +105,5 @@ package object help {
       } yield ()
     }
 
-  }
-
-  implicit class StringOps(s: String) {
-    def underline: String = s"${Console.UNDERLINED}$s${Console.RESET}"
-    def newline: String = s + "\n"
-    def newlineLeft: String = "\n" + s
-    def yellow: String = s"${Console.YELLOW}$s${Console.RESET}"
-    def bold: String = s"${Console.BOLD}$s${Console.RESET}"
   }
 }

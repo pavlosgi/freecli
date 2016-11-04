@@ -1,12 +1,11 @@
-package pavlosgi.freecli.core.interpreters.config
+package pavlosgi.freecli.core.interpreters.parser.config
 
 import shapeless._
 
 import pavlosgi.freecli.core.dsl.config._
-import pavlosgi.freecli.core.interpreters.config.parser._
 import pavlosgi.freecli.testkit.Test
 
-class ParserTest extends Test {
+class ConfigParserTest extends Test {
   describe("Arg tests") {
     it("parse string with name") {
       val res = parseConfig(Seq("--host", "localhost"))(string --"host")

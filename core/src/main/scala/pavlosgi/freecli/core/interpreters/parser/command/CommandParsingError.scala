@@ -1,10 +1,10 @@
-package pavlosgi.freecli.core.interpreters.command.parser
+package pavlosgi.freecli.core.interpreters.parser.command
 
 import cats.Show
 import cats.syntax.show._
 
 import pavlosgi.freecli.core.api.command.CommandField
-import pavlosgi.freecli.core.interpreters.config.parser.ParsingError
+import pavlosgi.freecli.core.interpreters.parser.config.ParsingError
 
 sealed trait CommandParsingError {
   val description: String

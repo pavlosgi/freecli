@@ -1,15 +1,15 @@
-package pavlosgi.freecli.core.interpreters.command
+package pavlosgi.freecli.core.interpreters.parser
 
 import cats.data._
 import cats.instances.all._
 import cats.syntax.all._
 import cats.~>
 
-import pavlosgi.freecli.core.interpreters.{Arguments, ResultTS}
 import pavlosgi.freecli.core.api.command._
-import pavlosgi.freecli.core.interpreters.config.parser.{ParsingError, ResultT => CResultT}
+import pavlosgi.freecli.core.interpreters.parser.config.{ParsingError, ResultT => CResultT}
+import pavlosgi.freecli.core.interpreters.ResultTS
 
-package object parser {
+package object command {
   type ResultT[A] = ResultTS[CommandParsingError, ParserState, A]
   def parseCommand[G](
     args: Seq[String])
@@ -24,8 +24,7 @@ package object parser {
       ParserState(Arguments(args), Seq.empty)).value.toValidated
   }
 
-  implicit val commandAlgebraParser =
-    new Algebra[ResultT[?], CResultT[?]] {
+  implicit object commandAlgebraParser extends Algebra[ResultT[?], CResultT[?]] {
 
       implicit def configNat: CResultT[?] ~> ResultT[?] = {
         new (CResultT[?] ~> ResultT[?]) {
@@ -137,7 +136,8 @@ package object parser {
       st <- ResultTS.get[CommandParsingError, ParserState]
       _    <- st.args.args.indexWhere(field.matches) match {
                 case idx if idx === -1 =>
-                  ResultTS.leftNE[CommandParsingError, ParserState, Unit](CommandNotFound(field))
+                  ResultTS.leftNE[CommandParsingError, ParserState, Unit](
+                    CommandNotFound(field))
 
                 case idx =>
                   ResultTS.set[CommandParsingError, ParserState](

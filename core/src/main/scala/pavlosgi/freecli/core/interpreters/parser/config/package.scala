@@ -1,13 +1,13 @@
-package pavlosgi.freecli.core.interpreters.config
+package pavlosgi.freecli.core.interpreters.parser
 
 import cats.data._
 import cats.instances.all._
 import cats.syntax.all._
 
 import pavlosgi.freecli.core.api.config._
-import pavlosgi.freecli.core.interpreters.{Arguments, ResultTS}
+import pavlosgi.freecli.core.interpreters.ResultTS
 
-package object parser {
+package object config {
   type ResultT[A] = ResultTS[ParsingError, Arguments, A]
 
   def parseConfig[G, A](

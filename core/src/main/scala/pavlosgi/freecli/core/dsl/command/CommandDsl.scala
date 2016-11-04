@@ -19,6 +19,14 @@ object CommandDsl {
     _.apply[F, C]
   }
 
+  implicit def dsl2FCommand2[F[_], A](
+    implicit ev: ConfigAlgebra[F],
+    ev2: Algebra[F, F]):
+    CommandDsl[A] => F[A] = {
+
+    _.apply[F, F]
+  }
+
   implicit def alternativeDsl: Alternative[CommandDsl] = {
     new Alternative[CommandDsl] {
       override def pure[A](x: A): CommandDsl[A] = new CommandDsl[A] {

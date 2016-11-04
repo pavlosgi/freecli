@@ -1,13 +1,12 @@
-package pavlosgi.freecli.core.interpreters.config
+package pavlosgi.freecli.core.interpreters.help.config
 
 import cats.syntax.all._
 
 import pavlosgi.freecli.core.api.config._
 import pavlosgi.freecli.core.dsl.config._
-import pavlosgi.freecli.core.interpreters.config.help._
 import pavlosgi.freecli.testkit.Test
 
-class HelpTest extends Test {
+class ConfigHelpTest extends Test {
   describe("Help") {
     it("show help") {
       case class PGConfig(host: String, port: Int, debug: Boolean)
@@ -24,7 +23,7 @@ class HelpTest extends Test {
           }
         }
 
-      val help = showConfigHelp(dsl)
+      val help = configHelp(dsl)
       print(help)
 
       Seq(

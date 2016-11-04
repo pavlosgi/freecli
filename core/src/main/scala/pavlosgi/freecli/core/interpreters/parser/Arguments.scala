@@ -1,4 +1,4 @@
-package pavlosgi.freecli.core.interpreters
+package pavlosgi.freecli.core.interpreters.parser
 
 import pavlosgi.freecli.core.api.config.FieldAbbreviation
 

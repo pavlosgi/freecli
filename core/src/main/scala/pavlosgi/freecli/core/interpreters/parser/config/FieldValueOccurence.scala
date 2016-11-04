@@ -1,4 +1,4 @@
-package pavlosgi.freecli.core.interpreters.config.parser
+package pavlosgi.freecli.core.interpreters.parser.config
 
 sealed trait FieldValueOccurrence {
   def asBase: FieldValueOccurrence = this
