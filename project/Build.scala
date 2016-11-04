@@ -39,11 +39,17 @@ object Build extends Build {
       "-language:experimental.macros",
       "-language:existentials",
       "-Ywarn-unused-import",
+//      "-Xprint:typer",
+      "-Xlint",
+      "-Yno-adapted-args",
+      "-Ywarn-dead-code",
+      "-Ywarn-numeric-widen",
+      "-Ywarn-value-discard",
+      "-Xfuture",
       "-Xfatal-warnings")
   )
 
-  val allSettings = commonSettings ++
-                    scalacSettings
+  val allSettings = commonSettings ++ scalacSettings
 
   lazy val root = Project("freecli-root", file("."))
     .settings(allSettings:_*)
