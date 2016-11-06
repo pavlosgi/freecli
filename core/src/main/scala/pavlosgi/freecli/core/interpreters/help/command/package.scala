@@ -5,11 +5,9 @@ import cats.syntax.show._
 import cats.~>
 
 import pavlosgi.freecli.core.api.command.{Algebra, Command, CommandField, PartialCommand}
-import pavlosgi.freecli.core.interpreters.help.config.{Result => CResult, _}
+import pavlosgi.freecli.core.interpreters.help.config._
 
 package object command {
-
-  type Result[A] = State[HelpState, Unit]
 
   def commandHelp[G](
     dsl: G)
@@ -19,12 +17,11 @@ package object command {
       ev(dsl).runS(HelpState(2, "")).value.text.newline
   }
 
-  implicit object commandAlgebraHelp extends Algebra[Result[?], CResult[?]] {
+  implicit object commandAlgebraHelp extends Algebra[Result[?], Result[?]] {
 
-    implicit def configNat: CResult[?] ~> Result[?] = {
-      new (CResult[?] ~> Result[?]) {
-        override def apply[A](fa: CResult[A]): Result[A] =
-          fa
+    implicit def configNat: Result[?] ~> Result[?] = {
+      new (Result[?] ~> Result[?]) {
+        override def apply[A](fa: Result[A]): Result[A] = fa
       }
     }
 
@@ -45,12 +42,12 @@ package object command {
       field: CommandField,
       config: H[A],
       run: A => P => Unit)
-     (implicit ev: H[A] => CResult[A]):
+     (implicit ev: H[A] => Result[A]):
       Result[PartialCommand[P]] = {
 
       for {
         _  <- getCommandFieldHelp(field)
-        _  <- indentation(_ + 2)
+        _  <- Result.indentation(_ + 2)
         _  <- ev(config)
       } yield ()
     }
@@ -63,8 +60,8 @@ package object command {
 
       for {
         _    <- getCommandFieldHelp(field)
-        _    <- indentation(_ + 2)
-        _    <- newline
+        _    <- Result.indentation(_ + 2)
+        _    <- Result.newline
         _    <- ev(subs)
       } yield ()
     }
@@ -73,15 +70,15 @@ package object command {
       field: CommandField,
       config: H[A],
       subs: G[A => PartialCommand[P]])
-     (implicit ev: H[A] => CResult[A],
+     (implicit ev: H[A] => Result[A],
       ev2: (G[A => PartialCommand[P]]) => Result[A => PartialCommand[P]]):
       Result[PartialCommand[P]] = {
 
       for {
         _    <- getCommandFieldHelp(field)
-        _    <- indentation(_ + 2)
+        _    <- Result.indentation(_ + 2)
         _    <- ev(config)
-        _    <- newline
+        _    <- Result.newline
         _    <- ev2(subs)
       } yield ()
     }
@@ -108,40 +105,13 @@ package object command {
 
       for {
         _ <- x.get
-        _ <- newline
+        _ <- Result.newline
         _ <- y.get
       } yield ()
     }
 
-    def indentation(f: Int => Int): Result[Unit] = {
-      for {
-        hs <- State.get[HelpState]
-        _ <- State.set(hs.copy(indentation = f(hs.indentation)))
-      } yield ()
-    }
-
-    def newline: Result[Unit] = {
-      for {
-        hs <- State.get[HelpState]
-        _ <- State.set(hs.copy(text = s"${hs.text}\n"))
-      } yield ()
-    }
-
-    def genHelp(text: String): Result[Unit] = {
-      for {
-        helpState <- State.get[HelpState]
-        space = (0 until helpState.indentation)
-          .foldLeft[String]("")((a, _) => a + " ")
-
-        _ <- State.set(HelpState(
-          helpState.indentation,
-          text = helpState.text + space + text.newline))
-
-      } yield ()
-    }
-
     def getCommandFieldHelp(field: CommandField): Result[Unit] = {
-      genHelp(field match {
+      Result.genHelp(field match {
         case CommandField(name, description) =>
           String.format("%-15s   %s", name.show.yellow, description.fold("")(_.show))
       })

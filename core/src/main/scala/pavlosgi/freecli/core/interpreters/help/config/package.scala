@@ -7,56 +7,16 @@ import pavlosgi.freecli.core.api.config._
 
 package object config {
 
-  type Result[_] = State[HelpState, Unit]
-
-  def configHelp[G, A]
-    (dsl: G)
-    (implicit ev: G => Result[A]):
-     String = {
+  def configHelp[G, A](
+    dsl: G)
+   (implicit ev: G => Result[A]):
+    String = {
 
     "Usage".bold.underline.newlineLeft.newline.newline +
       ev(dsl).runS(HelpState(2, "")).value.text.newline
   }
 
   implicit object configAlgebraHelp extends Algebra[Result] {
-
-    def genHelp(text: String): Result[Unit] = {
-      for {
-        helpState <- State.get[HelpState]
-        space = (0 until helpState.indentation)
-                  .foldLeft[String]("")((a, _) => a + " ")
-
-        _ <- State.set(HelpState(
-              helpState.indentation,
-              text = helpState.text + space + text.newline))
-
-      } yield ()
-    }
-
-    def genSubHelp(description: Description): Result[Unit] = {
-      for {
-        helpState <- State.get[HelpState]
-        _ <- State.set(HelpState(helpState.indentation, helpState.text + "\n"))
-        _ <- genHelp(description.show.cyan)
-      } yield ()
-    }
-
-    def genFieldHelp(field: Field): Result[Unit] = {
-      genHelp(field match {
-        case FieldNameOnly(name, description) =>
-          String.format("%-15s   %s", name.show, description.fold("")(_.show))
-
-        case FieldAbbreviationOnly(abbr, description) =>
-          String.format("%-15s   %s", abbr.show, description.fold("")(_.show))
-
-        case FieldNameAndAbbreviation(name, abbr, description) =>
-          String.format(
-            "%-15s   %s",
-            name.show +", " + abbr.show,
-            description.fold("")(_.show))
-      })
-    }
-
     override def arg[T, A](
       field: Field,
       f: T => A,
@@ -70,27 +30,24 @@ package object config {
       g: StringDecoder[T]):
       Result[A] = genFieldHelp(field)
 
-    override def flag[A]
-      (field: Field,
-       f: Boolean => A,
-       default: Option[Boolean]):
-       Result[A] = genFieldHelp(field)
+    override def flag[A](
+      field: Field,
+      f: Boolean => A,
+      default: Option[Boolean]):
+      Result[A] = genFieldHelp(field)
 
-    override def sub[G, A]
-      (description: Description,
-       dsl: G)
-      (implicit ev: G => Result[A]):
-       Result[A] =
+    override def sub[G, A](
+      description: Description,
+      dsl: G)
+     (implicit ev: G => Result[A]):
+      Result[A] = {
 
-        for {
-          _ <- genSubHelp(description)
-          state <- State.get[HelpState]
-          _ <- State.set(HelpState(state.indentation, state.text))
-          _ <- ev(dsl)
-          newState <- State.get[HelpState]
-          _ <- State.set(HelpState(state.indentation, newState.text))
-        } yield ()
+      for {
+         _ <- genSubHelp(description)
+         _ <- ev(dsl)
+      } yield ()
 
+    }
 
     override def pure[A](x: A): Result[A] = State.pure(())
 
@@ -105,5 +62,28 @@ package object config {
       } yield ()
     }
 
+    def genSubHelp(description: Description): Result[Unit] = {
+      for {
+        helpState <- State.get[HelpState]
+        _ <- State.set(HelpState(helpState.indentation, helpState.text.newline))
+        _ <- Result.genHelp(description.show.cyan)
+      } yield ()
+    }
+
+    def genFieldHelp(field: Field): Result[Unit] = {
+      Result.genHelp(field match {
+        case FieldNameOnly(name, description) =>
+          String.format("%-15s   %s", name.show, description.fold("")(_.show))
+
+        case FieldAbbreviationOnly(abbr, description) =>
+          String.format("%-15s   %s", abbr.show, description.fold("")(_.show))
+
+        case FieldNameAndAbbreviation(name, abbr, description) =>
+          String.format(
+            "%-15s   %s",
+            name.show +", " + abbr.show,
+            description.fold("")(_.show))
+      })
+    }
   }
 }
