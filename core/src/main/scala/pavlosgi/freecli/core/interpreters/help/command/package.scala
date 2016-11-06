@@ -38,10 +38,7 @@ package object command {
       run: P => Unit):
       Result[PartialCommand[P]] = {
 
-      for {
-        hs <- State.get[HelpState]
-        _  <- State.set(HelpState(hs.indentation, s"${hs.text}\n${cmdHelp(field)}"))
-      } yield ()
+      getCommandFieldHelp(field)
     }
 
     override def partialCmdWithConfig[H[_], A, P](
@@ -52,8 +49,8 @@ package object command {
       Result[PartialCommand[P]] = {
 
       for {
-        hs <- State.get[HelpState]
-        _  <- State.set(HelpState(hs.indentation + 2, s"${hs.text}\n${cmdHelp(field)}"))
+        _  <- getCommandFieldHelp(field)
+        _  <- indentation(_ + 2)
         _  <- ev(config)
       } yield ()
     }
@@ -65,8 +62,9 @@ package object command {
       Result[PartialCommand[P]] = {
 
       for {
-        hs   <- State.get[HelpState]
-        _    <- State.set(HelpState(hs.indentation + 2, s"${hs.text}\n${cmdHelp(field)}"))
+        _    <- getCommandFieldHelp(field)
+        _    <- indentation(_ + 2)
+        _    <- newline
         _    <- ev(subs)
       } yield ()
     }
@@ -80,9 +78,10 @@ package object command {
       Result[PartialCommand[P]] = {
 
       for {
-        hs   <- State.get[HelpState]
-        _    <- State.set(HelpState(hs.indentation + 2, s"${hs.text}\n${cmdHelp(field)}"))
+        _    <- getCommandFieldHelp(field)
+        _    <- indentation(_ + 2)
         _    <- ev(config)
+        _    <- newline
         _    <- ev2(subs)
       } yield ()
     }
@@ -109,9 +108,43 @@ package object command {
 
       for {
         _ <- x.get
+        _ <- newline
         _ <- y.get
       } yield ()
     }
-  }
 
+    def indentation(f: Int => Int): Result[Unit] = {
+      for {
+        hs <- State.get[HelpState]
+        _ <- State.set(hs.copy(indentation = f(hs.indentation)))
+      } yield ()
+    }
+
+    def newline: Result[Unit] = {
+      for {
+        hs <- State.get[HelpState]
+        _ <- State.set(hs.copy(text = s"${hs.text}\n"))
+      } yield ()
+    }
+
+    def genHelp(text: String): Result[Unit] = {
+      for {
+        helpState <- State.get[HelpState]
+        space = (0 until helpState.indentation)
+          .foldLeft[String]("")((a, _) => a + " ")
+
+        _ <- State.set(HelpState(
+          helpState.indentation,
+          text = helpState.text + space + text.newline))
+
+      } yield ()
+    }
+
+    def getCommandFieldHelp(field: CommandField): Result[Unit] = {
+      genHelp(field match {
+        case CommandField(name, description) =>
+          String.format("%-15s   %s", name.show.yellow, description.fold("")(_.show))
+      })
+    }
+  }
 }

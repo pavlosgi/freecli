@@ -6,6 +6,7 @@ package object help {
     def newline: String = s + "\n"
     def newlineLeft: String = "\n" + s
     def yellow: String = s"${Console.YELLOW}$s${Console.RESET}"
+    def cyan: String = s"${Console.CYAN}$s${Console.RESET}"
     def bold: String = s"${Console.BOLD}$s${Console.RESET}"
   }
 }

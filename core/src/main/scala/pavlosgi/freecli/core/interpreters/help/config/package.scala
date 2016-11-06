@@ -37,7 +37,7 @@ package object config {
       for {
         helpState <- State.get[HelpState]
         _ <- State.set(HelpState(helpState.indentation, helpState.text + "\n"))
-        _ <- genHelp(description.show.yellow)
+        _ <- genHelp(description.show.cyan)
       } yield ()
     }
 
