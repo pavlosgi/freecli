@@ -12,8 +12,14 @@ package object config {
    (implicit ev: G => Result[A]):
     String = {
 
-    "Usage".bold.underline.newlineLeft.newline.newline +
-      ev(dsl).runS(HelpState(2, "")).value.text.newline
+    (for {
+      _ <- Result.newline
+      _ <- Result.append("Usage".bold.underline)
+      _ <- Result.newline
+      _ <- Result.newline
+      _ <- ev(dsl)
+      _ <- Result.newline
+    } yield ()).runS(HelpState(2, "")).value.text
   }
 
   implicit object configAlgebraHelp extends Algebra[Result] {
@@ -64,24 +70,23 @@ package object config {
 
     def genSubHelp(description: Description): Result[Unit] = {
       for {
-        helpState <- State.get[HelpState]
-        _ <- State.set(HelpState(helpState.indentation, helpState.text.newline))
-        _ <- Result.genHelp(description.show.cyan)
+        _ <- Result.newline
+        _ <- Result.appendAtIndentation(description.show)
       } yield ()
     }
 
     def genFieldHelp(field: Field): Result[Unit] = {
-      Result.genHelp(field match {
+      Result.appendAtIndentation(field match {
         case FieldNameOnly(name, description) =>
-          String.format("%-15s   %s", name.show, description.fold("")(_.show))
+          String.format("%-15s   %s", name.show.yellow, description.fold("")(_.show))
 
         case FieldAbbreviationOnly(abbr, description) =>
-          String.format("%-15s   %s", abbr.show, description.fold("")(_.show))
+          String.format("%-15s   %s", abbr.show.yellow, description.fold("")(_.show))
 
         case FieldNameAndAbbreviation(name, abbr, description) =>
           String.format(
             "%-15s   %s",
-            name.show +", " + abbr.show,
+            s"${name.show.yellow}, ${abbr.show.yellow}",
             description.fold("")(_.show))
       })
     }

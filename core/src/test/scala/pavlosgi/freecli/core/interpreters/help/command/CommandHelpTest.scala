@@ -15,12 +15,12 @@ class CommandHelpTest extends Test {
       case class D(parent1: A, sub: C)
 
       val dsl =
-        cmd("command1") {
+        cmd("command1", "command1 description") {
           config[A] {
             int     --"intField"  ::
             boolean --"boolField"
           } ::
-          cmd("subcommand1") {
+          cmd("subcommand1", "subcommand1 description") {
             config[String](string --"subfield1") ::
             cmd("subcommand2") {
               cmd("subcommand3") {
@@ -48,17 +48,6 @@ class CommandHelpTest extends Test {
             runs[D](s => ())
           }
         }: CommandDsl[Command]
-
-//      val dsl =
-//        config[ServerConfig] {
-//          string --"host" -'h' -?"Server host" ::
-//          int    --"port" -?"Server port"      ::
-//          sub[PGConfig]("PostgreSQL configuration") {
-//            string --"pg-host" -'g' -?"PostgreSQL host" ::
-//            int    --"pg-port" -'p' -?"PostgreSQL port" ::
-//            flag   -'d'
-//          }
-//        }
 
       val help = commandHelp(dsl)
       print(help)

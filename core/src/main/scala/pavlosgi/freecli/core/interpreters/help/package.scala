@@ -20,25 +20,37 @@ package object help {
       } yield ()
     }
 
-    def genHelp(text: String): Result[Unit] = {
+    def appendAtIndentation(text: String): Result[Unit] = {
       for {
-        helpState <- State.get[HelpState]
-        space = (0 until helpState.indentation)
-          .foldLeft[String]("")((a, _) => a + " ")
+        hs <- State.get[HelpState]
+        indentation =
+          (0 until hs.indentation)
+           .foldLeft[String]("")((a, _) => a + " ")
 
-        _ <- State.set(HelpState(
-              helpState.indentation,
-              text = helpState.text + space + text.newline))
+        _ <- append(s"$indentation$text")
+        _ <- newline
+      } yield ()
+    }
 
+    def section(text: String): Result[Unit] = {
+      for {
+        _  <- newline
+        _  <- appendAtIndentation(s"$text:".bold)
+      } yield ()
+    }
+
+    def append(text: String): Result[Unit] = {
+      for {
+        hs <- State.get[HelpState]
+        _  <- State.set(hs.copy(text = s"${hs.text}$text"))
       } yield ()
     }
   }
 
   implicit class StringOps(s: String) {
     def underline: String = s"${Console.UNDERLINED}$s${Console.RESET}"
-    def newline: String = s + "\n"
-    def newlineLeft: String = "\n" + s
     def yellow: String = s"${Console.YELLOW}$s${Console.RESET}"
+    def magenta: String = s"${Console.MAGENTA}$s${Console.RESET}"
     def cyan: String = s"${Console.CYAN}$s${Console.RESET}"
     def bold: String = s"${Console.BOLD}$s${Console.RESET}"
   }

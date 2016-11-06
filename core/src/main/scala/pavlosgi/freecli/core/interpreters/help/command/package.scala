@@ -13,8 +13,14 @@ package object command {
     dsl: G)
    (implicit ev: G => Result[Command]): String = {
 
-    "Usage".bold.underline.newlineLeft.newline.newline +
-      ev(dsl).runS(HelpState(2, "")).value.text.newline
+    (for {
+      _ <- Result.newline
+      _ <- Result.append("Usage".bold.underline)
+      _ <- Result.newline
+      _ <- Result.newline
+      _ <- ev(dsl)
+      _ <- Result.newline
+    } yield ()).runS(HelpState(2, "")).value.text
   }
 
   implicit object commandAlgebraHelp extends Algebra[Result[?], Result[?]] {
@@ -49,6 +55,7 @@ package object command {
         _  <- getCommandFieldHelp(field)
         _  <- Result.indentation(_ + 2)
         _  <- ev(config)
+        _  <- Result.indentation(_ - 2)
       } yield ()
     }
 
@@ -61,8 +68,8 @@ package object command {
       for {
         _    <- getCommandFieldHelp(field)
         _    <- Result.indentation(_ + 2)
-        _    <- Result.newline
         _    <- ev(subs)
+        _    <- Result.indentation(_ - 2)
       } yield ()
     }
 
@@ -78,8 +85,11 @@ package object command {
         _    <- getCommandFieldHelp(field)
         _    <- Result.indentation(_ + 2)
         _    <- ev(config)
+        _    <- Result.indentation(_ - 2)
         _    <- Result.newline
+        _    <- Result.indentation(_ + 2)
         _    <- ev2(subs)
+        _    <- Result.indentation(_ - 2)
       } yield ()
     }
 
@@ -111,9 +121,9 @@ package object command {
     }
 
     def getCommandFieldHelp(field: CommandField): Result[Unit] = {
-      Result.genHelp(field match {
+      Result.appendAtIndentation(field match {
         case CommandField(name, description) =>
-          String.format("%-15s   %s", name.show.yellow, description.fold("")(_.show))
+          String.format("%-15s   %s", name.show.bold, description.fold("")(_.show))
       })
     }
   }
