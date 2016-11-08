@@ -6,6 +6,7 @@ import shapeless._
 import shapeless.ops.hlist.{LeftFolder, Prepend}
 
 import pavlosgi.freecli.core.api.config.Algebra
+import pavlosgi.freecli.core.dsl.generic
 
 trait ConfigDsl[A] {
   def apply[F[_]: Algebra]: F[A]

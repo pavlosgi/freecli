@@ -3,11 +3,17 @@ package pavlosgi.freecli.core.api.config
 import cats.Applicative
 
 trait Algebra[F[_]] extends Applicative[F] {
-  def arg[T, A](
+  def requiredOpt[T, A](
+    field: Field,
+    f: T => A,
+    g: StringDecoder[T]):
+    F[A]
+
+  def defaultedOpt[T, A](
     field: Field,
     f: T => A,
     g: StringDecoder[T],
-    default: Option[T]):
+    default: T):
     F[A]
 
   def opt[T, A](
@@ -19,7 +25,7 @@ trait Algebra[F[_]] extends Applicative[F] {
   def flag[A](
     field: Field,
     f: Boolean => A,
-    default: Option[Boolean]):
+    default: Boolean = false):
     F[A]
 
   def sub[G, A](

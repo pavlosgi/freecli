@@ -13,10 +13,10 @@ object DefaultBuilder {
     type DOut <: HList
 
     val intersection: Intersection.Aux[H, DefaultTypes[T], IOut]
-    val folder: LeftFolder.Aux[IOut, Option[T], aggregate.type, Option[T]]
+    val folder: LeftFolder.Aux[IOut, Option[T], aggregate.type, T]
     val diff: Diff.Aux[H, IOut, DOut]
 
-    def apply(list: H): (Option[T], DOut) = {
+    def apply(list: H): (T, DOut) = {
       val inters = intersection.apply(list)
       val default = getDefault(inters)(folder)
       val remaining = diff.apply(list)
@@ -32,34 +32,34 @@ object DefaultBuilder {
 
     implicit def canProduceDefault[T, H <: HList, Out0 <: HList, Out1 <: HList](
       implicit ev: Intersection.Aux[H, DefaultTypes[T], Out0],
-      ev2: LeftFolder.Aux[Out0, Option[T], aggregate.type, Option[T]],
+      ev2: LeftFolder.Aux[Out0, Option[T], aggregate.type, T],
       ev3: Diff.Aux[H, Out0, Out1]) = {
 
       new CanProduceDefault[T, H] {
-        override type IOut = Out0
-        override type DOut = Out1
-        override val intersection = ev
-        override val folder = ev2
-        override val diff = ev3
+        type IOut = Out0
+        type DOut = Out1
+        val intersection = ev
+        val folder = ev2
+        val diff = ev3
       }
 
     }
   }
 
   def getDefault[E <: HList, T](
-    events: E)
-   (implicit ev: LeftFolder.Aux[E, Option[T], aggregate.type, Option[T]]):
+    list: E)
+   (implicit ev: LeftFolder.Aux[E, Option[T], aggregate.type, T]):
     ev.Out = {
 
-    events.foldLeft(Option.empty[T])(aggregate)
+    list.foldLeft(Option.empty[T])(aggregate)
   }
 
   object aggregate extends Poly2 {
     implicit def caseOptionDefault[T]:
-      Case.Aux[Option[T], DefaultValue[T], Option[T]] =
+      Case.Aux[Option[T], DefaultValue[T], T] =
 
       at[Option[T], DefaultValue[T]] {
-        case (_, default) => Some(default.value)
+        case (_, default) => default.value
       }
   }
 }

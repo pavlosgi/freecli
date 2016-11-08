@@ -28,21 +28,37 @@ package object config {
 
   implicit object configAlgebraParser extends Algebra[ResultT[?]] {
 
-    override def arg[T, A](
+    override def requiredOpt[T, A](
       field: Field,
       f: T => A,
-      g: StringDecoder[T],
-      default: Option[T]):
+      g: StringDecoder[T]):
       ResultT[A] = {
 
       def mapping(o: Option[T]): ResultT[A] = {
-        o.orElse(default) match {
+        o match {
           case Some(s) =>
             ResultTS.right(f(s))
 
           case None    =>
             ResultTS.leftNE(ConfigFieldValueMissingParsingError(field))
         }
+      }
+
+      for {
+        res <- opt(field, mapping, g)
+        v <- res
+      } yield v
+    }
+
+    override def defaultedOpt[T, A](
+      field: Field,
+      f: T => A,
+      g: StringDecoder[T],
+      default: T):
+      ResultT[A] = {
+
+      def mapping(o: Option[T]): ResultT[A] = {
+        ResultTS.right(o.fold(f(default))(f))
       }
 
       for {
@@ -70,7 +86,7 @@ package object config {
     override def flag[A](
       field: Field,
       f: Boolean => A,
-      default: Option[Boolean]):
+      default: Boolean = false):
       ResultT[A] = {
 
       for {
@@ -79,7 +95,7 @@ package object config {
 
         res <- value match {
                  case None =>
-                   ResultTS.pure[ParsingError, Arguments, Boolean](default.getOrElse(false))
+                   ResultTS.pure[ParsingError, Arguments, Boolean](default)
 
                  case Some(FieldOnlyOccurrence) =>
                    ResultTS.pure[ParsingError, Arguments, Boolean](true)

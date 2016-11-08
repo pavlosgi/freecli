@@ -1,4 +1,4 @@
-package pavlosgi.freecli.core.dsl.config
+package pavlosgi.freecli.core.dsl
 
 import shapeless._
 

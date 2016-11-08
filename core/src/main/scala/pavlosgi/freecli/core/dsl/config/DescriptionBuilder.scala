@@ -49,11 +49,11 @@ private[dsl] object DescriptionBuilder {
 
 
   def getDescription[E <: HList](
-    events: E)
+    list: E)
    (implicit ev: LeftFolder.Aux[E, Option[Description], aggregate.type, Description]):
     ev.Out = {
 
-    events.foldLeft(Option.empty[Description])(aggregate)
+    list.foldLeft(Option.empty[Description])(aggregate)
   }
 
   object aggregate extends Poly2 {

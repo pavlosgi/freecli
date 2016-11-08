@@ -12,7 +12,7 @@ private[dsl] case class PartialField(
 
 private[dsl] object FieldBuilder {
   type FieldTypes =
-    FieldName :: FieldAbbreviation :: Option[Description] :: HNil
+    FieldName :: FieldAbbreviation :: Description :: HNil
 
   abstract class CanProduceField[H <: HList] {
     type IOut <: HList
@@ -94,19 +94,19 @@ private[dsl] object FieldBuilder {
       }
 
     implicit def caseFieldDescription:
-      Case.Aux[Field, Option[Description], Field] =
+      Case.Aux[Field, Description, Field] =
 
-      at[Field, Option[Description]] {
+      at[Field, Description] {
         case (field, d) =>
-          Field.withOptionalDescription(field, d)
+          Field.withOptionalDescription(field, Some(d))
       }
 
     implicit def casePartialFieldDescription:
-      Case.Aux[PartialField, Option[Description], PartialField] =
+      Case.Aux[PartialField, Description, PartialField] =
 
-      at[PartialField, Option[Description]] {
+      at[PartialField, Description] {
         case (field, d) =>
-          field.copy(description = d)
+          field.copy(description = Some(d))
       }
   }
 }

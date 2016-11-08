@@ -14,11 +14,11 @@ class ConfigHelpTest extends Test {
 
       val dsl =
         config[ServerConfig] {
-          string --"host" -'h' -?"Server host" ::
-          int    --"port" -?"Server port"      ::
+          string --"host" -'h' -~ des("Server host") ::
+          int    --"port" -~ des("Server port")      ::
           sub[PGConfig]("PostgreSQL configuration") {
-            string --"pg-host" -'g' -?"PostgreSQL host" ::
-            int    --"pg-port" -'p' -?"PostgreSQL port" ::
+            string --"pg-host" -'g' -~ des("PostgreSQL host") ::
+              (int    --"pg-port" -'p' -~ des("PostgreSQL port"): ConfigDsl[Int]) ::
             flag   -'d'
           }
         }

@@ -9,52 +9,61 @@ class ConfigDslTest extends Test {
   describe("ConfigDsl tests") {
 
     it("allow different styles") {
-      arg[String] --"one" -'c' -| "1"
-      string --"one" -'c' -| "1"
-      string("one", 'c', None, Some("1"))
+      req[String] --"one" -'c' -~ des("assaa")
+      opt[String] --"one" -'c' -~ or("1")
+      opt[String] --"one" -'c' -~ required
+      opt[String] --"one" -'c' -~ or("1")
+      string --"one" -'c' -~ or("1") -~ des("assaa")
       opt[String] --"one" -'c'
-      optString --"one" -'c'
-      optString("one", 'c', None)
+      string --"one" -'c'
     }
 
     it("allow using default in arg") {
-      string --"one" -| "1"
-      string --"one" -'c' -| "1"
+      string --"one" -~ or("1")
+      string --"one" -'c' -~ or("1")
     }
 
-    it("not allow using default in opt") {
-      illTyped("""optString --"one" -| "1"""")
-      illTyped("""optString --"one" -'c' -| "1"""")
+    it("allow using default with required") {
+      req[String] --"one" -~ or("1")
+      req[String] --"one" -'c' -~ or("2")
+      opt[String] --"one" -'c' -~ required -~ or("1")
+      opt[String] --"one" -'c' -~ or("1") -~ required
+    }
+
+    it("not allow using default or required twice") {
+      illTyped("""opt[String] --"one" -~ or("1") -~ or("1")""")
+      illTyped("""req[String] --"one" -'c' -~ required""")
     }
 
     it("allow using default in flag") {
-      flag --"one" -| true
-      flag --"one" -'c' -| false
+      flag --"one" -~ or(true)
     }
 
     it("sub compiles") {
-      case class A(value: String)
+      case class A(value: String, value2: String, value3: Option[String])
       sub[A]("description") {
-        string --"one"
+        string --"one" ::
+        string --"two" ::
+        opt[String] --"three"
       }: ConfigDsl[A]
     }
 
     it("sub compiles without type") {
       sub[(String, Int)]("description") {
-        string --"one" ::
+        string --"one" -~ or("s") ::
         int    --"two"
       }: ConfigDsl[(String, Int)]
     }
 
     it("sub does not compile without subconfiguration") {
       case class A(v: String)
-      illTyped("""sub[A] -?"description": ConfigDsl[A :: HNil]""")
+      illTyped("""sub[A] -~ des("description"): ConfigDsl[A :: HNil]""")
     }
 
     it("allow converting to tuple") {
       config {
-        string -- "one" -| "1" ::
-        string -- "two" -| "2"
+        string -- "one" -~ or("1") ::
+        string -- "two" -~ or("2")
       }: ConfigDsl[(String, String)]
     }
 
@@ -65,34 +74,34 @@ class ConfigDslTest extends Test {
       case class D(dFlag: Boolean)
 
       config[A] {
-        string --"aValue" -'a' -?"sa" -|"as" ::
-        flag   --"aFlag"  ::
-        int    --"aInt"   ::
+        string --"aValue" -'a' -~ des("sa") -~ or("as") ::
+        flag   --"aFlag" ::
+        int    --"aInt" ::
         sub[B]("b") {
           string --"bString" ::
           flag   --"bFlag"   ::
-          optInt --"bOptInt" ::
+          opt[Int] --"bOptInt" ::
           sub[C]("c") {
             string --"cString" ::
-            int    --"cInt" -| 1
+            int    --"cInt" -~ or(1)
           } ::
           sub[D]("d") {
-            flag -- "dFlag"
+            flag --"dFlag"
           }
         } ::
         string --"aString2"
       } ::
       config[A] {
-        string --"aValue" -'a' -?"sa" -|"as" ::
+        string --"aValue" -'a' -~ des("sa") -~ or("as") ::
         flag   --"aFlag"  ::
         int    --"aInt"   ::
         sub[B]("b") {
-          string --"bString" ::
+          string --"bString" -~ des("bString") ::
           flag   --"bFlag"   ::
-          optInt --"bOptInt" ::
+          opt[Int] --"bOptInt" ::
           sub[C]("c") {
-            (string --"cString" ::
-             int    --"cInt" -| 1): ConfigDsl[String :: Int :: HNil]
+            string --"cString" -~ des("cString") ::
+            int    --"cInt" -~ or(1)
           } ::
           sub[D]("d") {
             flag -- "dFlag"

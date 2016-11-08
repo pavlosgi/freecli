@@ -23,11 +23,17 @@ package object config {
   }
 
   implicit object configAlgebraHelp extends Algebra[Result] {
-    override def arg[T, A](
+    override def requiredOpt[T, A](
+      field: Field,
+      f: T => A,
+      g: StringDecoder[T]):
+      Result[A] = genFieldHelp(field)
+
+    override def defaultedOpt[T, A](
       field: Field,
       f: T => A,
       g: StringDecoder[T],
-      default: Option[T]):
+      default: T):
       Result[A] = genFieldHelp(field)
 
     override def opt[T, A](
@@ -39,7 +45,7 @@ package object config {
     override def flag[A](
       field: Field,
       f: Boolean => A,
-      default: Option[Boolean]):
+      default: Boolean = false):
       Result[A] = genFieldHelp(field)
 
     override def sub[G, A](

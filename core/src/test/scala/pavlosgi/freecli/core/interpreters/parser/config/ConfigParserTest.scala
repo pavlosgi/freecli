@@ -62,24 +62,24 @@ class ConfigParserTest extends Test {
     }
 
     it("parse string with default") {
-      val res = parseConfig(Seq())(string --"host" -'h'-| "myhost")
+      val res = parseConfig(Seq())(string --"host" -'h'-~ or("myhost"))
       res.valid should === ("myhost")
     }
 
     it("parse string with default and override") {
       val res = parseConfig(Seq("--host", "localhost"))(
-                  string --"host" -'h' -| "myhost")
+                  string --"host" -'h' -~ or("myhost"))
 
       res.valid should === ("localhost")
     }
 
     it("parse int arg with default") {
-      val res = parseConfig(Seq("-p", "8080"))(int --"port" -'p' -| 5432)
+      val res = parseConfig(Seq("-p", "8080"))(int --"port" -'p' -~ or(5432))
       res.valid should === (8080)
     }
 
     it("fail to parse int") {
-      val res = parseConfig(Seq("-p", "8080s"))(int --"port" -'p' -| 5432)
+      val res = parseConfig(Seq("-p", "8080s"))(int --"port" -'p' -~ or(5432))
 
       res.invalid.toList.collect {
         case c: StringDecoderParsingError => c.getClass.getName
@@ -102,12 +102,12 @@ class ConfigParserTest extends Test {
     }
 
     it("parse flag with default and override") {
-      val res = parseConfig(Seq("--debug"))(flag --"debug" -'d' -| false)
+      val res = parseConfig(Seq("--debug"))(flag --"debug" -'d' -~ or(false))
       res.valid should === (true)
     }
 
     it("fail to parse flag") {
-      val res = parseConfig(Seq("--debug", "truee"))(flag --"debug" -'d' -| false)
+      val res = parseConfig(Seq("--debug", "truee"))(flag --"debug" -'d' -~ or(false))
       res.invalid.toList.collect {
         case c: StringDecoderParsingError => c.getClass.getName
       }.distinct.size should === (1)
