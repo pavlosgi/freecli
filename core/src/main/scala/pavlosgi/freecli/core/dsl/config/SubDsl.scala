@@ -5,12 +5,9 @@ import shapeless._
 import shapeless.ops.hlist.{LeftFolder, Prepend, Selector}
 
 import pavlosgi.freecli.core.api.config._
-import pavlosgi.freecli.core.dsl.config.DescriptionBuilder.CanProduceDescription
 import pavlosgi.freecli.core.dsl.generic
 
-case class SubDsl[H <: HList, T](list: H)
-  extends FieldDescriptionDslOps[H]
-  with Builder[H] {
+case class SubDsl[H <: HList, T](list: H) extends Builder[H] {
 
   type Out[A <: HList] = SubDsl[A, T]
 

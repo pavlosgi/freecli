@@ -4,17 +4,33 @@ import shapeless._
 import shapeless.ops.hlist.Prepend
 
 import pavlosgi.freecli.core.api.config._
-import pavlosgi.freecli.core.dsl.config.DefaultBuilder.CanProduceDefault
-import pavlosgi.freecli.core.dsl.config.FieldBuilder.CanProduceField
 
-case class FlagDsl[H <: HList](list: H)
- extends FieldNameDslOps[H]
- with FieldDescriptionDslOps[H]
- with Builder[H] {
+case class FlagDsl[H <: HList](list: H) extends Builder[H] {
 
- type Out[A <: HList] = FlagDsl[A]
+  type Out[A <: HList] = FlagDsl[A]
 
- def -~(
+  def --(
+    name: String)
+   (implicit ev: Prepend[H, FieldName :: HNil],
+    ev2: NotContainsConstraint[H, FieldName]) =
+
+    append(FieldName(name))
+
+  def -(
+    abbr: Char)
+   (implicit ev: Prepend[H, FieldAbbreviation :: HNil],
+    ev2: NotContainsConstraint[H, FieldAbbreviation]) =
+
+    append(FieldAbbreviation(abbr))
+
+  def -~(
+    description: Description)
+   (implicit ev: Prepend[H, Description :: HNil],
+    ev2: NotContainsConstraint[H, Description]) =
+
+    append(description)
+
+  def -~(
    default: DefaultValue[Boolean])
   (implicit ev: Prepend[H, DefaultValue[Boolean] :: HNil],
    //TODO Make this constraint any DefaultValue[_]
@@ -22,9 +38,9 @@ case class FlagDsl[H <: HList](list: H)
 
   append(default)
 
- override def append[A](t: A)(implicit ev: Prepend[H, ::[A, HNil]]): FlagDsl[ev.Out] = {
+  override def append[A](t: A)(implicit ev: Prepend[H, ::[A, HNil]]): FlagDsl[ev.Out] = {
    new FlagDsl(list :+ t)
- }
+  }
 }
 
 object FlagDsl {

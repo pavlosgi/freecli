@@ -4,38 +4,54 @@ import shapeless._
 import shapeless.ops.hlist.Prepend
 
 import pavlosgi.freecli.core.api.config._
-import pavlosgi.freecli.core.dsl.config.DefaultBuilder.CanProduceDefault
-import pavlosgi.freecli.core.dsl.config.FieldBuilder.CanProduceField
 
-case class OptDsl[H <: HList, T](list: H)
- extends FieldNameDslOps[H]
- with FieldDescriptionDslOps[H]
- with Builder[H] {
+case class OptDsl[H <: HList, T](list: H) extends Builder[H] {
 
- type Out[A <: HList] = OptDsl[A, T]
+  type Out[A <: HList] = OptDsl[A, T]
 
- def -~(
-   default: DefaultValue[T])
-  (implicit ev: Prepend[H, DefaultValue[T] :: HNil],
-   //TODO Make this constraint any DefaultValue[_]
-   ev2: NotContainsConstraint[H, DefaultValue[T]]) =
+  def --(
+    name: String)
+   (implicit ev: Prepend[H, FieldName :: HNil],
+    ev2: NotContainsConstraint[H, FieldName]) =
 
-  append(default)
+    append(FieldName(name))
 
- def -~(
-   required: Required)
-  (implicit ev: Prepend[H, Required :: HNil],
-   ev2: NotContainsConstraint[H, Required]) =
+  def -(
+    abbr: Char)
+   (implicit ev: Prepend[H, FieldAbbreviation :: HNil],
+    ev2: NotContainsConstraint[H, FieldAbbreviation]) =
 
-  append(required)
+    append(FieldAbbreviation(abbr))
 
- override def append[A](
+  def -~(
+    description: Description)
+   (implicit ev: Prepend[H, Description :: HNil],
+    ev2: NotContainsConstraint[H, Description]) =
+
+    append(description)
+
+  def -~(
+    default: DefaultValue[T])
+   (implicit ev: Prepend[H, DefaultValue[T] :: HNil],
+    //TODO Make this constraint any DefaultValue[_]
+    ev2: NotContainsConstraint[H, DefaultValue[T]]) =
+
+    append(default)
+
+  def -~(
+    required: Required)
+   (implicit ev: Prepend[H, Required :: HNil],
+    ev2: NotContainsConstraint[H, Required]) =
+
+    append(required)
+
+  override def append[A](
    t: A)
   (implicit ev: Prepend[H, ::[A, HNil]]):
    OptDsl[ev.Out, T] = {
 
    new OptDsl(list :+ t)
- }
+  }
 }
 
 object OptDsl {
