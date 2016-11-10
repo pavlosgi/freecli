@@ -12,7 +12,7 @@ object Build extends Build {
   val commonSettings = Seq(
     organization := "pavlosgi",
     version := appVersion,
-    scalaVersion := "2.11.8",
+    scalaVersion := "2.12.0",
     offline := true,
     excludeFilter in unmanagedResources := NothingFilter,
     resolvers := Seq(
@@ -21,8 +21,8 @@ object Build extends Build {
       Opts.resolver.sonatypeSnapshots,
       Classpaths.sbtPluginReleases
     ),
-    addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.7.1"),
-    addCompilerPlugin("com.milessabin" % "si2712fix-plugin_2.11.8" % "1.1.0"),
+    addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.3"),
+    addCompilerPlugin("com.milessabin" % "si2712fix-plugin_2.11.8" % "1.2.0"),
     scalacOptions in (Compile, console) := Seq.empty,
     scalacOptions in (Test, console) := Seq.empty,
     initialCommands in console := """"""
@@ -68,8 +68,8 @@ object Build extends Build {
     .settings(allSettings:_*)
     .settings(libraryDependencies ++=
       Dependencies.cats ++
-      Dependencies.kittens ++
       Dependencies.shapeless)
+
     .dependsOn(freecli_testkit % Test)
 
   lazy val freecli_examples = Project("freecli-examples", file("examples"))
@@ -84,31 +84,21 @@ object Build extends Build {
 }
 
 object Dependencies {
-  val shapeless = Seq("com.chuusai" %% "shapeless" % "2.3.2")
+  val shapeless = Seq("com.chuusai" % "shapeless_2.12" % "2.3.2")
 
   val scalatest = Seq(
     "org.scalactic" %% "scalactic" % "3.0.0",
-    "org.scalatest" % "scalatest_2.11" % "3.0.0"
+    "org.scalatest" %% "scalatest" % "3.0.0"
   )
 
-  val catsVersion = "0.8.0"
+  val catsVersion = "0.8.1"
   val cats = Seq("org.typelevel" %% "cats" % catsVersion)
 
-  val circeVersion = "0.6.0-RC1"
+  val circeVersion = "0.6.0"
 
   val circe = Seq(
     "io.circe" %% "circe-core",
     "io.circe" %% "circe-generic",
     "io.circe" %% "circe-parser"
   ).map(_ % circeVersion)
-
-  val effCats = Seq("org.atnos" %% "eff-cats" % "1.7-20160526110310-1704d42")
-
-  val commonsIO = Seq("commons-io" % "commons-io" % "2.5")
-  val config = Seq("com.typesafe" % "config" % "1.3.0")
-
-  val nscalaTime = Seq("com.github.nscala-time" %% "nscala-time" % "2.12.0")
-  
-  val kittens = Seq("org.typelevel" %% "kittens" %"1.0.0-M3")
-
 }
