@@ -26,14 +26,8 @@ package object config {
     override def requiredOpt[T, A](
       field: Field,
       f: T => A,
-      g: StringDecoder[T]):
-      Result[A] = genFieldHelp(field)
-
-    override def defaultedOpt[T, A](
-      field: Field,
-      f: T => A,
       g: StringDecoder[T],
-      default: T):
+      default: Option[T]):
       Result[A] = genFieldHelp(field)
 
     override def opt[T, A](
@@ -44,8 +38,7 @@ package object config {
 
     override def flag[A](
       field: Field,
-      f: Boolean => A,
-      default: Boolean = false):
+      f: Boolean => A):
       Result[A] = genFieldHelp(field)
 
     override def sub[G, A](

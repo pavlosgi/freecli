@@ -35,10 +35,6 @@ class ConfigDslTest extends Test {
       illTyped("""req[String] --"one" -'c' -~ required""")
     }
 
-    it("allow using default in flag") {
-      flag --"one" -~ or(true)
-    }
-
     it("sub compiles") {
       case class A(value: String, value2: String, value3: Option[String])
       sub[A]("description") {

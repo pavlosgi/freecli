@@ -61,63 +61,70 @@ object OptDsl {
   def opt[H <: HList, T](list: H)(implicit decoder: StringDecoder[T]) =
     new OptDsl[H, T](list)
 
-  implicit def canProduceConfigDsl[H <: HList, T, Out <: HList](
-    implicit canProduceField: CanProduceField.Aux[H, HNil],
-    decoder: StringDecoder[T]):
-    CanProduceConfigDslF2[OptDsl, H, T, Option[T]] = {
+  trait CanProduceConfigDsl[F[_ <: HList, _], H <: HList, T, A] {
+    def apply(a: F[H, T]): ConfigDsl[A]
+  }
 
-    new CanProduceConfigDslF2[OptDsl, H, T, Option[T]] {
-      def apply(o: OptDsl[H, T]): ConfigDsl[Option[T]] = {
-        val (field, _) = canProduceField.apply(o.list)
+  object CanProduceConfigDsl {
+    implicit def canProduceConfigDsl[H <: HList, T, Out <: HList](
+      implicit canProduceField: CanProduceField.Aux[H, HNil],
+      decoder: StringDecoder[T]):
+      CanProduceConfigDsl[OptDsl, H, T, Option[T]] = {
 
-        new ConfigDsl[Option[T]] {
-          override def apply[F[_] : Algebra]: F[Option[T]] =
-            implicitly[Algebra[F]].opt[T, Option[T]](field, identity, decoder)
+      new CanProduceConfigDsl[OptDsl, H, T, Option[T]] {
+        def apply(o: OptDsl[H, T]): ConfigDsl[Option[T]] = {
+          val (field, _) = canProduceField.apply(o.list)
 
+          new ConfigDsl[Option[T]] {
+            override def apply[F[_] : Algebra]: F[Option[T]] =
+              implicitly[Algebra[F]].opt[T, Option[T]](field, identity, decoder)
+
+          }
         }
       }
     }
-  }
 
-  implicit def canProduceConfigDslWithDefault[H <: HList, T, Out <: HList](
-    implicit canProduceField: CanProduceField.Aux[H, Out],
-    canProduceDefault: CanProduceDefault.Aux[T, Out, _],
-    decoder: StringDecoder[T]):
-    CanProduceConfigDslF2[OptDsl, H, T, T] = {
+    implicit def canProduceConfigDslWithDefault[H <: HList, T, Out <: HList](
+      implicit canProduceField: CanProduceField.Aux[H, Out],
+      canProduceDefault: CanProduceDefault.Aux[T, Out, _],
+      decoder: StringDecoder[T]):
+      CanProduceConfigDsl[OptDsl, H, T, T] = {
 
-    new CanProduceConfigDslF2[OptDsl, H, T, T] {
-      def apply(o: OptDsl[H, T]): ConfigDsl[T] = {
-        val (field, remaining) = canProduceField.apply(o.list)
-        val (default, _) = canProduceDefault.apply(remaining)
+      new CanProduceConfigDsl[OptDsl, H, T, T] {
+        def apply(o: OptDsl[H, T]): ConfigDsl[T] = {
+          val (field, remaining) = canProduceField.apply(o.list)
+          val (default, _) = canProduceDefault.apply(remaining)
 
-        new ConfigDsl[T] {
-          override def apply[F[_] : Algebra]: F[T] =
-            implicitly[Algebra[F]].defaultedOpt[T, T](
-              field,
-              identity,
-              decoder,
-              default)
+          new ConfigDsl[T] {
+            override def apply[F[_] : Algebra]: F[T] =
+              implicitly[Algebra[F]].requiredOpt[T, T](
+                field,
+                identity,
+                decoder,
+                Some(default))
+          }
         }
       }
     }
-  }
 
-  implicit def canProduceConfigDslWithRequired[H <: HList, T, Out <: HList](
-    implicit canProduceField: CanProduceField.Aux[H, Out],
-    required: Out =:= (Required :: HNil),
-    decoder: StringDecoder[T]):
-    CanProduceConfigDslF2[OptDsl, H, T, T] = {
+    implicit def canProduceConfigDslWithRequired[H <: HList, T, Out <: HList](
+      implicit canProduceField: CanProduceField.Aux[H, Out],
+      required: Out =:= (Required :: HNil),
+      decoder: StringDecoder[T]):
+      CanProduceConfigDsl[OptDsl, H, T, T] = {
 
-    new CanProduceConfigDslF2[OptDsl, H, T, T] {
-      def apply(o: OptDsl[H, T]): ConfigDsl[T] = {
-        val (field, _) = canProduceField.apply(o.list)
+      new CanProduceConfigDsl[OptDsl, H, T, T] {
+        def apply(o: OptDsl[H, T]): ConfigDsl[T] = {
+          val (field, _) = canProduceField.apply(o.list)
 
-        new ConfigDsl[T] {
-          override def apply[F[_] : Algebra]: F[T] =
-            implicitly[Algebra[F]].requiredOpt[T, T](
-              field,
-              identity,
-              decoder)
+          new ConfigDsl[T] {
+            override def apply[F[_] : Algebra]: F[T] =
+              implicitly[Algebra[F]].requiredOpt[T, T](
+                field,
+                identity,
+                decoder,
+                None)
+          }
         }
       }
     }
@@ -125,7 +132,7 @@ object OptDsl {
 
   implicit def toConfigDsl[H <: HList, T, A](
     o: OptDsl[H, T])
-   (implicit canProduceConfigDsl: CanProduceConfigDslF2[OptDsl, H, T, A]):
+   (implicit canProduceConfigDsl: CanProduceConfigDsl[OptDsl, H, T, A]):
     ConfigDsl[A] = {
 
     canProduceConfigDsl.apply(o)
@@ -133,14 +140,14 @@ object OptDsl {
 
   implicit def toConfigDslMerger[H <: HList, T, A](
     o: OptDsl[H, T])
-   (implicit canProduceConfigDsl: CanProduceConfigDslF2[OptDsl, H, T, A]):
+   (implicit canProduceConfigDsl: CanProduceConfigDsl[OptDsl, H, T, A]):
     ConfigDsl.Merger[A] = {
 
     canProduceConfigDsl.apply(o)
   }
 
   implicit def dsl2FA[H <: HList, T, A, Out <: HList, F[_]: Algebra](
-    implicit canProduceConfigDsl: CanProduceConfigDslF2[OptDsl, H, T, A]):
+    implicit canProduceConfigDsl: CanProduceConfigDsl[OptDsl, H, T, A]):
     OptDsl[H, T] => F[A] = {
 
     canProduceConfigDsl(_).apply[F]

@@ -33,14 +33,13 @@ class ConfigParserTest extends Test {
 
       res.invalid.toList.collect {
         case c: UnknownArgumentsParsingError => c.getClass.getName
-        case c: ConfigFieldValueMissingParsingError => c.getClass.getName
-      }.distinct.size should === (2)
+      }.distinct.size should === (1)
 
       val res1 = parseConfig(Seq("host", "localhost"))(dsl)
 
       res1.invalid.toList.collect {
         case c: UnknownArgumentsParsingError => c.getClass.getName
-        case c: ConfigFieldValueMissingParsingError => c.getClass.getName
+        case c: ConfigFieldMissingParsingError => c.getClass.getName
       }.distinct.size should === (2)
     }
 
@@ -48,14 +47,25 @@ class ConfigParserTest extends Test {
       val dsl = string --"host" -'h'
       val res = parseConfig(Seq("--h", "localhost"))(dsl)
 
+      println(res.invalid)
       res.invalid.toList.collect {
         case c: UnknownArgumentsParsingError => c.getClass.getName
-        case c: ConfigFieldValueMissingParsingError => c.getClass.getName
+        case c: ConfigFieldMissingParsingError => c.getClass.getName
       }.distinct.size should === (2)
 
       val res1 = parseConfig(Seq("h", "localhost"))(dsl)
 
       res1.invalid.toList.collect {
+        case c: UnknownArgumentsParsingError => c.getClass.getName
+        case c: ConfigFieldMissingParsingError => c.getClass.getName
+      }.distinct.size should === (2)
+    }
+
+    it("fail to parse string if value not provided") {
+      val dsl = string --"host" -'h'
+      val res = parseConfig(Seq("-h"))(dsl)
+
+      res.invalid.toList.collect {
         case c: UnknownArgumentsParsingError => c.getClass.getName
         case c: ConfigFieldValueMissingParsingError => c.getClass.getName
       }.distinct.size should === (2)
@@ -86,31 +96,14 @@ class ConfigParserTest extends Test {
       }.distinct.size should === (1)
     }
 
-    it("parse flag with false value") {
-      val res = parseConfig(Seq("--debug", "false"))(flag --"debug" -'d')
-      res.valid should === (false)
-    }
-
-    it("parse flag with true value") {
-      val res = parseConfig(Seq("--debug", "true"))(flag --"debug" -'d')
+    it("parse flag exists") {
+      val res = parseConfig(Seq("--debug"))(flag --"debug" -'d')
       res.valid should === (true)
     }
 
-    it("parse missing flag without default to false") {
+    it("parse flag missing") {
       val res = parseConfig(Seq())(flag --"debug" -'d')
       res.valid should === (false)
-    }
-
-    it("parse flag with default and override") {
-      val res = parseConfig(Seq("--debug"))(flag --"debug" -'d' -~ or(false))
-      res.valid should === (true)
-    }
-
-    it("fail to parse flag") {
-      val res = parseConfig(Seq("--debug", "truee"))(flag --"debug" -'d' -~ or(false))
-      res.invalid.toList.collect {
-        case c: StringDecoderParsingError => c.getClass.getName
-      }.distinct.size should === (1)
     }
 
     it("parse opt") {
@@ -128,8 +121,13 @@ class ConfigParserTest extends Test {
       res.invalid.toList.collect {
         case c: StringDecoderParsingError => c.getClass.getName
       }.distinct.size should === (1)
-    }
 
+      val res2 = parseConfig(Seq("--debug"))(optInt --"debug" -'d')
+      res2.invalid.toList.collect {
+        case c: UnknownArgumentsParsingError => c.getClass.getName
+        case c: ConfigFieldValueMissingParsingError => c.getClass.getName
+      }.distinct.size should === (2)
+    }
 
     it("parse tuple string int with name") {
       val res = parseConfig(Seq("--host", "localhost", "--port", "8080"))(
@@ -241,11 +239,11 @@ class ConfigParserTest extends Test {
       parseConfig(args)(dsl).valid should === (
         A(
           "aString",
-          true,
+          aFlag = true,
           1,
           B(
             "bString",
-            true,
+            bFlag = true,
             Some(1),
             C(
               "cString",
@@ -255,16 +253,18 @@ class ConfigParserTest extends Test {
     }
 
     it("should allow passing multiple field abbreviations under a single slash for flags") {
-      case class Flags(first: Boolean, second: Boolean, third: Boolean)
+      case class Flags(first: Boolean, second: Boolean, third: Boolean, fourth: Boolean)
 
       val dsl =
         config[Flags] {
-          flag - 'p' ::
-          flag - 'n' ::
-          flag - 's'
+          flag   - 'p' ::
+          flag   - 'n' ::
+          flag   - 's' ::
+          flag   - 't'
         }
 
-      parseConfig(Seq("-pns"))(dsl).valid should === (Flags(true, true, true))
+      parseConfig(Seq("-pnst"))(dsl).valid should === (
+        Flags(first = true, second = true, third = true, fourth = true))
 
       case class Flags2(first: Boolean, second: Boolean, third: String)
 
@@ -278,6 +278,17 @@ class ConfigParserTest extends Test {
       parseConfig(Seq("-pn", "-s", "string"))(dsl2).valid should === (
         Flags2(true, true, "string"))
 
+    }
+
+    it("should escape multiple field abbreviation split") {
+      case class A(first: String)
+
+      val dsl =
+        config[A] {
+          string - 'p'
+        }
+
+      parseConfig(Seq("-p", "-host"))(dsl).valid should === (A("-host"))
     }
 
     it("should throw a runtime exception for bad field names") {

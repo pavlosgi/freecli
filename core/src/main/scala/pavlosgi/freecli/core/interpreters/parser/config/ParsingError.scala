@@ -24,6 +24,12 @@ case class UnknownArgumentsParsingError(args: Seq[String])
   val description = s"Unknown arguments passed ${args.mkString(", ")}"
 }
 
+case class ConfigFieldMissingParsingError(field: Field)
+  extends ParsingError  {
+
+  val description = s"Field ${field.show} is missing"
+}
+
 case class ConfigFieldValueMissingParsingError(field: Field)
   extends ParsingError  {
 
