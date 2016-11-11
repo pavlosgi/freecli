@@ -1,9 +1,9 @@
-package pavlosgi.freecli.core.interpreters.parser.config
+package pavlosgi.freecli.core.interpreters.parser.options
 
 import cats.Show
 import cats.syntax.show._
 
-import pavlosgi.freecli.core.api.config.{Field, StringDecoderError}
+import pavlosgi.freecli.core.api.options.{Field, StringDecoderError}
 
 sealed trait ParsingError {
   val description: String
@@ -24,13 +24,13 @@ case class UnknownArgumentsParsingError(args: Seq[String])
   val description = s"Unknown arguments passed ${args.mkString(", ")}"
 }
 
-case class ConfigFieldMissingParsingError(field: Field)
+case class OptionFieldMissingParsingError(field: Field)
   extends ParsingError  {
 
   val description = s"Field ${field.show} is missing"
 }
 
-case class ConfigFieldValueMissingParsingError(field: Field)
+case class OptionFieldValueMissingParsingError(field: Field)
   extends ParsingError  {
 
   val description = s"Field value for ${field.show} is missing"

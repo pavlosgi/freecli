@@ -1,10 +1,10 @@
-package pavlosgi.freecli.core.dsl.config
+package pavlosgi.freecli.core.dsl.options
 
 import shapeless._
 import shapeless.ops.hlist.{Diff, Intersection, LeftFolder}
 
-import pavlosgi.freecli.core.api.config._
-import pavlosgi.freecli.core.dsl.config.CanProduceField._
+import pavlosgi.freecli.core.api.options._
+import pavlosgi.freecli.core.dsl.options.CanProduceField._
 
 trait CanProduceField[H <: HList] {
   type IOut <: HList
@@ -101,10 +101,10 @@ object CanProduceField {
   }
 
   def getField[E <: HList](
-    events: E)
+    list: E)
    (implicit ev: LeftFolder.Aux[E, PartialField, aggregate.type, Field]):
     ev.Out = {
 
-    events.foldLeft(PartialField(None, None, None))(aggregate)
+    list.foldLeft(PartialField(None, None, None))(aggregate)
   }
 }

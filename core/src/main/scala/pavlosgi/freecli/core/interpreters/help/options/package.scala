@@ -3,11 +3,11 @@ package pavlosgi.freecli.core.interpreters.help
 import cats.data._
 import cats.syntax.all._
 
-import pavlosgi.freecli.core.api.config._
+import pavlosgi.freecli.core.api.options._
 
-package object config {
+package object options {
 
-  def configHelp[G, A](
+  def optionsHelp[G, A](
     dsl: G)
    (implicit ev: G => Result[A]):
     String = {
@@ -70,12 +70,12 @@ package object config {
     def genSubHelp(description: Description): Result[Unit] = {
       for {
         _ <- Result.newline
-        _ <- Result.appendAtIndentation(description.show)
+        _ <- Result.appendAtIndentationLn(description.show)
       } yield ()
     }
 
     def genFieldHelp(field: Field): Result[Unit] = {
-      Result.appendAtIndentation(field match {
+      Result.appendAtIndentationLn(field match {
         case FieldNameOnly(name, description) =>
           String.format("%-15s   %s", name.show.yellow, description.fold("")(_.show))
 

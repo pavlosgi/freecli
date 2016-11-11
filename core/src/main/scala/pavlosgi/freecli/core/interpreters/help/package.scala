@@ -28,6 +28,12 @@ package object help {
            .foldLeft[String]("")((a, _) => a + " ")
 
         _ <- append(s"$indentation$text")
+      } yield ()
+    }
+
+    def appendAtIndentationLn(text: String): Result[Unit] = {
+      for {
+        _ <- appendAtIndentation(text)
         _ <- newline
       } yield ()
     }

@@ -1,29 +1,29 @@
-package pavlosgi.freecli.core.interpreters.help.config
+package pavlosgi.freecli.core.interpreters.help.options
 
 import cats.syntax.all._
 
-import pavlosgi.freecli.core.api.config._
-import pavlosgi.freecli.core.dsl.config._
+import pavlosgi.freecli.core.api.options._
+import pavlosgi.freecli.core.dsl.options._
 import pavlosgi.freecli.testkit.Test
 
-class ConfigHelpTest extends Test {
+class OptionsHelpTest extends Test {
   describe("Help") {
     it("show help") {
       case class PGConfig(host: String, port: Int, debug: Boolean)
       case class ServerConfig(host: String, port: Int, pgConfig: PGConfig)
 
       val dsl =
-        config[ServerConfig] {
+        options[ServerConfig] {
           string --"host" -'h' -~ des("Server host") ::
           int    --"port" -~ des("Server port")      ::
           sub[PGConfig]("PostgreSQL configuration") {
             string --"pg-host" -'g' -~ des("PostgreSQL host") ::
-              (int    --"pg-port" -'p' -~ des("PostgreSQL port"): ConfigDsl[Int]) ::
+              (int    --"pg-port" -'p' -~ des("PostgreSQL port"): OptionsDsl[Int]) ::
             flag   -'d'
           }
         }
 
-      val help = configHelp(dsl)
+      val help = optionsHelp(dsl)
       print(help)
 
       Seq(

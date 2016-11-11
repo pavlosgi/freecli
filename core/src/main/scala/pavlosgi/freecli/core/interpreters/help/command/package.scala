@@ -5,7 +5,7 @@ import cats.syntax.show._
 import cats.~>
 
 import pavlosgi.freecli.core.api.command.{Algebra, Command, CommandField, PartialCommand}
-import pavlosgi.freecli.core.interpreters.help.config._
+import pavlosgi.freecli.core.interpreters.help.options._
 
 package object command {
 
@@ -121,7 +121,7 @@ package object command {
     }
 
     def getCommandFieldHelp(field: CommandField): Result[Unit] = {
-      Result.appendAtIndentation(field match {
+      Result.appendAtIndentationLn(field match {
         case CommandField(name, description) =>
           String.format("%-15s   %s", name.show.bold, description.fold("")(_.show))
       })

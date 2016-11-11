@@ -1,11 +1,10 @@
-package pavlosgi.freecli.core.dsl.config
+package pavlosgi.freecli.core.dsl.options
 
-import shapeless._
 import shapeless.test.illTyped
 
 import pavlosgi.freecli.testkit.Test
 
-class ConfigDslTest extends Test {
+class OptionsDslTest extends Test {
   describe("ConfigDsl tests") {
 
     it("allow different styles") {
@@ -41,14 +40,14 @@ class ConfigDslTest extends Test {
         string --"one" ::
         string --"two" ::
         opt[String] --"three"
-      }: ConfigDsl[A]
+      }: OptionsDsl[A]
     }
 
     it("sub compiles without type") {
       sub[(String, Int)]("description") {
         string --"one" -~ or("s") ::
         int    --"two"
-      }: ConfigDsl[(String, Int)]
+      }: OptionsDsl[(String, Int)]
     }
 
     it("sub does not compile without subconfiguration") {
@@ -57,10 +56,10 @@ class ConfigDslTest extends Test {
     }
 
     it("allow converting to tuple") {
-      config {
+      options {
         string -- "one" -~ or("1") ::
         string -- "two" -~ or("2")
-      }: ConfigDsl[(String, String)]
+      }: OptionsDsl[(String, String)]
     }
 
     it("complex configuration") {
@@ -69,7 +68,7 @@ class ConfigDslTest extends Test {
       case class C(cString: String, cInt: Int)
       case class D(dFlag: Boolean)
 
-      config[A] {
+      options[A] {
         string --"aValue" -'a' -~ des("sa") -~ or("as") ::
         flag   --"aFlag" ::
         int    --"aInt" ::
@@ -87,7 +86,7 @@ class ConfigDslTest extends Test {
         } ::
         string --"aString2"
       } ::
-      config[A] {
+      options[A] {
         string --"aValue" -'a' -~ des("sa") -~ or("as") ::
         flag   --"aFlag"  ::
         int    --"aInt"   ::

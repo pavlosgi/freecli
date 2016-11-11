@@ -2,9 +2,9 @@ package pavlosgi.freecli.core.api.command
 
 import cats.{Alternative, ~>}
 
-import pavlosgi.freecli.core.api.config.{Algebra => ConfigAlgebra}
+import pavlosgi.freecli.core.api.options.{Algebra => OptionsAlgebra}
 
-abstract class Algebra[F[_], C[_]: ConfigAlgebra]
+abstract class Algebra[F[_], C[_]: OptionsAlgebra]
   extends Alternative[F] {
 
   implicit def configNat: C ~> F

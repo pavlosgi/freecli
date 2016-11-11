@@ -1,30 +1,30 @@
-package pavlosgi.freecli.core.dsl.config
+package pavlosgi.freecli.core.dsl.options
 
 import cats.Applicative
 import cats.syntax.all._
 import shapeless._
 import shapeless.ops.hlist.{LeftFolder, Prepend}
 
-import pavlosgi.freecli.core.api.config.Algebra
+import pavlosgi.freecli.core.api.options.Algebra
 import pavlosgi.freecli.core.dsl.generic
 
-trait ConfigDsl[A] {
+trait OptionsDsl[A] {
   def apply[F[_]: Algebra]: F[A]
 }
 
-object ConfigDsl {
-  implicit def dsl2FA[A, F[_]: Algebra]: ConfigDsl[A] => F[A] = _.apply[F]
+object OptionsDsl {
+  implicit def dsl2FA[A, F[_]: Algebra]: OptionsDsl[A] => F[A] = _.apply[F]
 
-  implicit def applicativeDsl: Applicative[ConfigDsl] = {
-    new Applicative[ConfigDsl] {
-      override def pure[A](x: A): ConfigDsl[A] = new ConfigDsl[A] {
+  implicit def applicativeDsl: Applicative[OptionsDsl] = {
+    new Applicative[OptionsDsl] {
+      override def pure[A](x: A): OptionsDsl[A] = new OptionsDsl[A] {
         override def apply[F[_] : Algebra]: F[A] = x.pure[F]
       }
 
       override def ap[A, B]
-        (ff: ConfigDsl[(A) => B])
-        (fa: ConfigDsl[A]):
-        ConfigDsl[B] = new ConfigDsl[B] {
+        (ff: OptionsDsl[(A) => B])
+        (fa: OptionsDsl[A]):
+        OptionsDsl[B] = new OptionsDsl[B] {
 
         override def apply[F[_]: Algebra]: F[B] = ff.apply[F].ap(fa.apply[F])
       }
@@ -46,11 +46,11 @@ object ConfigDsl {
     }
   }
 
-  implicit class Merger[H](private val c: ConfigDsl[H]) {
+  implicit class Merger[H](private val c: OptionsDsl[H]) {
     def ::[L, Out <: HList](
       dsl: Merger[L])
      (implicit ev: LeftFolder.Aux[L :: H :: HNil, HNil, merge.type, Out]):
-      ConfigDsl[Out] = {
+      OptionsDsl[Out] = {
 
       (dsl.c |@| c).map((l, h) => ev.apply(l :: h :: HNil, HNil))
     }
@@ -58,9 +58,9 @@ object ConfigDsl {
 
   class Apply[T] {
     def apply[Conf](
-      f: ConfigDsl[Conf])
+      f: OptionsDsl[Conf])
      (implicit folder: LeftFolder.Aux[Conf :: HNil, Option[T], generic.type, T]):
-      ConfigDsl[T] = {
+      OptionsDsl[T] = {
 
       f.map(c => folder(c :: HNil, Option.empty[T]))
     }

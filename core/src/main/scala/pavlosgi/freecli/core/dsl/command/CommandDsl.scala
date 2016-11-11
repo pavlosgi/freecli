@@ -4,15 +4,15 @@ import cats.Alternative
 import cats.syntax.all._
 
 import pavlosgi.freecli.core.api.command.Algebra
-import pavlosgi.freecli.core.api.config.{Algebra => ConfigAlgebra}
+import pavlosgi.freecli.core.api.options.{Algebra => OptionsAlgebra}
 
 abstract class CommandDsl[A] {
-  def apply[F[_], C[_]](implicit ev: ConfigAlgebra[C], ev2: Algebra[F, C]): F[A]
+  def apply[F[_], C[_]](implicit ev: OptionsAlgebra[C], ev2: Algebra[F, C]): F[A]
 }
 
 object CommandDsl {
   implicit def dsl2FCommand[F[_], C[_], A](
-    implicit ev: ConfigAlgebra[C],
+    implicit ev: OptionsAlgebra[C],
     ev2: Algebra[F, C]):
     CommandDsl[A] => F[A] = {
 
@@ -20,7 +20,7 @@ object CommandDsl {
   }
 
   implicit def dsl2FCommand2[F[_], A](
-    implicit ev: ConfigAlgebra[F],
+    implicit ev: OptionsAlgebra[F],
     ev2: Algebra[F, F]):
     CommandDsl[A] => F[A] = {
 
@@ -31,7 +31,7 @@ object CommandDsl {
     new Alternative[CommandDsl] {
       override def pure[A](x: A): CommandDsl[A] = new CommandDsl[A] {
         override def apply[F[_], C[_]](
-          implicit ev: ConfigAlgebra[C],
+          implicit ev: OptionsAlgebra[C],
           ev2: Algebra[F, C]):
           F[A] = x.pure[F]
       }
@@ -42,7 +42,7 @@ object CommandDsl {
         CommandDsl[B] = new CommandDsl[B] {
 
         override def apply[F[_], C[_]](
-          implicit ev: ConfigAlgebra[C],
+          implicit ev: OptionsAlgebra[C],
           ev2: Algebra[F, C]):
           F[B] = {
 
@@ -52,7 +52,7 @@ object CommandDsl {
 
       override def empty[A]: CommandDsl[A] = new CommandDsl[A] {
         override def apply[F[_], C[_]](
-          implicit ev: ConfigAlgebra[C],
+          implicit ev: OptionsAlgebra[C],
           ev2: Algebra[F, C]):
           F[A] = {
 
@@ -63,7 +63,7 @@ object CommandDsl {
       override def combineK[A](x: CommandDsl[A], y: CommandDsl[A]): CommandDsl[A] = {
         new CommandDsl[A] {
           override def apply[F[_], C[_]](
-            implicit ev2: ConfigAlgebra[C],
+            implicit ev2: OptionsAlgebra[C],
             ev: Algebra[F, C]):
             F[A] = {
 

@@ -5,7 +5,7 @@ import cats.syntax.all._
 import shapeless.{::, HList, HNil}
 
 import pavlosgi.freecli.core.api.command.{PartialCommand, RunCommand}
-import pavlosgi.freecli.core.dsl.config.ConfigDsl
+import pavlosgi.freecli.core.dsl.options.OptionsDsl
 
 sealed trait PartsMerger[H1 <: HList, C1, R1, H2 <: HList, C2, R2] {
   type H_ <: HList
@@ -25,33 +25,33 @@ object PartsMerger {
    }
 
   implicit def canMergeConfigToGenericRun[C1, R1, C2, R2] =
-    new PartsMerger[ConfigDsl[C1] :: HNil, C1, R1, RunCommand[R2] :: HNil, C2, R2] {
-      type H_ = ConfigDsl[C1] :: RunCommand[R2] :: HNil
+    new PartsMerger[OptionsDsl[C1] :: HNil, C1, R1, RunCommand[R2] :: HNil, C2, R2] {
+      type H_ = OptionsDsl[C1] :: RunCommand[R2] :: HNil
       type C_ = C1
       type R_ = R2
 
       def apply(
-        h1: CommandPartsBuilder[ConfigDsl[C1] :: HNil, C1, R1],
+        h1: CommandPartsBuilder[OptionsDsl[C1] :: HNil, C1, R1],
         h2: CommandPartsBuilder[RunCommand[R2] :: HNil, C2, R2]):
         Out = {
 
-        CommandPartsBuilder[ConfigDsl[C1] :: RunCommand[R2] :: HNil, C1, R2](
+        CommandPartsBuilder[OptionsDsl[C1] :: RunCommand[R2] :: HNil, C1, R2](
           h1.list.head :: h2.list.head :: HNil)
       }
     }
 
   implicit def canMergeConfigToPartial[C1, R1, C2, R2] =
-    new PartsMerger[ConfigDsl[C1] :: HNil, C1, R1, CommandDsl[PartialCommand[R2]] :: HNil, C2, R2] {
-      type H_ = ConfigDsl[C1] :: CommandDsl[PartialCommand[R2]] :: HNil
+    new PartsMerger[OptionsDsl[C1] :: HNil, C1, R1, CommandDsl[PartialCommand[R2]] :: HNil, C2, R2] {
+      type H_ = OptionsDsl[C1] :: CommandDsl[PartialCommand[R2]] :: HNil
       type C_ = C1
       type R_ = R2
 
       def apply(
-        h1: CommandPartsBuilder[ConfigDsl[C1] :: HNil, C1, R1],
+        h1: CommandPartsBuilder[OptionsDsl[C1] :: HNil, C1, R1],
         h2: CommandPartsBuilder[CommandDsl[PartialCommand[R2]] :: HNil, C2, R2]):
         Out = {
 
-        CommandPartsBuilder[ConfigDsl[C1] :: CommandDsl[PartialCommand[R2]] :: HNil, C1, R2](
+        CommandPartsBuilder[OptionsDsl[C1] :: CommandDsl[PartialCommand[R2]] :: HNil, C1, R2](
           h1.list.head :: h2.list.head :: HNil)
       }
     }

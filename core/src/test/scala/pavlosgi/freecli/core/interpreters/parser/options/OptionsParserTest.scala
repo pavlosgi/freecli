@@ -1,95 +1,95 @@
-package pavlosgi.freecli.core.interpreters.parser.config
+package pavlosgi.freecli.core.interpreters.parser.options
 
 import shapeless._
 
-import pavlosgi.freecli.core.dsl.config._
+import pavlosgi.freecli.core.dsl.options._
 import pavlosgi.freecli.testkit.Test
 
-class ConfigParserTest extends Test {
+class OptionsParserTest extends Test {
   describe("Arg tests") {
     it("parse string with name") {
-      val res = parseConfig(Seq("--host", "localhost"))(string --"host")
+      val res = parseOptions(Seq("--host", "localhost"))(string --"host")
       res.valid should === ("localhost")
     }
 
     it("parse string with abbreviation") {
-      val res = parseConfig(Seq("-h", "localhost"))(string -'h')
+      val res = parseOptions(Seq("-h", "localhost"))(string -'h')
       res.valid should ===("localhost")
     }
 
     it("parse string with both name and abbreviation using abbreviation") {
-      val res = parseConfig(Seq("-h", "localhost"))(string --"host" -'h')
+      val res = parseOptions(Seq("-h", "localhost"))(string --"host" -'h')
       res.valid should === ("localhost")
     }
 
     it("parse string with both name and abbreviation using name") {
-      val res = parseConfig(Seq("--host", "localhost"))(string --"host" -'h')
+      val res = parseOptions(Seq("--host", "localhost"))(string --"host" -'h')
       res.valid should === ("localhost")
     }
 
     it("fail to parse string using the wrong field name format") {
       val dsl = string --"host" -'h'
-      val res = parseConfig(Seq("-host", "localhost"))(dsl)
+      val res = parseOptions(Seq("-host", "localhost"))(dsl)
 
       res.invalid.toList.collect {
         case c: UnknownArgumentsParsingError => c.getClass.getName
       }.distinct.size should === (1)
 
-      val res1 = parseConfig(Seq("host", "localhost"))(dsl)
+      val res1 = parseOptions(Seq("host", "localhost"))(dsl)
 
       res1.invalid.toList.collect {
         case c: UnknownArgumentsParsingError => c.getClass.getName
-        case c: ConfigFieldMissingParsingError => c.getClass.getName
+        case c: OptionFieldMissingParsingError => c.getClass.getName
       }.distinct.size should === (2)
     }
 
     it("fail to parse string using the wrong field abbreviation format") {
       val dsl = string --"host" -'h'
-      val res = parseConfig(Seq("--h", "localhost"))(dsl)
+      val res = parseOptions(Seq("--h", "localhost"))(dsl)
 
       println(res.invalid)
       res.invalid.toList.collect {
         case c: UnknownArgumentsParsingError => c.getClass.getName
-        case c: ConfigFieldMissingParsingError => c.getClass.getName
+        case c: OptionFieldMissingParsingError => c.getClass.getName
       }.distinct.size should === (2)
 
-      val res1 = parseConfig(Seq("h", "localhost"))(dsl)
+      val res1 = parseOptions(Seq("h", "localhost"))(dsl)
 
       res1.invalid.toList.collect {
         case c: UnknownArgumentsParsingError => c.getClass.getName
-        case c: ConfigFieldMissingParsingError => c.getClass.getName
+        case c: OptionFieldMissingParsingError => c.getClass.getName
       }.distinct.size should === (2)
     }
 
     it("fail to parse string if value not provided") {
       val dsl = string --"host" -'h'
-      val res = parseConfig(Seq("-h"))(dsl)
+      val res = parseOptions(Seq("-h"))(dsl)
 
       res.invalid.toList.collect {
         case c: UnknownArgumentsParsingError => c.getClass.getName
-        case c: ConfigFieldValueMissingParsingError => c.getClass.getName
+        case c: OptionFieldValueMissingParsingError => c.getClass.getName
       }.distinct.size should === (2)
     }
 
     it("parse string with default") {
-      val res = parseConfig(Seq())(string --"host" -'h'-~ or("myhost"))
+      val res = parseOptions(Seq())(string --"host" -'h'-~ or("myhost"))
       res.valid should === ("myhost")
     }
 
     it("parse string with default and override") {
-      val res = parseConfig(Seq("--host", "localhost"))(
+      val res = parseOptions(Seq("--host", "localhost"))(
                   string --"host" -'h' -~ or("myhost"))
 
       res.valid should === ("localhost")
     }
 
     it("parse int arg with default") {
-      val res = parseConfig(Seq("-p", "8080"))(int --"port" -'p' -~ or(5432))
+      val res = parseOptions(Seq("-p", "8080"))(int --"port" -'p' -~ or(5432))
       res.valid should === (8080)
     }
 
     it("fail to parse int") {
-      val res = parseConfig(Seq("-p", "8080s"))(int --"port" -'p' -~ or(5432))
+      val res = parseOptions(Seq("-p", "8080s"))(int --"port" -'p' -~ or(5432))
 
       res.invalid.toList.collect {
         case c: StringDecoderParsingError => c.getClass.getName
@@ -97,47 +97,47 @@ class ConfigParserTest extends Test {
     }
 
     it("parse flag exists") {
-      val res = parseConfig(Seq("--debug"))(flag --"debug" -'d')
+      val res = parseOptions(Seq("--debug"))(flag --"debug" -'d')
       res.valid should === (true)
     }
 
     it("parse flag missing") {
-      val res = parseConfig(Seq())(flag --"debug" -'d')
+      val res = parseOptions(Seq())(flag --"debug" -'d')
       res.valid should === (false)
     }
 
     it("parse opt") {
-      val res = parseConfig(Seq("--debug", "true"))(optString --"debug" -'d')
+      val res = parseOptions(Seq("--debug", "true"))(optString --"debug" -'d')
       res.valid should === (Some("true"))
     }
 
     it("parse opt missing") {
-      val res = parseConfig(Seq())(optString --"debug" -'d')
+      val res = parseOptions(Seq())(optString --"debug" -'d')
       res.valid should === (None)
     }
 
     it("fail to parse opt") {
-      val res = parseConfig(Seq("--debug", "value"))(optInt --"debug" -'d')
+      val res = parseOptions(Seq("--debug", "value"))(optInt --"debug" -'d')
       res.invalid.toList.collect {
         case c: StringDecoderParsingError => c.getClass.getName
       }.distinct.size should === (1)
 
-      val res2 = parseConfig(Seq("--debug"))(optInt --"debug" -'d')
+      val res2 = parseOptions(Seq("--debug"))(optInt --"debug" -'d')
       res2.invalid.toList.collect {
         case c: UnknownArgumentsParsingError => c.getClass.getName
-        case c: ConfigFieldValueMissingParsingError => c.getClass.getName
+        case c: OptionFieldValueMissingParsingError => c.getClass.getName
       }.distinct.size should === (2)
     }
 
     it("parse tuple string int with name") {
-      val res = parseConfig(Seq("--host", "localhost", "--port", "8080"))(
-        config[(String, Int)](string --"host" :: int --"port"))
+      val res = parseOptions(Seq("--host", "localhost", "--port", "8080"))(
+        options[(String, Int)](string --"host" :: int --"port"))
 
       res.valid should === ("localhost" -> 8080)
     }
 
     it("parse hlist string int with name") {
-      val res = parseConfig(Seq("--host", "localhost", "--port", "8080"))(
+      val res = parseOptions(Seq("--host", "localhost", "--port", "8080"))(
         string --"host" :: int --"port")
 
       res.valid should === ("localhost" :: 8080 :: HNil)
@@ -147,13 +147,13 @@ class ConfigParserTest extends Test {
       case class ServerConfig(host: String, port: Int, debug: Boolean)
 
       val dsl =
-        config[ServerConfig] {
+        options[ServerConfig] {
           string --"host"  ::
           int    --"port"  ::
           flag   --"debug1"
         }
 
-      val res = parseConfig(Seq("--host", "localhost", "--port", "8080", "--debug1"))(dsl)
+      val res = parseOptions(Seq("--host", "localhost", "--port", "8080", "--debug1"))(dsl)
       res.valid should === (ServerConfig("localhost", 8080, true))
     }
 
@@ -162,7 +162,7 @@ class ConfigParserTest extends Test {
       case class ServerConfig(host: String, port: Int, debug: Boolean, dbConfig: DbConfig)
 
       val dsl =
-        config[ServerConfig] {
+        options[ServerConfig] {
           string --"host"  ::
           int    --"port"  ::
           flag   --"debug" ::
@@ -172,7 +172,7 @@ class ConfigParserTest extends Test {
           }
         }
 
-      val res = parseConfig(
+      val res = parseOptions(
                   Seq(
                     "--host",
                     "localhost",
@@ -198,7 +198,7 @@ class ConfigParserTest extends Test {
       case class D(dFlag: Boolean)
 
       val dsl =
-        config[A] {
+        options[A] {
           string --"aString" ::
           flag   --"aFlag"  ::
           int    --"aInt"   ::
@@ -236,7 +236,7 @@ class ConfigParserTest extends Test {
         "--aString2",
         "aString2")
 
-      parseConfig(args)(dsl).valid should === (
+      parseOptions(args)(dsl).valid should === (
         A(
           "aString",
           aFlag = true,
@@ -256,26 +256,26 @@ class ConfigParserTest extends Test {
       case class Flags(first: Boolean, second: Boolean, third: Boolean, fourth: Boolean)
 
       val dsl =
-        config[Flags] {
+        options[Flags] {
           flag   - 'p' ::
           flag   - 'n' ::
           flag   - 's' ::
           flag   - 't'
         }
 
-      parseConfig(Seq("-pnst"))(dsl).valid should === (
+      parseOptions(Seq("-pnst"))(dsl).valid should === (
         Flags(first = true, second = true, third = true, fourth = true))
 
       case class Flags2(first: Boolean, second: Boolean, third: String)
 
       val dsl2 =
-        config[Flags2] {
+        options[Flags2] {
           flag   - 'p' ::
           flag   - 'n' ::
           string - 's'
         }
 
-      parseConfig(Seq("-pn", "-s", "string"))(dsl2).valid should === (
+      parseOptions(Seq("-pn", "-s", "string"))(dsl2).valid should === (
         Flags2(true, true, "string"))
 
     }
@@ -284,11 +284,11 @@ class ConfigParserTest extends Test {
       case class A(first: String)
 
       val dsl =
-        config[A] {
+        options[A] {
           string - 'p'
         }
 
-      parseConfig(Seq("-p", "-host"))(dsl).valid should === (A("-host"))
+      parseOptions(Seq("-p", "-host"))(dsl).valid should === (A("-host"))
     }
 
     it("should throw a runtime exception for bad field names") {

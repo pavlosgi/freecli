@@ -2,8 +2,8 @@ package pavlosgi.freecli.core.interpreters.help.command
 
 import pavlosgi.freecli.core.api.command.Command
 import pavlosgi.freecli.core.dsl.command._
-import pavlosgi.freecli.core.dsl.config._
-import pavlosgi.freecli.core.interpreters.help.config._
+import pavlosgi.freecli.core.dsl.options._
+import pavlosgi.freecli.core.interpreters.help.options._
 import pavlosgi.freecli.testkit.Test
 
 class CommandHelpTest extends Test {
@@ -16,35 +16,35 @@ class CommandHelpTest extends Test {
 
       val dsl =
         cmd("command1", "command1 description") {
-          config[A] {
+          options[A] {
             int     --"intField"  ::
             boolean --"boolField"
           } ::
           cmd("subcommand1", "subcommand1 description") {
-            config[String](string --"subfield1") ::
+            options[String](string --"subfield1") ::
             cmd("subcommand2") {
               cmd("subcommand3") {
-                config[String](string --"subfield3") ::
+                options[String](string --"subfield3") ::
                 runs[B](s => ())
               }
             }
           } ::
           cmd("subcommand4") {
-            config[String](string -- "subfield4") ::
+            options[String](string -- "subfield4") ::
             cmd("subcommand5") {
               runs[(A, String)](s => ())
             } ::
             cmd("subcommand6") {
-              config[Int](int --"subfield6") ::
+              options[Int](int --"subfield6") ::
               runs[(A, String, Int)](s => ())
             }
           } ::
           cmd("subcommand7") {
-            config[String](string --"subfield7") ::
+            options[String](string --"subfield7") ::
             runs[(A, String)](s => ())
           } ::
           cmd("subcommand8") {
-            config[C](string --"subfield8") ::
+            options[C](string --"subfield8") ::
             runs[D](s => ())
           }
         }: CommandDsl[Command]

@@ -4,13 +4,13 @@ import cats.data._
 import cats.instances.all._
 import cats.syntax.all._
 
-import pavlosgi.freecli.core.api.config._
+import pavlosgi.freecli.core.api.options._
 import pavlosgi.freecli.core.interpreters.ResultTS
 
-package object config {
+package object options {
   type ResultT[A] = ResultTS[ParsingError, Arguments, A]
 
-  def parseConfig[G, A](
+  def parseOptions[G, A](
     args: Seq[String])
    (dsl: G)
    (implicit ev: G => ResultT[A]):
@@ -41,7 +41,7 @@ package object config {
             ResultTS.right(f(s))
 
           case None =>
-            ResultTS.leftNE(ConfigFieldMissingParsingError(field))
+            ResultTS.leftNE(OptionFieldMissingParsingError(field))
         }
       }
 
@@ -59,7 +59,7 @@ package object config {
 
       for {
         args   <- ResultTS.get[ParsingError, Arguments]
-        value  <- extractConfigFieldAndValue(field, args)
+        value  <- extractOptionFieldAndValue(field, args)
         res    <- ResultTS.fromValidated[StringDecoderError, Arguments, Option[T]](
                     value.traverseU(v => g.apply(field, v)))
                     .leftMap(_.map[ParsingError](ParsingError.fromStringDecoderError))
@@ -74,7 +74,7 @@ package object config {
 
       for {
         args   <- ResultTS.get[ParsingError, Arguments]
-        value  <- extractConfigFieldIfExists(field, args)
+        value  <- extractOptionFieldIfExists(field, args)
       } yield f(value)
     }
 
@@ -99,7 +99,7 @@ package object config {
     }
   }
 
-  def extractConfigFieldIfExists(
+  def extractOptionFieldIfExists(
     field: Field,
     args: Arguments):
     ResultT[Boolean] = {
@@ -109,7 +109,7 @@ package object config {
         tryBySplittingArgs(
           field,
           args,
-          extractConfigFieldIfExists,
+          extractOptionFieldIfExists,
           ResultTS.right(false))
 
       case idx =>
@@ -118,7 +118,7 @@ package object config {
     }
   }
 
-  def extractConfigFieldAndValue(
+  def extractOptionFieldAndValue(
     field: Field,
     args: Arguments):
     ResultT[Option[String]] = {
@@ -128,13 +128,13 @@ package object config {
         tryBySplittingArgs(
           field,
           args,
-          extractConfigFieldAndValue,
+          extractOptionFieldAndValue,
           ResultTS.right(None))
 
       case idx =>
         args.args.lift(idx + 1) match {
           case None =>
-            ResultTS.leftNE(ConfigFieldValueMissingParsingError(field))
+            ResultTS.leftNE(OptionFieldValueMissingParsingError(field))
 
           case Some(v) =>
             val remArgs = args.args.take(idx) ++ args.args.drop(idx + 2)

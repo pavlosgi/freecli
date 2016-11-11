@@ -6,7 +6,7 @@ import cats.syntax.all._
 import cats.~>
 
 import pavlosgi.freecli.core.api.command._
-import pavlosgi.freecli.core.interpreters.parser.config.{ParsingError, ResultT => CResultT}
+import pavlosgi.freecli.core.interpreters.parser.options.{ParsingError, ResultT => CResultT}
 import pavlosgi.freecli.core.interpreters.ResultTS
 
 package object command {

@@ -1,9 +1,9 @@
-package pavlosgi.freecli.core.dsl.config
+package pavlosgi.freecli.core.dsl.options
 
 import shapeless.ops.hlist.{Diff, Intersection, LeftFolder}
 import shapeless.{::, HList, HNil, Poly2}
 
-import pavlosgi.freecli.core.dsl.config.CanProduceDefault._
+import pavlosgi.freecli.core.dsl.options.CanProduceDefault._
 
 trait CanProduceDefault[T, H <: HList] {
   type IOut <: HList

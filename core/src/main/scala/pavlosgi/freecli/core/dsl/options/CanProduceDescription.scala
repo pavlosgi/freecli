@@ -1,10 +1,10 @@
-package pavlosgi.freecli.core.dsl.config
+package pavlosgi.freecli.core.dsl.options
 
 import shapeless._
 import shapeless.ops.hlist.{Diff, Intersection, LeftFolder}
 
-import pavlosgi.freecli.core.api.config.Description
-import pavlosgi.freecli.core.dsl.config.CanProduceDescription._
+import pavlosgi.freecli.core.api.options.Description
+import pavlosgi.freecli.core.dsl.options.CanProduceDescription._
 
 trait CanProduceDescription[H <: HList] {
   type IOut <: HList

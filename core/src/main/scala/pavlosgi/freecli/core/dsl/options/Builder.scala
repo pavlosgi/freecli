@@ -1,4 +1,4 @@
-package pavlosgi.freecli.core.dsl.config
+package pavlosgi.freecli.core.dsl.options
 
 import shapeless._
 import shapeless.ops.hlist.Prepend
