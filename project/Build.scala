@@ -39,6 +39,7 @@ object Build extends Build {
       "-language:experimental.macros",
       "-language:existentials",
       "-Ywarn-unused-import",
+//      "-Ypartial-unification",
 //      "-Xprint:typer",
       "-Xlint",
       "-Yno-adapted-args",

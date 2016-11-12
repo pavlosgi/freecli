@@ -3,7 +3,7 @@ package pavlosgi.freecli.core.dsl
 import shapeless._
 
 import pavlosgi.freecli.core.api.command._
-import pavlosgi.freecli.core.dsl.options.OptionsDsl
+import pavlosgi.freecli.core.dsl.config.ConfigDsl
 
 package object command {
   def cmd(name: String) =
@@ -15,8 +15,8 @@ package object command {
       CommandFieldName(name) :: Description(description) :: HNil)
 
   implicit def optDslToCommandPartsBuilder[T](
-    c: OptionsDsl[T]):
-    CommandPartsBuilder[OptionsDsl[T] :: HNil, T, Unit] = {
+    c: ConfigDsl[T]):
+    CommandPartsBuilder[ConfigDsl[T] :: HNil, T, Unit] = {
 
     CommandPartsBuilder(c :: HNil)
   }

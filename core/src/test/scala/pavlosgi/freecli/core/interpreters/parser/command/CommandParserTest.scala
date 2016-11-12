@@ -1,9 +1,10 @@
 package pavlosgi.freecli.core.interpreters.parser.command
 
+import shapeless._
+
 import pavlosgi.freecli.core.api.command._
 import pavlosgi.freecli.core.dsl.command._
-import pavlosgi.freecli.core.dsl.options._
-import pavlosgi.freecli.core.interpreters.parser.options._
+import pavlosgi.freecli.core.dsl.config._
 import pavlosgi.freecli.testkit.Test
 
 class CommandParserTest extends Test {
@@ -40,7 +41,7 @@ class CommandParserTest extends Test {
 
       parseCommand(Seq("command", "--host", "localhost", "--port", "8080"))(
         cmd("command") {
-          options[Config](string --"host" :: int --"port") ::
+          config[Config](o.string --"host" :: o.int --"port") ::
           runs[Config](c => conf = Some(c))
         }).valid.run
 
@@ -53,7 +54,7 @@ class CommandParserTest extends Test {
       val res =
         parseCommand(Seq("command2", "--host", "localhost", "--port", "8080"))(
           cmd("command") {
-            options[Config](string --"host" :: int --"port") ::
+            config[Config](o.string --"host" :: o.int --"port") ::
             runs[Config](c => conf = Some(c))
           })
 
@@ -66,9 +67,9 @@ class CommandParserTest extends Test {
       var conf = Option.empty[Config]
 
       val res =
-        parseCommand(Seq("command", "--host", "localhost"))(
+        parseCommand(Seq("command", "--host", "localhost", "file1"))(
           cmd("command") {
-            options[Config](string --"host" :: int --"port") ::
+            config[Config](o.string --"host" :: o.int --"port") ::
             runs[Config](c => conf = Some(c))
           })
 
@@ -109,7 +110,7 @@ class CommandParserTest extends Test {
       parseCommand(Seq("command", "subcommand", "--host", "localhost", "--port", "8080"))(
         cmd("command") {
           cmd("subcommand") {
-            options[Config](string --"host" :: int --"port") ::
+            config[Config](o.string --"host" :: o.int --"port") ::
             runs[Config](c => conf = Some(c))
           }
         }).valid.run
@@ -123,7 +124,7 @@ class CommandParserTest extends Test {
         parseCommand(Seq("command", "subcommand", "--host", "localhost"))(
           cmd("command") {
             cmd("subcommand") {
-              options[Config](string --"host" :: int --"port") ::
+              config[Config](o.string --"host" :: o.int --"port") ::
               runs[Config](c => conf = Some(c))
             }
           })
@@ -139,7 +140,7 @@ class CommandParserTest extends Test {
         parseCommand(Seq("command"))(
           cmd("command") {
             cmd("subcommand") {
-              options[Config](string --"host" :: int --"port") ::
+              config[Config](o.string --"host" :: o.int --"port") ::
               runs[Config](c => conf = Some(c))
             }
           })
@@ -151,11 +152,22 @@ class CommandParserTest extends Test {
     it("parse command that has config with subcommand that has config") {
       var conf = Option.empty[ParentSubConfig]
 
-      parseCommand(Seq("command", "--host", "localhost", "--port", "8080", "subcommand", "--dbName", "mydb", "--dbPort", "5432"))(
+      parseCommand(Seq(
+        "command",
+        "--host",
+        "localhost",
+        "--port",
+        "8080",
+        "subcommand",
+        "--dbName",
+        "mydb",
+        "--dbPort",
+        "5432"))(
+
         cmd("command") {
-          options[Config](string --"host" :: int --"port") ::
+          config[Config](o.string --"host" :: o.int --"port") ::
           cmd("subcommand") {
-            options[SubConfig](string --"dbName" :: int --"dbPort") ::
+            config[SubConfig](o.string --"dbName" :: o.int --"dbPort") ::
             runs[ParentSubConfig](c => conf = Some(c))
           }
         }).valid.run
@@ -167,11 +179,21 @@ class CommandParserTest extends Test {
       var conf = Option.empty[ParentSubConfig]
 
       val res =
-        parseCommand(Seq("command", "--dbName", "mydb", "--dbPort", "5432", "subcommand", "--host", "localhost", "--port", "8080"))(
+        parseCommand(Seq("command",
+          "--dbName",
+          "mydb",
+          "--dbPort",
+          "5432",
+          "subcommand",
+          "--host",
+          "localhost",
+          "--port",
+          "8080"))(
+
           cmd("command") {
-            options[Config](string --"host" :: int --"port") ::
+            config[Config](o.string --"host" :: o.int --"port") ::
             cmd("subcommand") {
-              options[SubConfig](string --"dbName" :: int --"dbPort") ::
+              config[SubConfig](o.string --"dbName" :: o.int --"dbPort") ::
               runs[ParentSubConfig](c => conf = Some(c))
             }
           })
@@ -186,9 +208,9 @@ class CommandParserTest extends Test {
 
       parseCommand(Seq("command", "--host", "localhost1", "subcommand", "--host", "localhost2"))(
         cmd("command") {
-          options[String](string --"host") ::
+          config[String](o.string --"host") ::
           cmd("subcommand") {
-            options[String](string --"host") ::
+            config[String](o.string --"host") ::
             runs[(String, String)](c => conf = Some(c))
           }
         }).valid.run
@@ -211,17 +233,17 @@ class CommandParserTest extends Test {
         "--dbPort1",
         "5432"))(
         cmd("command") {
-          options[Config](string --"host" :: int --"port") ::
+          config[Config](o.string --"host" :: o.int --"port") ::
           cmd("subcommand1") {
-            options[SubConfig](string --"dbName1" :: int --"dbPort1") ::
+            config[SubConfig](o.string --"dbName1" :: o.int --"dbPort1") ::
             runs[ParentSubConfig](c => conf = Some(c))
           } ::
           cmd("subcommand2") {
-            options[SubConfig](string --"dbName2" :: int --"dbPort2") ::
+            config[SubConfig](o.string --"dbName2" :: o.int --"dbPort2") ::
             runs[ParentSubConfig](c => conf = Some(c))
           } ::
           cmd("subcommand3") {
-            options[SubConfig](string --"dbName3" :: int --"dbPort3") ::
+            config[SubConfig](o.string --"dbName3" :: o.int --"dbPort3") ::
             runs[ParentSubConfig](c => conf = Some(c))
           }
         }).valid.run
@@ -244,17 +266,17 @@ class CommandParserTest extends Test {
         "--dbPort3",
         "5432"))(
         cmd("command") {
-          options[Config](string --"host" :: int --"port") ::
+          config[Config](o.string --"host" :: o.int --"port") ::
           cmd("subcommand1") {
-            options[SubConfig](string --"dbName1" :: int --"dbPort1") ::
+            config[SubConfig](o.string --"dbName1" :: o.int --"dbPort1") ::
             runs[ParentSubConfig](c => conf = Some(c))
           } ::
           cmd("subcommand2") {
-            options[SubConfig](string --"dbName2" :: int --"dbPort2") ::
+            config[SubConfig](o.string --"dbName2" :: o.int --"dbPort2") ::
             runs[ParentSubConfig](c => conf = Some(c))
           } ::
           cmd("subcommand3") {
-            options[SubConfig](string --"dbName3" :: int --"dbPort3") ::
+            config[SubConfig](o.string --"dbName3" :: o.int --"dbPort3") ::
             runs[ParentSubConfig](c => conf = Some(c))
           }
         }).valid.run
@@ -283,17 +305,17 @@ class CommandParserTest extends Test {
           "--dbPort3",
           "5432"))(
           cmd("command") {
-            options[Config](string --"host" :: int --"port") ::
+            config[Config](o.string --"host" :: o.int --"port") ::
             cmd("subcommand1") {
-              options[SubConfig](string --"dbName1" :: int --"dbPort1") ::
+              config[SubConfig](o.string --"dbName1" :: o.int --"dbPort1") ::
               runs[ParentSubConfig](c => conf = Some(c))
             } ::
             cmd("subcommand2") {
-              options[SubConfig](string --"dbName2" :: int --"dbPort2") ::
+              config[SubConfig](o.string --"dbName2" :: o.int --"dbPort2") ::
               runs[ParentSubConfig](c => conf = Some(c))
             } ::
             cmd("subcommand3") {
-              options[SubConfig](string --"dbName3" :: int --"dbPort3") ::
+              config[SubConfig](o.string --"dbName3" :: o.int --"dbPort3") ::
               runs[ParentSubConfig](c => conf = Some(c))
             }
           })
@@ -322,20 +344,20 @@ class CommandParserTest extends Test {
           "--dbPort",
           "5432"))(
           cmd("command") {
-            options[Config](string --"host" :: int --"port") ::
+            config[Config](o.string --"host" :: o.int --"port") ::
             cmd("subcommand") {
-              options[SubConfig](string --"dbName1" :: int --"dbPort") ::
+              config[SubConfig](o.string --"dbName1" :: o.int --"dbPort") ::
               runs[ParentSubConfig](c => conf = Some(c))
             } ::
             cmd("subcommand2") {
-              options[SubConfig](string --"dbName2" :: int --"dbPort2") ::
+              config[SubConfig](o.string --"dbName2" :: o.int --"dbPort2") ::
               runs[ParentSubConfig](c => conf = Some(c))
             } ::
             cmd("subcommand3") {
-              options[SubConfig](string --"dbName3" :: int --"dbPort3") ::
+              config[SubConfig](o.string --"dbName3" :: o.int --"dbPort3") ::
               runs[ParentSubConfig](c => conf = Some(c))
             }
-          })
+          }: CommandPartsBuilder[CommandDsl[PartialCommand[HNil]] :: HNil, Unit, HNil])
 
       res.invalid
     }

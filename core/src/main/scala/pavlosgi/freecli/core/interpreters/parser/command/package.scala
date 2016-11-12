@@ -5,12 +5,32 @@ import cats.instances.all._
 import cats.syntax.all._
 import cats.~>
 
+import pavlosgi.freecli.core.api.AlgebraDependency
 import pavlosgi.freecli.core.api.command._
-import pavlosgi.freecli.core.interpreters.parser.options.{ParsingError, ResultT => CResultT}
+import pavlosgi.freecli.core.api.config.{Algebra => ConfigAlgebra}
+import pavlosgi.freecli.core.interpreters.parser.config.{configAlgebraParser, ResultT => CResultT}
 import pavlosgi.freecli.core.interpreters.ResultTS
 
 package object command {
   type ResultT[A] = ResultTS[CommandParsingError, ParserState, A]
+
+  implicit def configDependency = {
+    new AlgebraDependency[ConfigAlgebra, ResultT, CResultT] {
+      override def algebra: ConfigAlgebra[CResultT] = configAlgebraParser
+      override def nat: CResultT ~> ResultT = {
+        new (CResultT[?] ~> ResultT[?]) {
+          def apply[A](fa: CResultT[A]): ResultT[A] = {
+            val st =
+              fa.value.transformS[ParserState](_.args, (t, a) =>
+                t.copy(args = Arguments(a.args)))
+
+            EitherT.apply(st.map(_.leftMap(_.map(FailedToParseConfig))))
+          }
+        }
+      }
+    }
+  }
+
   def parseCommand[G](
     args: Seq[String])
    (dsl: G)
@@ -24,20 +44,8 @@ package object command {
       ParserState(Arguments(args), Seq.empty)).value.toValidated
   }
 
-  implicit object commandAlgebraParser extends Algebra[ResultT[?], CResultT[?]] {
-
-      implicit def configNat: CResultT[?] ~> ResultT[?] = {
-        new (CResultT[?] ~> ResultT[?]) {
-          def apply[A](fa: CResultT[A]): ResultT[A] = {
-            val st =
-              fa.value.transformS[ParserState](_.args, (t, a) =>
-                t.copy(args = Arguments(a.args)))
-
-            EitherT.apply(st.map(_.leftMap(_.map(FailedToParseConfig))))
-          }
-        }
-      }
-
+  implicit def commandAlgebraParser = {
+    new Algebra[ResultT] {
       def partialCmd[P](
         field: CommandField,
         run: P => Unit):
@@ -45,20 +53,20 @@ package object command {
 
         for {
           _ <- findAndSetCommandArgs(field)
-
         } yield PartialCommand[P](p => Command(field, run(p)))
       }
 
-      def partialCmdWithConfig[H[_], A, P](
+      def partialCmdWithConfig[H[_], C[_], A, P](
         field: CommandField,
         config: H[A],
         run: A => P => Unit)
-       (implicit ev: H[A] => CResultT[A]):
+       (implicit ev: AlgebraDependency[ConfigAlgebra, ResultT, C],
+        ev2: H[A] => C[A]):
         ResultT[PartialCommand[P]] = {
 
         for {
           _    <- findAndSetCommandArgs(field)
-          conf <- parseConfig(config)
+          conf <- ev.nat(ev2(config))
 
         } yield PartialCommand[P](p => Command(field, run(conf)(p)))
       }
@@ -75,18 +83,19 @@ package object command {
         } yield partial
       }
 
-      def partialParentCmdWithConfig[H[_], A, P, G[_]](
+      def partialParentCmdWithConfig[H[_], C[_], A, P, G[_]](
         field: CommandField,
         config: H[A],
         subs: G[A => PartialCommand[P]])
-       (implicit ev: H[A] => CResultT[A],
-        ev2: G[A => PartialCommand[P]] => ResultT[A => PartialCommand[P]]):
+       (implicit ev: AlgebraDependency[ConfigAlgebra, ResultT, C],
+        ev2: H[A] => C[A],
+        ev3: G[A => PartialCommand[P]] => ResultT[A => PartialCommand[P]]):
         ResultT[PartialCommand[P]] = {
 
         for {
           _       <- findAndSetCommandArgs(field)
-          conf    <- parseConfig(config)
-          partial <- ev2(subs)
+          conf    <- ev.nat(ev2(config))
+          partial <- ev3(subs)
         } yield partial(conf)
       }
 
@@ -127,6 +136,7 @@ package object command {
           fa1.toValidated.ap(ff1.toValidated).toEither
         })
       }
+    }
   }
 
   def findAndSetCommandArgs(field: CommandField):
@@ -145,18 +155,6 @@ package object command {
               }
 
     } yield ()
-  }
-
-  def parseConfig[H[_], A](
-    conf: H[A])
-   (implicit ev: H[A] => ResultTS[ParsingError, Arguments, A],
-    ev2: ResultTS[ParsingError, Arguments, ?] ~> ResultT[?]):
-    ResultT[A] = {
-
-    ev2.apply(
-      for {
-        res  <- ev(conf)
-    } yield res)
   }
 
   def validateEmptyArguments: ResultT[Unit] = {

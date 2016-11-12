@@ -4,9 +4,10 @@ import cats.syntax.all._
 import shapeless._
 import shapeless.ops.hlist.{Diff, Prepend}
 
+import pavlosgi.freecli.core.api.AlgebraDependency
 import pavlosgi.freecli.core.api.command.{Algebra, CommandField, PartialCommand, RunCommand}
-import pavlosgi.freecli.core.dsl.options.OptionsDsl
-import pavlosgi.freecli.core.api.options.{Algebra => OptionsAlgebra}
+import pavlosgi.freecli.core.api.config.{Algebra => ConfigAlgebra}
+import pavlosgi.freecli.core.dsl.config.ConfigDsl
 
 sealed trait CanProduceDsl[H <: HList, Conf, Run] {
   type Dsl
@@ -39,11 +40,11 @@ object CanProduceDsl {
         val dsl =
           new CommandDsl[PartialCommand[Run]] {
             override def apply[F[_], C[_]](
-              implicit ev: OptionsAlgebra[C],
-              ev2: Algebra[F, C]):
+              implicit ev: Algebra[F],
+              ev2: AlgebraDependency[ConfigAlgebra, F, C]):
               F[PartialCommand[Run]] = {
 
-              implicitly[Algebra[F, C]].partialCmd(field, parts.list.head.f)
+              implicitly[Algebra[F]].partialCmd(field, parts.list.head.f)
             }
           }
 
@@ -56,28 +57,29 @@ object CanProduceDsl {
     diff: Diff.Aux[RunH, Conf :: HNil, P],
     prepend: Prepend.Aux[P, Conf :: HNil, RunH]) =
 
-    new CanProduceDsl[OptionsDsl[Conf] :: RunCommand[Run] :: HNil, Conf, Run] {
+    new CanProduceDsl[ConfigDsl[Conf] :: RunCommand[Run] :: HNil, Conf, Run] {
       type Dsl = PartialCommand[P]
       type C_ = Unit
       type R_ = P
 
       def apply(
         field: CommandField,
-        parts: CommandPartsBuilder[OptionsDsl[Conf] :: RunCommand[Run] :: HNil, Conf, Run]):
+        parts: CommandPartsBuilder[ConfigDsl[Conf] :: RunCommand[Run] :: HNil, Conf, Run]):
         Out = {
 
         val dsl =
           new CommandDsl[PartialCommand[P]] {
             override def apply[F[_], C[_]](
-              implicit ev: OptionsAlgebra[C],
-              ev2: Algebra[F, C]):
+              implicit ev: Algebra[F],
+              ev2: AlgebraDependency[ConfigAlgebra, F, C]):
               F[PartialCommand[P]] = {
 
               val run = (c: Conf) => (p: P) => {
                 parts.list.tail.head.f(runToFrom.from(p ++ (c :: HNil)))
               }
 
-              implicitly[Algebra[F, C]].partialCmdWithConfig(field, parts.list.head, run)
+              implicit val alg = ev2.algebra
+              implicitly[Algebra[F]].partialCmdWithConfig(field, parts.list.head, run)
             }
           }
 
@@ -88,28 +90,29 @@ object CanProduceDsl {
   implicit def canProducePartialFromConfigAndRunSame[Conf, Run](
     implicit equality: Conf =:= Run) =
 
-    new CanProduceDsl[OptionsDsl[Conf] :: RunCommand[Run] :: HNil, Conf, Run] {
+    new CanProduceDsl[ConfigDsl[Conf] :: RunCommand[Run] :: HNil, Conf, Run] {
       type Dsl = PartialCommand[HNil]
       type C_ = Unit
       type R_ = HNil
 
       def apply(
         field: CommandField,
-        parts: CommandPartsBuilder[OptionsDsl[Conf] :: RunCommand[Run] :: HNil, Conf, Run]):
+        parts: CommandPartsBuilder[ConfigDsl[Conf] :: RunCommand[Run] :: HNil, Conf, Run]):
         Out = {
 
         val dsl =
           new CommandDsl[PartialCommand[HNil]] {
             override def apply[F[_], C[_]](
-              implicit ev: OptionsAlgebra[C],
-              ev2: Algebra[F, C]):
+              implicit ev: Algebra[F],
+              ev2: AlgebraDependency[ConfigAlgebra, F, C]):
               F[PartialCommand[HNil]] = {
 
               val run = (c: Conf) => (p: HNil) => {
                 parts.list.tail.head.f(equality(c))
               }
 
-              implicitly[Algebra[F, C]].partialCmdWithConfig(field, parts.list.head, run)
+              implicit val alg = ev2.algebra
+              implicitly[Algebra[F]].partialCmdWithConfig(field, parts.list.head, run)
             }
           }
 
@@ -122,21 +125,21 @@ object CanProduceDsl {
     ev: Diff.Aux[RunH, Conf :: HNil, P],
     ev2: Prepend.Aux[P, Conf :: HNil, RunH]) =
 
-    new CanProduceDsl[OptionsDsl[Conf] :: CommandDsl[PartialCommand[Run]] :: HNil, Conf, Run] {
+    new CanProduceDsl[ConfigDsl[Conf] :: CommandDsl[PartialCommand[Run]] :: HNil, Conf, Run] {
       type Dsl = PartialCommand[P]
       type C_ = Unit
       type R_ = P
 
       def apply(
         field: CommandField,
-        parts: CommandPartsBuilder[OptionsDsl[Conf] :: CommandDsl[PartialCommand[Run]] :: HNil, Conf, Run]):
+        parts: CommandPartsBuilder[ConfigDsl[Conf] :: CommandDsl[PartialCommand[Run]] :: HNil, Conf, Run]):
         Out = {
 
         val dsl =
           new CommandDsl[PartialCommand[P]] {
             override def apply[F[_], C[_]](
-              implicit confAlg: OptionsAlgebra[C],
-              alg: Algebra[F, C]):
+              implicit alg: Algebra[F],
+              dep: AlgebraDependency[ConfigAlgebra, F, C]):
               F[PartialCommand[P]] = {
 
               val subs = parts.list.tail.head.map { partial =>
@@ -144,7 +147,8 @@ object CanProduceDsl {
                   p => partial.f(runToFrom.from(p ++ (c :: HNil))))
               }
 
-              implicitly[Algebra[F, C]].partialParentCmdWithConfig(field, parts.list.head, subs)
+              implicit val ca = dep.algebra
+              implicitly[Algebra[F]].partialParentCmdWithConfig(field, parts.list.head, subs)
             }
           }
 
@@ -166,12 +170,12 @@ object CanProduceDsl {
         val dsl =
           new CommandDsl[PartialCommand[Run]] {
             override def apply[F[_], C[_]](
-              implicit ev: OptionsAlgebra[C],
-              ev2: Algebra[F, C]):
+              implicit ev: Algebra[F],
+              ev2: AlgebraDependency[ConfigAlgebra, F, C]):
               F[PartialCommand[Run]] = {
 
               val subs = parts.list.head
-              implicitly[Algebra[F, C]].partialParentCmd(field, subs)
+              implicitly[Algebra[F]].partialParentCmd(field, subs)
             }
           }
 

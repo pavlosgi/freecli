@@ -4,9 +4,10 @@ import cats.syntax.all._
 import shapeless._
 import shapeless.ops.hlist.Selector
 
+import pavlosgi.freecli.core.api.AlgebraDependency
 import pavlosgi.freecli.core.api.command.{Command, PartialCommand}
 import pavlosgi.freecli.core.api.command.Algebra
-import pavlosgi.freecli.core.api.options.{Algebra => OptionsAlgebra}
+import pavlosgi.freecli.core.api.config.{Algebra => ConfigAlgebra}
 
 case class CommandPartsBuilder[H <: HList, Conf, Run](list: H) {
   def ::[L <: HList, Conf2, Run2](
@@ -37,9 +38,9 @@ object CommandPartsBuilder {
     ev(p.list).map(_.f(ev2.empty))
   }
 
-  implicit def cpb2CommandDsl[C[_], F[_], H <: HList, Conf, Run](
-    implicit ev: OptionsAlgebra[C],
-    ev2: Algebra[F, C],
+  implicit def cpb2CommandDsl[F[_], C[_], H <: HList, Conf, Run](
+    implicit ev: Algebra[F],
+    ev2: AlgebraDependency[ConfigAlgebra, F, C],
     ev3: Selector[H, CommandDsl[PartialCommand[Run]]],
     ev4: UnitOrEmpty[Run]):
     CommandPartsBuilder[H, Conf, Run] => F[Command] = {

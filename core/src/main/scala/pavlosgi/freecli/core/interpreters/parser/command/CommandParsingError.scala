@@ -4,7 +4,7 @@ import cats.Show
 import cats.syntax.show._
 
 import pavlosgi.freecli.core.api.command.CommandField
-import pavlosgi.freecli.core.interpreters.parser.options.ParsingError
+import pavlosgi.freecli.core.interpreters.parser.config.ParsingError
 
 sealed trait CommandParsingError {
   val description: String
