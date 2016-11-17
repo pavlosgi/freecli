@@ -1,49 +1,39 @@
 package pavlosgi.freecli.core.interpreters.help
 
 import cats.data._
-import cats.syntax.show._
 import cats.~>
 
 import pavlosgi.freecli.core.api.AlgebraDependency
 import pavlosgi.freecli.core.api.command._
 import pavlosgi.freecli.core.api.config.{Algebra => ConfigAlgebra}
-import pavlosgi.freecli.core.interpreters.help.config.{Result => CResult}
+import pavlosgi.freecli.core.interpreters.help.{config => C}
 
 package object command {
   type Result[A] = State[HelpState, Unit]
 
-  implicit def configAlgebraDependency =
-    new AlgebraDependency[ConfigAlgebra, Result, CResult] {
-      override def algebra: ConfigAlgebra[CResult] = ???
-      override def nat: ~>[CResult, Result] = ???
-    }
-
   def commandHelp[G](
     dsl: G)
    (implicit ev: G => Result[Command]): String = {
-    (for {
-      _ <- Result.newline
-      _ <- Result.append("Usage".bold.underline)
-      _ <- Result.newline
-      _ <- Result.newline
-      _ <- ev(dsl)
-      _ <- Result.newline
-    } yield ()).runS(HelpState(2, "")).value.text
+      s"""
+       |${"Usage".bold.underline}
+       |
+       |${ev(dsl).runS(HelpState.empty).value.display(2)}
+       |
+       |""".stripMargin
   }
 
   implicit def commandAlgebraHelp = {
     new Algebra[Result] {
-      def cmdHelp(c: CommandField) = c.show
-      def cmdHelpWithConfig(c: CommandField, conf: HelpState) = {
-        s"${c.show}\n\t${conf.text}"
-      }
 
       override def partialCmd[P](
         field: CommandField,
         run: P => Unit):
         Result[PartialCommand[P]] = {
 
-        getCommandFieldHelp(field)
+        for {
+          hs <- State.get[HelpState]
+          _  <- State.set(hs.addCommandHelp(Some(field)))
+        } yield ()
       }
 
       override def partialCmdWithConfig[H[_], C[_], A, P](
@@ -55,10 +45,10 @@ package object command {
         Result[PartialCommand[P]] = {
 
         for {
-          _  <- getCommandFieldHelp(field)
-          _  <- Result.indentation(_ + 2)
-          _  <- ev.nat(ev2(config))
-          _  <- Result.indentation(_ - 2)
+          hs  <- State.get[HelpState]
+          hsc <- ev.nat(ev2(config)).get
+          conf = hsc.commands.headOption.flatMap(_.config)
+          _   <- State.set(hs.addCommandHelp(Some(field), conf))
         } yield ()
       }
 
@@ -69,10 +59,9 @@ package object command {
         Result[PartialCommand[P]] = {
 
         for {
-          _    <- getCommandFieldHelp(field)
-          _    <- Result.indentation(_ + 2)
-          _    <- ev(subs)
-          _    <- Result.indentation(_ - 2)
+          hs  <- State.get[HelpState]
+          shs <- ev(subs).get
+          _   <- State.set(hs.addCommandHelp(Some(field), None, Some(shs)))
         } yield ()
       }
 
@@ -82,18 +71,15 @@ package object command {
         subs: G[A => PartialCommand[P]])
        (implicit ev: AlgebraDependency[ConfigAlgebra, Result, C],
         ev2: H[A] => C[A],
-        ev4: G[A => PartialCommand[P]] => Result[A => PartialCommand[P]]):
+        ev3: G[A => PartialCommand[P]] => Result[A => PartialCommand[P]]):
         Result[PartialCommand[P]] = {
 
         for {
-          _    <- getCommandFieldHelp(field)
-          _    <- Result.indentation(_ + 2)
-          _    <- ev.nat(ev2(config))
-          _    <- Result.indentation(_ - 2)
-          _    <- Result.newline
-          _    <- Result.indentation(_ + 2)
-          _    <- ev4(subs)
-          _    <- Result.indentation(_ - 2)
+          hs  <- State.get[HelpState]
+          hsc <- ev.nat(ev2(config)).get
+          shs <- ev3(subs).get
+          conf = hsc.commands.headOption.flatMap(_.config)
+          _   <- State.set(hs.addCommandHelp(Some(field), conf, Some(shs)))
         } yield ()
       }
 
@@ -111,7 +97,7 @@ package object command {
       }
 
       override def empty[A]: Result[A] =
-        State.set(HelpState(0, ""))
+        State.set(HelpState(Seq.empty))
 
       override def combineK[A](
         x: Result[A],
@@ -120,18 +106,24 @@ package object command {
 
         for {
           _ <- x.get
-          _ <- Result.newline
           _ <- y.get
         } yield ()
       }
-
-      def getCommandFieldHelp(field: CommandField): Result[Unit] = {
-        Result.appendAtIndentationLn(field match {
-          case CommandField(name, description) =>
-            String.format("%-15s   %s", name.show.bold, description.fold("")(_.show))
-        })
-      }
     }
   }
+
+  implicit def configAlgebraDependency =
+    new AlgebraDependency[ConfigAlgebra, Result, C.Result] {
+      override def algebra: ConfigAlgebra[C.Result] = C.configAlgebraHelp
+      override def nat: C.Result ~> Result = {
+        new (C.Result ~> Result) {
+
+          def apply[A](fa: C.Result[A]): Result[A] = {
+            fa.transformS[HelpState](_ => C.HelpState.empty, (t, a) =>
+              HelpState.empty.addCommandHelp(None, Some(a), None))
+          }
+        }
+      }
+    }
 }
 

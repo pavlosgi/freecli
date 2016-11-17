@@ -2,6 +2,8 @@ package pavlosgi.freecli.core.api.config
 
 import cats.Applicative
 
+import pavlosgi.freecli.core.api.Description
+
 trait Algebra[F[_]] extends Applicative[F] {
   def arg[T, A](
     details: ArgumentDetails,

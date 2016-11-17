@@ -3,7 +3,8 @@ package pavlosgi.freecli.core.dsl.command
 import shapeless._
 import shapeless.ops.hlist.LeftFolder
 
-import pavlosgi.freecli.core.api.command.{CommandField, CommandFieldName, Description}
+import pavlosgi.freecli.core.api.Description
+import pavlosgi.freecli.core.api.command.{CommandField, CommandFieldName}
 
 trait CanProduceCommandField[H <: HList] {
   def apply(list: H): CommandField

@@ -14,23 +14,6 @@ import pavlosgi.freecli.core.interpreters.ResultTS
 package object command {
   type ResultT[A] = ResultTS[CommandParsingError, ParserState, A]
 
-  implicit def configDependency = {
-    new AlgebraDependency[ConfigAlgebra, ResultT, CResultT] {
-      override def algebra: ConfigAlgebra[CResultT] = configAlgebraParser
-      override def nat: CResultT ~> ResultT = {
-        new (CResultT[?] ~> ResultT[?]) {
-          def apply[A](fa: CResultT[A]): ResultT[A] = {
-            val st =
-              fa.value.transformS[ParserState](_.args, (t, a) =>
-                t.copy(args = Arguments(a.args)))
-
-            EitherT.apply(st.map(_.leftMap(_.map(FailedToParseConfig))))
-          }
-        }
-      }
-    }
-  }
-
   def parseCommand[G](
     args: Seq[String])
    (dsl: G)
@@ -139,9 +122,24 @@ package object command {
     }
   }
 
-  def findAndSetCommandArgs(field: CommandField):
-    ResultT[Unit] = {
+  implicit def configDependency = {
+    new AlgebraDependency[ConfigAlgebra, ResultT, CResultT] {
+      override def algebra: ConfigAlgebra[CResultT] = configAlgebraParser
+      override def nat: CResultT ~> ResultT = {
+        new (CResultT ~> ResultT) {
+          def apply[A](fa: CResultT[A]): ResultT[A] = {
+            val st =
+              fa.value.transformS[ParserState](_.args, (t, a) =>
+                t.copy(args = Arguments(a.args)))
 
+            EitherT.apply(st.map(_.leftMap(_.map(FailedToParseConfig))))
+          }
+        }
+      }
+    }
+  }
+
+  def findAndSetCommandArgs(field: CommandField): ResultT[Unit] = {
     for {
       st <- ResultTS.get[CommandParsingError, ParserState]
       _    <- st.args.args.indexWhere(field.matches) match {

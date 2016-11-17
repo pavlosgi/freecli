@@ -3,7 +3,7 @@ package pavlosgi.freecli.core.dsl.config
 import shapeless._
 import shapeless.ops.hlist.{Diff, Intersection, LeftFolder}
 
-import pavlosgi.freecli.core.api.config.Description
+import pavlosgi.freecli.core.api.Description
 import pavlosgi.freecli.core.dsl.config.CanProduceDescription._
 
 trait CanProduceDescription[H <: HList] {

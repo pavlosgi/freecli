@@ -46,5 +46,5 @@ case class StringDecoderParsingError(error: StringDecoderError)
 case class ArgumentValueMissingParsingError(details: ArgumentDetails)
   extends ParsingError  {
 
-  val description = s"Argument value for ${details.show} is missing"
+  val description = s"Argument ${details.show} missing"
 }

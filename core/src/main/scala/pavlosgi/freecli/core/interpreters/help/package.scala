@@ -8,10 +8,18 @@ package object help {
     def newline: String = s"$s\n"
     def underline: String = s"${Console.UNDERLINED}$s${Console.RESET}"
     def yellow: String = s"${Console.YELLOW}$s${Console.RESET}"
+    def white: String = s"${Console.WHITE}$s${Console.RESET}"
   }
 
   def indent(indentation: Int, s: String): String = {
+    val lines = s.split("\n")
     val i = (0 until indentation).foldLeft("")((a, _) => a + " ")
-    s"$i$s"
+
+    lines.map(l => s"$i$l").mkString("\n")
   }
+
+  def optionalFragment(o: Option[String]): String = {
+    o.fold("")(v => s"\n$v")
+  }
+
 }

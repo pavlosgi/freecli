@@ -3,6 +3,7 @@ package pavlosgi.freecli.core.dsl.config
 import shapeless._
 import shapeless.ops.hlist.Prepend
 
+import pavlosgi.freecli.core.api.Description
 import pavlosgi.freecli.core.api.config._
 
 case class ArgumentsDslBuilder[H <: HList, T](list: H) extends Builder[H] {

@@ -1,12 +1,21 @@
 package pavlosgi.freecli.core.api.config
 
 import cats.Show
+import cats.syntax.show._
 
-case class ArgumentDetails(placeholder: Placeholder, description: Option[Description])
+import pavlosgi.freecli.core.api.Description
+
+case class ArgumentDetails(placeholder: Option[Placeholder], description: Option[Description])
 
 object ArgumentDetails {
   implicit object showInstance extends Show[ArgumentDetails] {
-    override def show(f: ArgumentDetails): String =
-      s"${f.placeholder} ${f.description.fold("")(_)}"
+    override def show(f: ArgumentDetails): String = {
+      f match {
+        case ArgumentDetails(None, None) => ""
+        case ArgumentDetails(Some(p), None) => p.show
+        case ArgumentDetails(None, Some(d)) => d.show
+        case ArgumentDetails(Some(p), Some(d)) => s"$p $d"
+      }
+    }
   }
 }

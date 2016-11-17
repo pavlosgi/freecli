@@ -4,6 +4,7 @@ import cats.syntax.all._
 import shapeless._
 import shapeless.ops.hlist.Tupler
 
+import pavlosgi.freecli.core.api.Description
 import pavlosgi.freecli.core.api.config._
 
 package object config {

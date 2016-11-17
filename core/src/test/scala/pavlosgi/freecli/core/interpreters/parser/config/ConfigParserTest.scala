@@ -79,7 +79,6 @@ class ConfigParserTest extends Test {
         val dsl = o.string --"host" -'h'
         val res = parseConfig(Seq("--h", "localhost"))(dsl)
 
-        println(res.invalid)
         res.invalid.toList.collect {
           case c: UnknownArgumentsParsingError => c.getClass.getName
           case c: OptionFieldMissingParsingError => c.getClass.getName

@@ -4,6 +4,8 @@ import cats.Show
 import cats.instances.all._
 import cats.syntax.all._
 
+import pavlosgi.freecli.core.api.Description
+
 case class CommandField(name: CommandFieldName, description: Option[Description]) {
   def matches(s: String): Boolean = name.show === s
 }
@@ -48,7 +50,6 @@ object CommandFieldName {
     new CommandFieldName(name)
   }
 
-  implicit def showInstance: Show[CommandFieldName] = new Show[CommandFieldName] {
-    override def show(f: CommandFieldName): String = s"${f.name}"
-  }
+  implicit def showInstance: Show[CommandFieldName] =
+    (f: CommandFieldName) => s"${f.name}"
 }

@@ -4,6 +4,7 @@ import cats.data._
 import cats.instances.all._
 import cats.syntax.all._
 
+import pavlosgi.freecli.core.api.Description
 import pavlosgi.freecli.core.api.config._
 import pavlosgi.freecli.core.interpreters.ResultTS
 

@@ -3,6 +3,7 @@ package pavlosgi.freecli.core.dsl.config
 import shapeless._
 import shapeless.ops.hlist.{Diff, Intersection, LeftFolder}
 
+import pavlosgi.freecli.core.api.Description
 import pavlosgi.freecli.core.api.config._
 import pavlosgi.freecli.core.dsl.config.CanProduceField._
 

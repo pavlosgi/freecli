@@ -1,4 +1,4 @@
-package pavlosgi.freecli.core.api.command
+package pavlosgi.freecli.core.api
 
 import cats.Show
 

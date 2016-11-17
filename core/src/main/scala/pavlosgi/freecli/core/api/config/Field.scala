@@ -4,6 +4,8 @@ import cats.Show
 import cats.instances.all._
 import cats.syntax.all._
 
+import pavlosgi.freecli.core.api.Description
+
 sealed trait Field {
   def description: Option[Description]
   def matches(s: String): Boolean
