@@ -13,13 +13,17 @@ package object command {
 
   def commandHelp[G](
     dsl: G)
-   (implicit ev: G => Result[Command]): String = {
-      s"""
-       |${"Usage".bold.underline}
-       |
-       |${ev(dsl).runS(HelpState.empty).value.display(2)}
-       |
-       |""".stripMargin
+   (implicit ev: G => Result[Command]):
+    String = {
+
+    val result = ev(dsl).runS(HelpState.empty).value
+
+    s"""
+     |${"Usage".bold.underline}
+     |
+     |${HelpState.display(2, result)}
+     |
+     |""".stripMargin
   }
 
   implicit def commandAlgebraHelp = {

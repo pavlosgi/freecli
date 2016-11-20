@@ -23,10 +23,10 @@ object Build extends Build {
     ),
     addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.3"),
     addCompilerPlugin("com.milessabin" % "si2712fix-plugin_2.11.8" % "1.2.0"),
+    addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
     scalacOptions in (Compile, console) := Seq.empty,
     scalacOptions in (Test, console) := Seq.empty,
-    initialCommands in console := """"""
-  )
+    initialCommands in console := """""")
 
   val scalacSettings = Seq(
     scalacOptions ++= Seq(

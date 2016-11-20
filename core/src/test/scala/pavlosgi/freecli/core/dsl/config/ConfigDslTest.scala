@@ -13,7 +13,7 @@ class ConfigDslTest extends Test {
         string: ConfigDsl[String]
       }
 
-      it("allow adding placeholder") {
+      it("allow adding name") {
         string -~ name("string"): ConfigDsl[String]
       }
 

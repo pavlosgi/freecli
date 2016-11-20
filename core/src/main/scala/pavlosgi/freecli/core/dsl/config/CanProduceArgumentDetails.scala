@@ -26,7 +26,7 @@ trait CanProduceArgumentDetails[T, H <: HList] {
 
 object CanProduceArgumentDetails {
   type ArgumentDetailsTypes =
-    Placeholder :: Description :: HNil
+    ArgumentName :: Description :: HNil
 
   type Aux[T, H <: HList, Out <: HList] = CanProduceArgumentDetails[T, H] {
     type DOut = Out
@@ -34,10 +34,10 @@ object CanProduceArgumentDetails {
 
   object aggregate extends Poly2 {
     implicit def caseArgumentDetailsPlaceholder:
-      Case.Aux[ArgumentDetails, Placeholder, ArgumentDetails] =
+      Case.Aux[ArgumentDetails, ArgumentName, ArgumentDetails] =
 
-      at[ArgumentDetails, Placeholder] {
-        case (ad, p: Placeholder) =>
+      at[ArgumentDetails, ArgumentName] {
+        case (ad, p: ArgumentName) =>
           ArgumentDetails(Some(p), ad.description)
       }
 

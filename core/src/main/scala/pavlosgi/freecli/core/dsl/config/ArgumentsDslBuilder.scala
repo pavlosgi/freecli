@@ -18,11 +18,11 @@ case class ArgumentsDslBuilder[H <: HList, T](list: H) extends Builder[H] {
     append(description)
 
   def -~(
-    placeholder: Placeholder)
-   (implicit ev: Prepend[H, Placeholder :: HNil],
-    ev2: NotContainsConstraint[H, Placeholder]) =
+    name: ArgumentName)
+   (implicit ev: Prepend[H, ArgumentName :: HNil],
+    ev2: NotContainsConstraint[H, ArgumentName]) =
 
-    append(placeholder)
+    append(name)
 
   override def append[A](
    t: A)

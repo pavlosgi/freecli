@@ -22,7 +22,7 @@ package object config {
   def string = arg[String]
   def int = arg[Int]
   def boolean = arg[Boolean]
-  def name(placeholder: String): Placeholder = Placeholder(placeholder)
+  def name(name: String): ArgumentName = ArgumentName(name)
 
 
   def optString = opt[String]

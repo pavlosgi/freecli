@@ -12,10 +12,16 @@ package object config {
     dsl: G)
    (implicit ev: G => Result[A]):
     String = {
+
+    val result = ev(dsl).runS(HelpState.empty).value
+    val argsOneLine = result.arguments.map(ArgumentsHelp.oneline)
+
     s"""
        |${"Usage".bold.underline}
        |
-       |  Program [options] ${ev(dsl).runS(HelpState.empty).value.display(4)}
+       |  Program [options] $argsOneLine
+       |
+       |${HelpState.display(4, result)}
        |
        |""".stripMargin
   }
@@ -79,7 +85,7 @@ package object config {
 
       for {
         hs  <- State.get[HelpState]
-        shs <- ev(dsl).get
+        shs = ev(dsl).get.runS(HelpState.empty).value
         _   <- State.set(hs.addOption(SubHelp(description, shs)))
       } yield ()
     }

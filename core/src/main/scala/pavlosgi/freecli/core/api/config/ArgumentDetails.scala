@@ -5,7 +5,9 @@ import cats.syntax.show._
 
 import pavlosgi.freecli.core.api.Description
 
-case class ArgumentDetails(placeholder: Option[Placeholder], description: Option[Description])
+case class ArgumentDetails(
+  name: Option[ArgumentName],
+  description: Option[Description])
 
 object ArgumentDetails {
   implicit object showInstance extends Show[ArgumentDetails] {

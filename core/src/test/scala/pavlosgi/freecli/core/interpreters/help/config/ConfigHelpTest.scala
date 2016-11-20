@@ -11,17 +11,22 @@ class ConfigHelpTest extends Test {
   describe("Help") {
     it("show help") {
       case class A(a1: String, a2: Int, a3: B, a4: Boolean, a5: String, a6: String)
-      case class B(b1: String, b2: Int, b3: Boolean, b4: String)
+      case class B(b1: String, b2: Int, b3: Boolean, b4: String, b5: C)
+      case class C(c1: String, c2: Int)
 
       val dsl =
         config[A] {
           o.string --"a1" -'a' -~ des("a1_description") ::
           o.int    --"a2" -~ des("a2_description")      ::
-          sub[B]("a3") {
+          sub[B]("a3 options") {
             o.string --"b1" -'b' -~ des("b1_description") ::
             o.int    --"b2" -'c' -~ des("b2_description") ::
             flag     -'d' ::
-            o.string -'e' -~ or("default")
+            o.string -'e' -~ or("default") -~ des("e option") ::
+            sub[C]("b5 options") {
+              o.string --"c1" ::
+              o.int -'c'
+            }
           } ::
           flag --"a4" ::
           string -~ name("a5") -~ des("a5_description") ::
@@ -46,7 +51,7 @@ class ConfigHelpTest extends Test {
         FieldAbbreviation('d').show,
         FieldAbbreviation('e').show,
         FieldName("a4").show,
-        Placeholder("a5").show,
+        ArgumentName("a5").show,
         Description("a5_description").show,
         Description("a6_description").show).foreach { keyword =>
           withClue(s"$keyword not found in $help") {
