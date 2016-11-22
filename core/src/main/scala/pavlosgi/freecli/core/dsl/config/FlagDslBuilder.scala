@@ -6,34 +6,29 @@ import shapeless.ops.hlist.Prepend
 import pavlosgi.freecli.core.api.Description
 import pavlosgi.freecli.core.api.config._
 
-case class FlagDslBuilder[H <: HList](list: H) extends Builder[H] {
-
-  type Out[A <: HList] = FlagDslBuilder[A]
+case class FlagDslBuilder[H <: HList](list: H) {
 
   def --(
     name: String)
    (implicit ev: Prepend[H, FieldName :: HNil],
     ev2: NotContainsConstraint[H, FieldName]) =
 
-    append(FieldName(name))
+    new FlagDslBuilder(list :+ FieldName(name))
 
   def -(
     abbr: Char)
    (implicit ev: Prepend[H, FieldAbbreviation :: HNil],
     ev2: NotContainsConstraint[H, FieldAbbreviation]) =
 
-    append(FieldAbbreviation(abbr))
+    new FlagDslBuilder(list :+ FieldAbbreviation(abbr))
 
   def -~(
     description: Description)
    (implicit ev: Prepend[H, Description :: HNil],
     ev2: NotContainsConstraint[H, Description]) =
 
-    append(description)
+    new FlagDslBuilder(list :+ description)
 
-  override def append[A](t: A)(implicit ev: Prepend[H, ::[A, HNil]]): FlagDslBuilder[ev.Out] = {
-    new FlagDslBuilder(list :+ t)
-  }
 }
 
 object FlagDslBuilder {

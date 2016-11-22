@@ -5,31 +5,19 @@ import shapeless.ops.hlist.{Diff, Intersection, LeftFolder}
 
 import pavlosgi.freecli.core.api.Description
 import pavlosgi.freecli.core.api.config._
-import pavlosgi.freecli.core.dsl.config.CanProduceArgumentDetails._
 
 trait CanProduceArgumentDetails[T, H <: HList] {
-  type IOut <: HList
-  type DOut <: HList
+  type Out <: HList
 
-  def intersection: Intersection.Aux[H, ArgumentDetailsTypes, IOut]
-  def folder: LeftFolder.Aux[IOut, ArgumentDetails, aggregate.type, ArgumentDetails]
-  def diff: Diff.Aux[H, IOut, DOut]
-
-  def apply(list: H): (ArgumentDetails, DOut) = {
-    val inters = intersection.apply(list)
-    val field = getArgumentDetails[T, IOut](inters)(folder)
-    val remaining = diff.apply(list)
-
-    field -> remaining
-  }
+  def apply(list: H): (ArgumentDetails, Out)
 }
 
 object CanProduceArgumentDetails {
   type ArgumentDetailsTypes =
     ArgumentName :: Description :: HNil
 
-  type Aux[T, H <: HList, Out <: HList] = CanProduceArgumentDetails[T, H] {
-    type DOut = Out
+  type Aux[T, H <: HList, Out_ <: HList] = CanProduceArgumentDetails[T, H] {
+    type Out = Out_
   }
 
   object aggregate extends Poly2 {
@@ -56,20 +44,15 @@ object CanProduceArgumentDetails {
     ev3: Diff.Aux[H, Out0, Out1]) = {
 
     new CanProduceArgumentDetails[T, H] {
-      type IOut = Out0
-      type DOut = Out1
-      def intersection = ev
-      def folder = ev2
-      def diff = ev3
+      type Out = Out1
+
+      def apply(list: H): (ArgumentDetails, Out) = {
+        val inters = ev.apply(list)
+        val field = inters.foldLeft(ArgumentDetails(None, None))(aggregate)
+        val remaining = ev3.apply(list)
+
+        field -> remaining
+      }
     }
-  }
-
-  def getArgumentDetails[T, E <: HList](
-    list: E)
-   (implicit ev: LeftFolder.Aux[E, ArgumentDetails, aggregate.type, ArgumentDetails]):
-    ev.Out = {
-
-    list.foldLeft(
-      ArgumentDetails(None, None))(aggregate)
   }
 }

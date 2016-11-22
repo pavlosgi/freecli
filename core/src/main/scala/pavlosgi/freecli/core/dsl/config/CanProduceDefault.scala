@@ -3,39 +3,19 @@ package pavlosgi.freecli.core.dsl.config
 import shapeless.ops.hlist.{Diff, Intersection, LeftFolder}
 import shapeless.{::, HList, HNil, Poly2}
 
-import pavlosgi.freecli.core.dsl.config.CanProduceDefault._
+import pavlosgi.freecli.core.dsl.config.OptDslBuilder.DefaultValue
 
 trait CanProduceDefault[T, H <: HList] {
-  type IOut <: HList
-  type DOut <: HList
-
-  val intersection: Intersection.Aux[H, DefaultTypes[T], IOut]
-  val folder: LeftFolder.Aux[IOut, Option[T], aggregate.type, T]
-  val diff: Diff.Aux[H, IOut, DOut]
-
-  def apply(list: H): (T, DOut) = {
-    val inters = intersection.apply(list)
-    val default = getDefault(inters)(folder)
-    val remaining = diff.apply(list)
-
-    default -> remaining
-  }
+  type Out <: HList
+  def apply(list: H): (T, Out)
 }
 
 object CanProduceDefault {
 
   type DefaultTypes[T] = DefaultValue[T] :: HNil
 
-  type Aux[T, H <: HList, Out <: HList] = CanProduceDefault[T, H] {
-    type DOut = Out
-  }
-
-  def getDefault[E <: HList, T](
-    list: E)
-   (implicit ev: LeftFolder.Aux[E, Option[T], aggregate.type, T]):
-    ev.Out = {
-
-    list.foldLeft(Option.empty[T])(aggregate)
+  type Aux[T, H <: HList, Out_ <: HList] = CanProduceDefault[T, H] {
+    type Out = Out_
   }
 
   object aggregate extends Poly2 {
@@ -53,11 +33,15 @@ object CanProduceDefault {
     ev3: Diff.Aux[H, Out0, Out1]) = {
 
     new CanProduceDefault[T, H] {
-      type IOut = Out0
-      type DOut = Out1
-      val intersection = ev
-      val folder = ev2
-      val diff = ev3
+      type Out = Out1
+
+      def apply(list: H): (T, Out) = {
+        val inters = ev.apply(list)
+        val default = inters.foldLeft(Option.empty[T])(aggregate)
+        val remaining = ev3.apply(list)
+
+        default -> remaining
+      }
     }
   }
 }

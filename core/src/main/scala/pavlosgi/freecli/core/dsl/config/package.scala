@@ -6,6 +6,7 @@ import shapeless.ops.hlist.Tupler
 
 import pavlosgi.freecli.core.api.Description
 import pavlosgi.freecli.core.api.config._
+import pavlosgi.freecli.core.dsl.config.OptDslBuilder.{DefaultValue, Required}
 
 package object config {
   def config[T]: ConfigDsl.Apply[T] = new ConfigDsl.Apply[T]

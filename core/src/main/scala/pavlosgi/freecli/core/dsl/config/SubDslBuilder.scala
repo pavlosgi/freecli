@@ -9,9 +9,7 @@ import shapeless.ops.hlist.{LeftFolder, Prepend}
 import pavlosgi.freecli.core.api.config.Algebra
 import pavlosgi.freecli.core.dsl.generic
 
-case class SubDslBuilder[H <: HList, T](list: H) extends Builder[H] {
-
-  type Out[A <: HList] = SubDslBuilder[A, T]
+case class SubDslBuilder[H <: HList, T](list: H) {
 
   def apply[Conf](
     f: ConfigDsl[Conf])
@@ -20,11 +18,8 @@ case class SubDslBuilder[H <: HList, T](list: H) extends Builder[H] {
     ev2: NotContainsConstraint[H, ConfigDsl[_]],
     ev3: Prepend[H, ConfigDsl[T] :: HNil]) = {
 
-    append(f.map(c => folder(c :: HNil, Option.empty[T])))
-  }
-
-  override def append[A](t: A)(implicit ev: Prepend[H, ::[A, HNil]]): SubDslBuilder[ev.Out, T] = {
-    new SubDslBuilder(list :+ t)
+    new SubDslBuilder[ev3.Out, T](
+      list :+ f.map(c => folder(c :: HNil, Option.empty[T])))
   }
 }
 

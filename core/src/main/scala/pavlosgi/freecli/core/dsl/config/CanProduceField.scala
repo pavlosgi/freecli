@@ -5,23 +5,11 @@ import shapeless.ops.hlist.{Diff, Intersection, LeftFolder}
 
 import pavlosgi.freecli.core.api.Description
 import pavlosgi.freecli.core.api.config._
-import pavlosgi.freecli.core.dsl.config.CanProduceField._
 
 trait CanProduceField[H <: HList] {
-  type IOut <: HList
-  type DOut <: HList
+  type Out <: HList
 
-  val intersection: Intersection.Aux[H, FieldTypes, IOut]
-  val folder: LeftFolder.Aux[IOut, PartialField, aggregate.type, Field]
-  val diff: Diff.Aux[H, IOut, DOut]
-
-  def apply(list: H): (Field, DOut) = {
-    val inters = intersection.apply(list)
-    val field = getField(inters)(folder)
-    val remaining = diff.apply(list)
-
-    field -> remaining
-  }
+  def apply(list: H): (Field, Out)
 }
 
 object CanProduceField {
@@ -33,8 +21,26 @@ object CanProduceField {
     abbreviation: Option[FieldAbbreviation],
     description: Option[Description])
 
-  type Aux[H <: HList, Out <: HList] = CanProduceField[H] {
-    type DOut = Out
+  type Aux[H <: HList, Out_ <: HList] = CanProduceField[H] {
+    type Out = Out_
+  }
+
+  implicit def canProduceField[H <: HList, Out0 <: HList, Out1 <: HList](
+    implicit ev: Intersection.Aux[H, FieldTypes, Out0],
+    ev2: LeftFolder.Aux[Out0, PartialField, aggregate.type, Field],
+    ev3: Diff.Aux[H, Out0, Out1]) = {
+
+    new CanProduceField[H] {
+      override type Out = Out1
+
+      def apply(list: H): (Field, Out) = {
+        val inters = ev.apply(list)
+        val field = inters.foldLeft(PartialField(None, None, None))(aggregate)
+        val remaining = ev3.apply(list)
+
+        field -> remaining
+      }
+    }
   }
 
   object aggregate extends Poly2 {
@@ -85,27 +91,5 @@ object CanProduceField {
         case (field, d) =>
           field.copy(description = Some(d))
       }
-  }
-
-  implicit def canProduceField[H <: HList, Out0 <: HList, Out1 <: HList](
-    implicit ev: Intersection.Aux[H, FieldTypes, Out0],
-    ev2: LeftFolder.Aux[Out0, PartialField, aggregate.type, Field],
-    ev3: Diff.Aux[H, Out0, Out1]) = {
-
-    new CanProduceField[H] {
-      override type IOut = Out0
-      override type DOut = Out1
-      override val intersection = ev
-      override val folder = ev2
-      override val diff = ev3
-    }
-  }
-
-  def getField[E <: HList](
-    list: E)
-   (implicit ev: LeftFolder.Aux[E, PartialField, aggregate.type, Field]):
-    ev.Out = {
-
-    list.foldLeft(PartialField(None, None, None))(aggregate)
   }
 }

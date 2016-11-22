@@ -6,31 +6,21 @@ import shapeless.ops.hlist.Prepend
 import pavlosgi.freecli.core.api.Description
 import pavlosgi.freecli.core.api.config._
 
-case class ArgumentsDslBuilder[H <: HList, T](list: H) extends Builder[H] {
-
-  type Out[A <: HList] = ArgumentsDslBuilder[A, T]
+case class ArgumentsDslBuilder[H <: HList, T](list: H) {
 
   def -~(
     description: Description)
    (implicit ev: Prepend[H, Description :: HNil],
     ev2: NotContainsConstraint[H, Description]) =
 
-    append(description)
+    new ArgumentsDslBuilder[ev.Out, T](list :+ description)
 
   def -~(
     name: ArgumentName)
    (implicit ev: Prepend[H, ArgumentName :: HNil],
     ev2: NotContainsConstraint[H, ArgumentName]) =
 
-    append(name)
-
-  override def append[A](
-   t: A)
-  (implicit ev: Prepend[H, ::[A, HNil]]):
-   ArgumentsDslBuilder[ev.Out, T] = {
-
-   new ArgumentsDslBuilder(list :+ t)
-  }
+    new ArgumentsDslBuilder[ev.Out, T](list :+ name)
 }
 
 object ArgumentsDslBuilder {

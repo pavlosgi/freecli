@@ -5,31 +5,30 @@ import shapeless.ops.hlist.Prepend
 
 import pavlosgi.freecli.core.api.Description
 import pavlosgi.freecli.core.api.config._
+import pavlosgi.freecli.core.dsl.config.OptDslBuilder.{DefaultValue, Required}
 
-case class OptDslBuilder[H <: HList, T](list: H) extends Builder[H] {
-
-  type Out[A <: HList] = OptDslBuilder[A, T]
+case class OptDslBuilder[H <: HList, T](list: H) {
 
   def --(
     name: String)
    (implicit ev: Prepend[H, FieldName :: HNil],
     ev2: NotContainsConstraint[H, FieldName]) =
 
-    append(FieldName(name))
+    new OptDslBuilder[ev.Out, T](list :+ FieldName(name))
 
   def -(
     abbr: Char)
    (implicit ev: Prepend[H, FieldAbbreviation :: HNil],
     ev2: NotContainsConstraint[H, FieldAbbreviation]) =
 
-    append(FieldAbbreviation(abbr))
+    new OptDslBuilder[ev.Out, T](list :+ FieldAbbreviation(abbr))
 
   def -~(
     description: Description)
    (implicit ev: Prepend[H, Description :: HNil],
     ev2: NotContainsConstraint[H, Description]) =
 
-    append(description)
+    new OptDslBuilder[ev.Out, T](list :+ description)
 
   def -~(
     default: DefaultValue[T])
@@ -37,25 +36,21 @@ case class OptDslBuilder[H <: HList, T](list: H) extends Builder[H] {
     //TODO Make this constraint any DefaultValue[_]
     ev2: NotContainsConstraint[H, DefaultValue[T]]) =
 
-    append(default)
+    new OptDslBuilder[ev.Out, T](list :+ default)
 
   def -~(
     required: Required)
    (implicit ev: Prepend[H, Required :: HNil],
     ev2: NotContainsConstraint[H, Required]) =
 
-    append(required)
+    new OptDslBuilder[ev.Out, T](list :+ required)
 
-  override def append[A](
-   t: A)
-  (implicit ev: Prepend[H, ::[A, HNil]]):
-   OptDslBuilder[ev.Out, T] = {
-
-   new OptDslBuilder(list :+ t)
-  }
 }
 
 object OptDslBuilder {
+  case class DefaultValue[T](value: T)
+  trait Required
+
   def opt[T](implicit decoder: StringDecoder[T]): OptDslBuilder[HNil, T] =
     opt(HNil)
 
