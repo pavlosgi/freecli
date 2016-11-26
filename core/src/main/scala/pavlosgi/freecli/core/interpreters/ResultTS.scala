@@ -3,7 +3,7 @@ package pavlosgi.freecli.core.interpreters
 import cats.data._
 import cats.syntax.all._
 
-object ResultTS {
+private[interpreters] object ResultTS {
   def run[E, S, A]
     (state: S)
     (resultT: ResultTS[E, S, A]):

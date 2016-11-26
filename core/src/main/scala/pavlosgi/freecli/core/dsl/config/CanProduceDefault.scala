@@ -5,13 +5,12 @@ import shapeless.{::, HList, HNil, Poly2}
 
 import pavlosgi.freecli.core.dsl.config.OptDslBuilder.DefaultValue
 
-trait CanProduceDefault[T, H <: HList] {
+private[config] sealed trait CanProduceDefault[T, H <: HList] {
   type Out <: HList
   def apply(list: H): (T, Out)
 }
 
-object CanProduceDefault {
-
+private[config] object CanProduceDefault {
   type DefaultTypes[T] = DefaultValue[T] :: HNil
 
   type Aux[T, H <: HList, Out_ <: HList] = CanProduceDefault[T, H] {

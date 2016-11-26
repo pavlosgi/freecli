@@ -8,7 +8,7 @@ import pavlosgi.freecli.core.api.Description
 import pavlosgi.freecli.core.api.config._
 import pavlosgi.freecli.core.dsl.config.OptDslBuilder.{DefaultValue, Required}
 
-case class OptDslBuilder[H <: HList, T](list: H) {
+private[config] case class OptDslBuilder[H <: HList, T](list: H) {
 
   def --(
     name: String)
@@ -48,9 +48,11 @@ case class OptDslBuilder[H <: HList, T](list: H) {
 
 }
 
-object OptDslBuilder {
+private[config] object OptDslBuilder {
   case class DefaultValue[T](value: T)
-  trait Required
+
+  sealed trait Required
+  def required = new Required {}
 
   def opt[T](implicit decoder: StringDecoder[T]): OptDslBuilder[HNil, T] =
     opt(HNil)

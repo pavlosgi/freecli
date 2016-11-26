@@ -6,11 +6,11 @@ import cats.syntax.all._
 
 import pavlosgi.freecli.core.api.Description
 
-case class CommandField(name: CommandFieldName, description: Option[Description]) {
+private[core] case class CommandField(name: CommandFieldName, description: Option[Description]) {
   def matches(s: String): Boolean = name.show === s
 }
 
-object CommandField {
+private[core] object CommandField {
   implicit object showInstance extends Show[CommandField] {
     override def show(f: CommandField): String =
       f.name.show + f.description.fold("")(d => " " + d)

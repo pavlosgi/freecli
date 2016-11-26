@@ -9,7 +9,7 @@ sealed trait Command {
   override def toString = field.show
 }
 
-object Command {
+private[core] object Command {
   def apply(commandField: CommandField, f: => Unit): Command = {
     new Command {
       def field: CommandField = commandField
@@ -18,5 +18,5 @@ object Command {
   }
 }
 
-case class PartialCommand[P](f: P => Command)
+
 

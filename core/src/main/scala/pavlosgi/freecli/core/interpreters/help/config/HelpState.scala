@@ -10,7 +10,7 @@ import pavlosgi.freecli.core.api.Description
 import pavlosgi.freecli.core.api.config._
 import pavlosgi.freecli.core.interpreters.help._
 
-case class HelpState(options: Option[OptionsHelp], arguments: Option[ArgumentsHelp]) {
+private[help] case class HelpState(options: Option[OptionsHelp], arguments: Option[ArgumentsHelp]) {
   def addArgument(a: ArgumentDetails): HelpState = {
     arguments match {
       case None => this.copy(arguments = Some(ArgumentsHelp(NonEmptyList.of(a))))
@@ -26,7 +26,7 @@ case class HelpState(options: Option[OptionsHelp], arguments: Option[ArgumentsHe
   }
 }
 
-object HelpState extends HelpStateInstances {
+private[help] object HelpState extends HelpStateInstances {
   def display(indentation: Int, s: HelpState): String = {
     val optsMax = s.options.fold(0)(OptionsHelp.calculateMaxNameLength)
     val argsMax = s.arguments.fold(0)(ArgumentsHelp.calculateMaxNameLength)
@@ -45,9 +45,9 @@ object HelpState extends HelpStateInstances {
   }
 }
 
-case class ArgumentsHelp(arguments: NonEmptyList[ArgumentDetails])
+private[help] case class ArgumentsHelp(arguments: NonEmptyList[ArgumentDetails])
 
-object ArgumentsHelp {
+private[help] object ArgumentsHelp {
   implicit def semigroupInstance = new Semigroup[ArgumentsHelp] {
     def combine(x: ArgumentsHelp, y: ArgumentsHelp): ArgumentsHelp = {
       ArgumentsHelp(x.arguments |+| y.arguments)
@@ -88,8 +88,8 @@ object ArgumentsHelp {
   }
 }
 
-case class OptionsHelp(options: NonEmptyList[OptionHelp])
-object OptionsHelp {
+private[help] case class OptionsHelp(options: NonEmptyList[OptionHelp])
+private[help] object OptionsHelp {
   implicit def semigroupInstance = new Semigroup[OptionsHelp] {
     def combine(x: OptionsHelp, y: OptionsHelp): OptionsHelp = {
       OptionsHelp(x.options |+| y.options)
@@ -129,14 +129,14 @@ object OptionsHelp {
 }
 
 
-sealed trait OptionHelp
+private[help] sealed trait OptionHelp
 
-case class OptionFieldHelp(
+private[help] case class OptionFieldHelp(
   field: Field,
   default: Option[String] = None)
   extends OptionHelp
 
-object OptionFieldHelp {
+private[config] object OptionFieldHelp {
   def displayName(field: Field): String = {
     field match {
       case FieldNameOnly(name, _) =>
@@ -170,10 +170,10 @@ object OptionFieldHelp {
   }
 }
 
-case class SubHelp(description: Description, config: HelpState)
+private[help] case class SubHelp(description: Description, config: HelpState)
   extends OptionHelp
 
-object SubHelp {
+private[help] object SubHelp {
   def display(indentation: Int, value: SubHelp): Option[String] = {
     optionalContentWithTitle(
       indent(indentation, value.description.show),
@@ -184,7 +184,7 @@ object SubHelp {
   }
 }
 
-trait HelpStateInstances {
+private[help] sealed trait HelpStateInstances {
   implicit def monoidInstance: Monoid[HelpState] = new Monoid[HelpState] {
     def empty: HelpState = HelpState(None, None)
     def combine(x: HelpState, y: HelpState): HelpState = {

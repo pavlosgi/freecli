@@ -5,11 +5,11 @@ import cats.syntax.show._
 
 import pavlosgi.freecli.core.api.Description
 
-case class ArgumentDetails(
+private[core] case class ArgumentDetails(
   name: Option[ArgumentName],
   description: Option[Description])
 
-object ArgumentDetails {
+private[core] object ArgumentDetails {
   implicit object showInstance extends Show[ArgumentDetails] {
     override def show(f: ArgumentDetails): String = {
       f match {

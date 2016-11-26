@@ -5,12 +5,12 @@ import shapeless.ops.hlist.{Diff, Intersection, LeftFolder}
 
 import pavlosgi.freecli.core.api.Description
 
-trait CanProduceDescription[H <: HList] {
+private[config] sealed trait CanProduceDescription[H <: HList] {
   type Out <: HList
   def apply(list: H): (Description, Out)
 }
 
-object CanProduceDescription {
+private[config] object CanProduceDescription {
   type DescriptionTypes = Description :: HNil
 
   type Aux[H <: HList, Out_ <: HList] = CanProduceDescription[H] {

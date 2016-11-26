@@ -7,14 +7,14 @@ import pavlosgi.freecli.core.api.command._
 import pavlosgi.freecli.core.dsl.config.ConfigDsl
 import pavlosgi.freecli.core.free.FreeAlternative
 
-sealed trait CanProduceDsl[H <: HList, Conf, Run] {
+private[command] sealed trait CanProduceDsl[H <: HList, Conf, Run] {
   type OutConf
   type OutRun
 
   type A = PartialCommand[OutRun]
 
-  type Out = CommandPartsBuilder[CommandDsl[A] :: HNil, OutConf, OutRun]
-  def apply(field: CommandField, parts: CommandPartsBuilder[H, Conf, Run]): Out
+  type Out = CommandDslBuilder[CommandDsl[A] :: HNil, OutConf, OutRun]
+  def apply(field: CommandField, parts: CommandDslBuilder[H, Conf, Run]): Out
 }
 
 object CanProduceDsl {
@@ -31,10 +31,10 @@ object CanProduceDsl {
 
       def apply(
         field: CommandField,
-        parts: CommandPartsBuilder[RunCommand[Run] :: HNil, Unit, Run]):
+        parts: CommandDslBuilder[RunCommand[Run] :: HNil, Unit, Run]):
         Out = {
 
-        CommandPartsBuilder(
+        CommandDslBuilder(
           FreeAlternative.lift[Algebra, A](
             PartialCmd[OutRun, A](field, parts.list.head.f, identity)) :: HNil)
       }
@@ -51,14 +51,14 @@ object CanProduceDsl {
 
       def apply(
         field: CommandField,
-        parts: CommandPartsBuilder[ConfigDsl[Conf] :: RunCommand[Run] :: HNil, Conf, Run]):
+        parts: CommandDslBuilder[ConfigDsl[Conf] :: RunCommand[Run] :: HNil, Conf, Run]):
         Out = {
 
         val run = (c: Conf) => (p: OutRun_) => {
           parts.list.tail.head.f(runToFrom.from(p ++ (c :: HNil)))
         }
 
-        CommandPartsBuilder(
+        CommandDslBuilder(
           FreeAlternative.lift[Algebra, A](
             PartialCmdWithConfig[Conf, OutRun_, A](
               field,
@@ -77,14 +77,14 @@ object CanProduceDsl {
 
       def apply(
         field: CommandField,
-        parts: CommandPartsBuilder[ConfigDsl[Conf] :: RunCommand[Run] :: HNil, Conf, Run]):
+        parts: CommandDslBuilder[ConfigDsl[Conf] :: RunCommand[Run] :: HNil, Conf, Run]):
         Out = {
 
         val run = (c: Conf) => (p: HNil) => {
           parts.list.tail.head.f(equality(c))
         }
 
-        CommandPartsBuilder(
+        CommandDslBuilder(
           FreeAlternative.lift[Algebra, A](
             PartialCmdWithConfig[Conf, HNil, A](
               field,
@@ -105,7 +105,7 @@ object CanProduceDsl {
 
       def apply(
         field: CommandField,
-        parts: CommandPartsBuilder[ConfigDsl[Conf] :: CommandDsl[PartialCommand[Run]] :: HNil, Conf, Run]):
+        parts: CommandDslBuilder[ConfigDsl[Conf] :: CommandDsl[PartialCommand[Run]] :: HNil, Conf, Run]):
         Out = {
 
         val subs = parts.list.tail.head.map { partial =>
@@ -113,7 +113,7 @@ object CanProduceDsl {
               p => partial.f(runToFrom.from(p ++ (c :: HNil))))
           }
 
-        CommandPartsBuilder(FreeAlternative.lift[Algebra, A](
+        CommandDslBuilder(FreeAlternative.lift[Algebra, A](
           PartialParentCmdWithConfig[Conf, OutRun_, A](
             field,
             parts.list.head,
@@ -129,10 +129,10 @@ object CanProduceDsl {
 
       def apply(
         field: CommandField,
-        parts: CommandPartsBuilder[CommandDsl[PartialCommand[Run]] :: HNil, Unit, Run]):
+        parts: CommandDslBuilder[CommandDsl[PartialCommand[Run]] :: HNil, Unit, Run]):
         Out = {
 
-        CommandPartsBuilder(FreeAlternative.lift[Algebra, A](
+        CommandDslBuilder(FreeAlternative.lift[Algebra, A](
           PartialParentCmd[OutRun, A](field, parts.list.head, identity)) :: HNil)
       }
     }

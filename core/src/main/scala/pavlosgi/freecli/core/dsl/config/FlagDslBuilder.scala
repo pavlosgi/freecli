@@ -7,7 +7,7 @@ import shapeless.ops.hlist.Prepend
 import pavlosgi.freecli.core.api.Description
 import pavlosgi.freecli.core.api.config._
 
-case class FlagDslBuilder[H <: HList](list: H) {
+private[config] case class FlagDslBuilder[H <: HList](list: H) {
 
   def --(
     name: String)
@@ -32,7 +32,7 @@ case class FlagDslBuilder[H <: HList](list: H) {
 
 }
 
-object FlagDslBuilder {
+private[config] object FlagDslBuilder {
   def flag: FlagDslBuilder[HNil] =
     new FlagDslBuilder[HNil](HNil)
 

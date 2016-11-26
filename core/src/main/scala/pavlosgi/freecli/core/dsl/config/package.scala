@@ -6,9 +6,10 @@ import shapeless.ops.hlist.Tupler
 
 import pavlosgi.freecli.core.api.Description
 import pavlosgi.freecli.core.api.config.{Algebra, ArgumentName, StringDecoder}
-import pavlosgi.freecli.core.dsl.config.OptDslBuilder.{Required, DefaultValue}
 
 package object config extends ConfigDslImplicits {
+  import OptDslBuilder.DefaultValue
+
   type ConfigDsl[A] = FreeApplicative[Algebra, A]
 
   def config[T]: Apply[T] = new Apply[T]
@@ -38,7 +39,7 @@ package object config extends ConfigDslImplicits {
   def sub[T](description: String) =
     SubDslBuilder.sub[Description :: HNil, T](Description(description) :: HNil)
 
-  def required = new Required {}
+  def required = OptDslBuilder.required
   def or[T](default: T): DefaultValue[T] = DefaultValue(default)
   def des(description: String): Description = Description(description)
 

@@ -1,3 +1,3 @@
 package pavlosgi.freecli.core.api.command
 
-case class RunCommand[T](f: T => Unit)
+private[core] case class RunCommand[T](f: T => Unit)

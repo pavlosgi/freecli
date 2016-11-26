@@ -6,12 +6,12 @@ import cats.syntax.all._
 
 import pavlosgi.freecli.core.api.Description
 
-sealed trait Field {
+private[core] sealed trait Field {
   def description: Option[Description]
   def matches(s: String): Boolean
 }
 
-object Field {
+private[core] object Field {
   implicit def showInstance: Show[Field] = {
     case FieldNameOnly(name, description) =>
       name.show + description.fold("")(d => " " + d)

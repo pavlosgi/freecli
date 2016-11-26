@@ -357,7 +357,7 @@ class CommandParserTest extends Test {
               takes(config[SubConfig](o.string --"dbName3" :: o.int --"dbPort3")) ::
               runs[ParentSubConfig](c => conf = Some(c))
             }
-          }: CommandPartsBuilder[CommandDsl[PartialCommand[HNil]] :: HNil, Unit, HNil])
+          })
 
       res.invalid
     }

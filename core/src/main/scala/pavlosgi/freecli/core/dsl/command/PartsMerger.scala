@@ -6,16 +6,16 @@ import pavlosgi.freecli.core.api.command.{PartialCommand, RunCommand}
 import pavlosgi.freecli.core.dsl.config.ConfigDsl
 import pavlosgi.freecli.core.free.FreeAlternative
 
-sealed trait PartsMerger[H1 <: HList, C1, R1, H2 <: HList, C2, R2] {
+private[command] sealed trait PartsMerger[H1 <: HList, C1, R1, H2 <: HList, C2, R2] {
   type H_ <: HList
   type C_
   type R_
-  type Out = CommandPartsBuilder[H_, C_, R_]
+  type Out = CommandDslBuilder[H_, C_, R_]
 
-  def apply(h1: CommandPartsBuilder[H1, C1, R1], h2: CommandPartsBuilder[H2, C2, R2]): Out
+  def apply(h1: CommandDslBuilder[H1, C1, R1], h2: CommandDslBuilder[H2, C2, R2]): Out
 }
 
-object PartsMerger {
+private[command] object PartsMerger {
   type Aux[H1 <: HList, C1, R1, H2 <: HList, C2, R2, HOut, COut, ROut] =
    PartsMerger[H1, C1, R1, H2, C2, R2] {
      type H_ = HOut
@@ -30,11 +30,11 @@ object PartsMerger {
       type R_ = R2
 
       def apply(
-        h1: CommandPartsBuilder[ConfigDsl[C1] :: HNil, C1, R1],
-        h2: CommandPartsBuilder[RunCommand[R2] :: HNil, C2, R2]):
+        h1: CommandDslBuilder[ConfigDsl[C1] :: HNil, C1, R1],
+        h2: CommandDslBuilder[RunCommand[R2] :: HNil, C2, R2]):
         Out = {
 
-        CommandPartsBuilder[ConfigDsl[C1] :: RunCommand[R2] :: HNil, C1, R2](
+        CommandDslBuilder[ConfigDsl[C1] :: RunCommand[R2] :: HNil, C1, R2](
           h1.list.head :: h2.list.head :: HNil)
       }
     }
@@ -46,11 +46,11 @@ object PartsMerger {
       type R_ = R2
 
       def apply(
-        h1: CommandPartsBuilder[ConfigDsl[C1] :: HNil, C1, R1],
-        h2: CommandPartsBuilder[CommandDsl[PartialCommand[R2]] :: HNil, C2, R2]):
+        h1: CommandDslBuilder[ConfigDsl[C1] :: HNil, C1, R1],
+        h2: CommandDslBuilder[CommandDsl[PartialCommand[R2]] :: HNil, C2, R2]):
         Out = {
 
-        CommandPartsBuilder[ConfigDsl[C1] :: CommandDsl[PartialCommand[R2]] :: HNil, C1, R2](
+        CommandDslBuilder[ConfigDsl[C1] :: CommandDsl[PartialCommand[R2]] :: HNil, C1, R2](
           h1.list.head :: h2.list.head :: HNil)
       }
     }
@@ -64,8 +64,8 @@ object PartsMerger {
       type R_ = RH
 
       def apply(
-        h1: CommandPartsBuilder[CommandDsl[PartialCommand[R1]] :: HNil, Unit, R1],
-        h2: CommandPartsBuilder[CommandDsl[PartialCommand[R2]] :: HNil, Unit, R2]):
+        h1: CommandDslBuilder[CommandDsl[PartialCommand[R1]] :: HNil, Unit, R1],
+        h2: CommandDslBuilder[CommandDsl[PartialCommand[R2]] :: HNil, Unit, R2]):
         Out = {
 
         val dsl =
@@ -76,7 +76,7 @@ object PartsMerger {
             h2.list.head.map(
               partial => PartialCommand[RH](r => partial.f(ev2.from(r)))))
 
-        CommandPartsBuilder(dsl :: HNil)
+        CommandDslBuilder(dsl :: HNil)
       }
     }
 }

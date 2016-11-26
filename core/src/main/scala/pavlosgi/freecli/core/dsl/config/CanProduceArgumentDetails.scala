@@ -6,13 +6,13 @@ import shapeless.ops.hlist.{Diff, Intersection, LeftFolder}
 import pavlosgi.freecli.core.api.Description
 import pavlosgi.freecli.core.api.config._
 
-trait CanProduceArgumentDetails[T, H <: HList] {
+private[config] sealed trait CanProduceArgumentDetails[T, H <: HList] {
   type Out <: HList
 
   def apply(list: H): (ArgumentDetails, Out)
 }
 
-object CanProduceArgumentDetails {
+private[config] object CanProduceArgumentDetails {
   type ArgumentDetailsTypes =
     ArgumentName :: Description :: HNil
 

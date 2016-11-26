@@ -6,7 +6,7 @@ import shapeless.ops.hlist.{LeftFolder, Prepend}
 
 import pavlosgi.freecli.core.dsl.generic
 
-trait ConfigDslImplicits {
+private [config] trait ConfigDslImplicits {
   object merge extends Poly2 {
     implicit def fromHList[L <: HList, H <: HList]
      (implicit ev: Prepend[L, H]) = {

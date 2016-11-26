@@ -9,7 +9,7 @@ import shapeless.ops.hlist.{LeftFolder, Prepend}
 import pavlosgi.freecli.core.api.config.Sub
 import pavlosgi.freecli.core.dsl.generic
 
-case class SubDslBuilder[H <: HList, T](list: H) {
+private[config] case class SubDslBuilder[H <: HList, T](list: H) {
 
   def apply[Conf](
     f: ConfigDsl[Conf])
@@ -23,13 +23,13 @@ case class SubDslBuilder[H <: HList, T](list: H) {
   }
 }
 
-object SubDslBuilder {
+private[config] object SubDslBuilder {
   def sub[T]: SubDslBuilder[HNil, T] = sub[HNil, T](HNil)
   def sub[H <: HList, T](list: H): SubDslBuilder[H, T] =
     new SubDslBuilder[H, T](list)
 
   @implicitNotFound("Could not produce Config from ${H}. Ensure that you provided a subconfiguration.")
-  trait CanProduceConfigDsl[H <: HList, T] {
+  private[config] sealed trait CanProduceConfigDsl[H <: HList, T] {
     def apply(a: SubDslBuilder[H, T]): ConfigDsl[T]
   }
 
@@ -39,10 +39,12 @@ object SubDslBuilder {
       dsl: Out =:= (ConfigDsl[T] :: HNil)):
       CanProduceConfigDsl[H, T] = {
 
-      (s: SubDslBuilder[H, T]) => {
-        val (description, remaining) = canProduceDescription.apply(s.list)
-        val subDsl = dsl(remaining).head
-        FreeApplicative.lift(Sub[T](description, subDsl))
+      new CanProduceConfigDsl[H, T] {
+        def apply(s: SubDslBuilder[H, T]): ConfigDsl[T] = {
+          val (description, remaining) = canProduceDescription.apply(s.list)
+          val subDsl = dsl(remaining).head
+          FreeApplicative.lift(Sub[T](description, subDsl))
+        }
       }
     }
 

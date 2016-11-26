@@ -7,7 +7,7 @@ import pavlosgi.freecli.core.api.command.CommandField
 import pavlosgi.freecli.core.interpreters.help.{config => C}
 import pavlosgi.freecli.core.interpreters.help._
 
-case class HelpState(commands: Seq[CommandHelp]) {
+private[command] case class HelpState(commands: Seq[CommandHelp]) {
   def addCommandHelp(
     field: Option[CommandField] = None,
     config: Option[C.HelpState] = None,
@@ -18,7 +18,7 @@ case class HelpState(commands: Seq[CommandHelp]) {
   }
 }
 
-object HelpState extends HelpStateInstances {
+private[command] object HelpState extends HelpStateInstances {
   def display(indentation: Int, h: HelpState): String = {
     h.commands.map {
       case CommandHelp(Some(field), None, None) =>
@@ -58,13 +58,13 @@ object HelpState extends HelpStateInstances {
   }
 }
 
-case class CommandHelp(
+private[command] case class CommandHelp(
   field: Option[CommandField],
   config: Option[C.HelpState],
   subs: Option[HelpState])
 
 
-trait HelpStateInstances {
+private[command] sealed trait HelpStateInstances {
   implicit def monoidInstance: Monoid[HelpState] = new Monoid[HelpState] {
     def empty: HelpState = HelpState(Seq.empty)
     def combine(x: HelpState, y: HelpState): HelpState = {
