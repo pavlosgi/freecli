@@ -1,7 +1,5 @@
 package pavlosgi.freecli.core.dsl.config
 
-import scala.annotation.implicitNotFound
-
 import cats.free.FreeApplicative
 import shapeless._
 import shapeless.ops.hlist.{LeftFolder, Prepend}
@@ -28,31 +26,21 @@ private[config] object SubDslBuilder {
   def sub[H <: HList, T](list: H): SubDslBuilder[H, T] =
     new SubDslBuilder[H, T](list)
 
-  @implicitNotFound("Could not produce Config from ${H}. Ensure that you provided a subconfiguration.")
-  private[config] sealed trait CanProduceConfigDsl[H <: HList, T] {
-    def apply(a: SubDslBuilder[H, T]): ConfigDsl[T]
-  }
+  implicit def canProduceConfigDsl[H <: HList, T, Out <: HList]
+   (implicit canProduceDescription: CanProduceDescription.Aux[H, Out],
+    dsl: Out =:= (ConfigDsl[T] :: HNil)):
+    CanProduceConfigDsl[SubDslBuilder[H, ?], T, T] = {
 
-  object CanProduceConfigDsl {
-    implicit def canProduceConfigDsl[H <: HList, T, Out <: HList]
-     (implicit canProduceDescription: CanProduceDescription.Aux[H, Out],
-      dsl: Out =:= (ConfigDsl[T] :: HNil)):
-      CanProduceConfigDsl[H, T] = {
-
-      new CanProduceConfigDsl[H, T] {
-        def apply(s: SubDslBuilder[H, T]): ConfigDsl[T] = {
-          val (description, remaining) = canProduceDescription.apply(s.list)
-          val subDsl = dsl(remaining).head
-          FreeApplicative.lift(Sub[T](description, subDsl))
-        }
-      }
+    (s: SubDslBuilder[H, T]) => {
+      val (description, remaining) = canProduceDescription.apply(s.list)
+      val subDsl = dsl(remaining).head
+      FreeApplicative.lift(Sub[T](description, subDsl))
     }
-
   }
 
   implicit def toConfigDsl[H <: HList, T](
     s: SubDslBuilder[H, T])
-   (implicit canProduceConfigDsl: CanProduceConfigDsl[H, T]):
+   (implicit canProduceConfigDsl: CanProduceConfigDsl[SubDslBuilder[H, ?], T, T]):
     ConfigDsl[T] = {
 
     canProduceConfigDsl(s)
@@ -60,7 +48,7 @@ private[config] object SubDslBuilder {
 
   implicit def toConfigDslMerger[H <: HList, T](
     s: SubDslBuilder[H, T])
-   (implicit canProduceConfigDsl: CanProduceConfigDsl[H, T]):
+   (implicit canProduceConfigDsl: CanProduceConfigDsl[SubDslBuilder[H, ?], T, T]):
     Merger[T] = {
 
     toConfigDsl(s)

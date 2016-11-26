@@ -31,29 +31,21 @@ private[config] object ArgumentsDslBuilder {
   def arg[H <: HList, T](list: H)(implicit decoder: StringDecoder[T]) =
     new ArgumentsDslBuilder[H, T](list)
 
-  private[config] sealed trait CanProduceArgDsl[H <: HList, T, A] {
-    def apply(a: ArgumentsDslBuilder[H, T]): ConfigDsl[A]
-  }
+  implicit def canProduceArgDsl[H <: HList, T, Out <: HList](
+    implicit canProduceArgumentDetails: CanProduceArgumentDetails.Aux[H, HNil],
+    decoder: StringDecoder[T]):
+    CanProduceConfigDsl[ArgumentsDslBuilder[H, ?], T, T] = {
 
-  object CanProduceArgDsl {
-    implicit def canProduceArgDsl[H <: HList, T, Out <: HList](
-      implicit canProduceArgumentDetails: CanProduceArgumentDetails.Aux[T, H, HNil],
-      decoder: StringDecoder[T]):
-      CanProduceArgDsl[H, T, T] = {
+    (o: ArgumentsDslBuilder[H, T]) => {
+      val (ad, _) = canProduceArgumentDetails.apply(o.list)
 
-      new CanProduceArgDsl[H, T, T] {
-        def apply(o: ArgumentsDslBuilder[H, T]) = {
-          val (ad, _) = canProduceArgumentDetails.apply(o.list)
-
-          FreeApplicative.lift(Arg[T, T](ad, identity, decoder))
-        }
-      }
+      FreeApplicative.lift(Arg[T, T](ad, identity, decoder))
     }
   }
 
   implicit def toArgDsl[H <: HList, T, A](
     o: ArgumentsDslBuilder[H, T])
-   (implicit canProduceArgDsl: CanProduceArgDsl[H, T, A]):
+   (implicit canProduceArgDsl: CanProduceConfigDsl[ArgumentsDslBuilder[H, ?], T, A]):
     ConfigDsl[A] = {
 
     canProduceArgDsl.apply(o)
@@ -61,7 +53,7 @@ private[config] object ArgumentsDslBuilder {
 
   implicit def toArgDslMerger[H <: HList, T, A](
     o: ArgumentsDslBuilder[H, T])
-   (implicit canProduceArgDsl: CanProduceArgDsl[H, T, A]):
+   (implicit canProduceArgDsl: CanProduceConfigDsl[ArgumentsDslBuilder[H, ?], T, A]):
     Merger[A] = {
 
     canProduceArgDsl.apply(o)

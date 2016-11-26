@@ -6,7 +6,7 @@ import shapeless.ops.hlist.{Diff, Intersection, LeftFolder}
 import pavlosgi.freecli.core.api.Description
 import pavlosgi.freecli.core.api.config._
 
-private[config] sealed trait CanProduceArgumentDetails[T, H <: HList] {
+private[config] sealed trait CanProduceArgumentDetails[H <: HList] {
   type Out <: HList
 
   def apply(list: H): (ArgumentDetails, Out)
@@ -16,7 +16,7 @@ private[config] object CanProduceArgumentDetails {
   type ArgumentDetailsTypes =
     ArgumentName :: Description :: HNil
 
-  type Aux[T, H <: HList, Out_ <: HList] = CanProduceArgumentDetails[T, H] {
+  type Aux[H <: HList, Out_ <: HList] = CanProduceArgumentDetails[H] {
     type Out = Out_
   }
 
@@ -38,12 +38,12 @@ private[config] object CanProduceArgumentDetails {
       }
   }
 
-  implicit def canProduceArgumentDetails[T, H <: HList, Out0 <: HList, Out1 <: HList](
+  implicit def canProduceArgumentDetails[H <: HList, Out0 <: HList, Out1 <: HList](
     implicit ev: Intersection.Aux[H, ArgumentDetailsTypes, Out0],
     ev2: LeftFolder.Aux[Out0, ArgumentDetails, aggregate.type, ArgumentDetails],
     ev3: Diff.Aux[H, Out0, Out1]) = {
 
-    new CanProduceArgumentDetails[T, H] {
+    new CanProduceArgumentDetails[H] {
       type Out = Out1
 
       def apply(list: H): (ArgumentDetails, Out) = {

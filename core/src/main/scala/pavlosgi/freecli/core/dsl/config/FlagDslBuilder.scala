@@ -39,27 +39,21 @@ private[config] object FlagDslBuilder {
   def flag[H <: HList](list: H): FlagDslBuilder[HNil] =
     new FlagDslBuilder[HNil](HNil)
 
-  trait CanProduceConfigDsl[F[_ <: HList], H <: HList, A] {
-    def apply(a: F[H]): ConfigDsl[A]
-  }
+  implicit def canProduceConfigDsl[H <: HList](
+    implicit canProduceField: CanProduceField.Aux[H, HNil],
+    decoder: StringDecoder[Boolean]):
+    CanProduceConfigDsl[Lambda[T => FlagDslBuilder[H]], H, Boolean] = {
 
-  object CanProduceConfigDsl {
-    implicit def canProduceConfigDsl[H <: HList](
-      implicit canProduceField: CanProduceField.Aux[H, HNil],
-      decoder: StringDecoder[Boolean]):
-      CanProduceConfigDsl[FlagDslBuilder, H, Boolean] = {
+    (f: FlagDslBuilder[H]) => {
+      val (field, _) = canProduceField.apply(f.list)
 
-      (f: FlagDslBuilder[H]) => {
-        val (field, _) = canProduceField.apply(f.list)
-
-        FreeApplicative.lift(Flag[Boolean](field, identity))
-      }
+      FreeApplicative.lift(Flag[Boolean](field, identity))
     }
   }
 
   implicit def toConfigDsl[H <: HList](
     f: FlagDslBuilder[H])
-   (implicit canProduceConfigDsl: CanProduceConfigDsl[FlagDslBuilder, H, Boolean]):
+   (implicit canProduceConfigDsl: CanProduceConfigDsl[Lambda[T => FlagDslBuilder[H]], H, Boolean]):
     ConfigDsl[Boolean] = {
 
     canProduceConfigDsl(f)
@@ -67,7 +61,7 @@ private[config] object FlagDslBuilder {
 
   implicit def toConfigDslMerger[H <: HList](
     f: FlagDslBuilder[H])
-   (implicit canProduceConfigDsl: CanProduceConfigDsl[FlagDslBuilder, H, Boolean]):
+   (implicit canProduceConfigDsl: CanProduceConfigDsl[Lambda[T => FlagDslBuilder[H]], H, Boolean]):
     Merger[Boolean] = {
 
     canProduceConfigDsl(f)
