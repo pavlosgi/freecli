@@ -1,8 +1,8 @@
 package pavlosgi.freecli.core.interpreters.help.config
 
+import cats.{Monoid, Semigroup}
 import cats.data.NonEmptyList
 
-import pavlosgi.freecli.core.api.config.ArgumentDetails
 import cats.instances.all._
 import cats.syntax.all._
 
@@ -26,9 +26,7 @@ case class HelpState(options: Option[OptionsHelp], arguments: Option[ArgumentsHe
   }
 }
 
-object HelpState {
-  def empty = HelpState(None, None)
-
+object HelpState extends HelpStateInstances {
   def display(indentation: Int, s: HelpState): String = {
     val optsMax = s.options.fold(0)(OptionsHelp.calculateMaxNameLength)
     val argsMax = s.arguments.fold(0)(ArgumentsHelp.calculateMaxNameLength)
@@ -50,6 +48,12 @@ object HelpState {
 case class ArgumentsHelp(arguments: NonEmptyList[ArgumentDetails])
 
 object ArgumentsHelp {
+  implicit def semigroupInstance = new Semigroup[ArgumentsHelp] {
+    def combine(x: ArgumentsHelp, y: ArgumentsHelp): ArgumentsHelp = {
+      ArgumentsHelp(x.arguments |+| y.arguments)
+    }
+  }
+
   def oneline(help: ArgumentsHelp): String = {
     help.arguments.toList.zipWithIndex.map {
       case (a, idx) => s"<${a.name.fold(s"arg${idx + 1}")(_.show)}>"
@@ -86,6 +90,12 @@ object ArgumentsHelp {
 
 case class OptionsHelp(options: NonEmptyList[OptionHelp])
 object OptionsHelp {
+  implicit def semigroupInstance = new Semigroup[OptionsHelp] {
+    def combine(x: OptionsHelp, y: OptionsHelp): OptionsHelp = {
+      OptionsHelp(x.options |+| y.options)
+    }
+  }
+
   def calculateMaxNameLength(o: OptionsHelp): Int = {
     o.options.toList.map {
       case OptionFieldHelp(f, _) =>
@@ -171,5 +181,16 @@ object SubHelp {
         val d = OptionsHelp.calculateMaxNameLength(v)
         OptionsHelp.display(indentation, d, v)
       })
+  }
+}
+
+trait HelpStateInstances {
+  implicit def monoidInstance: Monoid[HelpState] = new Monoid[HelpState] {
+    def empty: HelpState = HelpState(None, None)
+    def combine(x: HelpState, y: HelpState): HelpState = {
+      HelpState(
+        x.options |+| y.options,
+        x.arguments |+| y.arguments)
+    }
   }
 }

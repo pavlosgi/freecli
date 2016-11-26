@@ -1,11 +1,10 @@
 package pavlosgi.freecli.core.dsl.command
 
-import cats.Alternative
-import cats.syntax.all._
 import shapeless.{::, HList, HNil}
 
 import pavlosgi.freecli.core.api.command.{PartialCommand, RunCommand}
 import pavlosgi.freecli.core.dsl.config.ConfigDsl
+import pavlosgi.freecli.core.free.FreeAlternative
 
 sealed trait PartsMerger[H1 <: HList, C1, R1, H2 <: HList, C2, R2] {
   type H_ <: HList
@@ -70,7 +69,7 @@ object PartsMerger {
         Out = {
 
         val dsl =
-          implicitly[Alternative[CommandDsl]].combineK(
+          FreeAlternative.combineK(
             h1.list.head.map(
               partial => PartialCommand[RH](r => partial.f(ev.from(r)))),
 

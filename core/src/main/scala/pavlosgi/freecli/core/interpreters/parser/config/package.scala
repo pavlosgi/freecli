@@ -3,9 +3,10 @@ package pavlosgi.freecli.core.interpreters.parser
 import cats.data._
 import cats.instances.all._
 import cats.syntax.all._
+import cats.~>
 
-import pavlosgi.freecli.core.api.Description
 import pavlosgi.freecli.core.api.config._
+import pavlosgi.freecli.core.dsl.config.ConfigDsl
 import pavlosgi.freecli.core.interpreters.ResultTS
 
 package object config {
@@ -13,12 +14,10 @@ package object config {
 
   def parseConfig[G, A](
     args: Seq[String])
-   (dsl: G)
-   (implicit ev: G => ResultT[A]):
+   (dsl: ConfigDsl[A]):
     ValidatedNel[ParsingError, A] = {
 
-    ResultTS.run(Arguments(args))(
-      ev(dsl)) match {
+    ResultTS.run(Arguments(args))(dsl.foldMap(configAlgebraParser)) match {
         case (Arguments(Nil), res) => res.toValidated
         case (Arguments(argsLeft), res) =>
           val ers = res.fold(_.toList, _ => List.empty)
@@ -27,92 +26,60 @@ package object config {
       }
   }
 
-  implicit object configAlgebraParser extends Algebra[ResultT[?]] {
-    override def arg[T, A](
-      details: ArgumentDetails,
-      f: T => A,
-      g: StringDecoder[T]):
-      ResultT[A] = {
+  implicit object configAlgebraParser extends (Algebra ~> ResultT) {
+    def apply[A](fa: Algebra[A]): ResultT[A] = {
+      fa match {
+        case Arg(details, f, g) =>
+          for {
+            args   <- ResultTS.get[ParsingError, Arguments]
+            value  <- extractArgumentValue(details, args)
+            res    <- parseArg(value, g)
+          } yield f(res)
 
-      for {
-        args   <- ResultTS.get[ParsingError, Arguments]
-        value  <- extractArgumentValue(details, args)
-        res    <- ResultTS.fromValidated[StringDecoderError, Arguments, T](
-                    g.apply(value)).leftMap(
-                    _.map[ParsingError](ParsingError.fromStringDecoderError))
+        case RequiredOpt(field, f, g, default) =>
+          def mapping[T](o: Option[T]): ResultT[A] = {
+            o.orElse(default) match {
+              case Some(s) =>
+                ResultTS.right(f(s))
 
-      } yield f(res)
-    }
+              case None =>
+                ResultTS.leftNE(OptionFieldMissingParsingError(field))
+            }
+          }
 
-    override def requiredOpt[T, A](
-      field: Field,
-      f: T => A,
-      g: StringDecoder[T],
-      default: Option[T]):
-      ResultT[A] = {
+          for {
+            res <- apply(Opt(field, mapping, g))
+            v <- res
+          } yield v
 
-      def mapping(o: Option[T]): ResultT[A] = {
-        o.orElse(default) match {
-          case Some(s) =>
-            ResultTS.right(f(s))
+        case Opt(field, f, g) =>
+          for {
+            args   <- ResultTS.get[ParsingError, Arguments]
+            value  <- extractOptionFieldAndValue(field, args)
+            res    <- parseOpt(value, g)
+          } yield f(res)
 
-          case None =>
-            ResultTS.leftNE(OptionFieldMissingParsingError(field))
-        }
+        case Flag(field, f) =>
+          for {
+            args   <- ResultTS.get[ParsingError, Arguments]
+            value  <- extractOptionFieldIfExists(field, args)
+          } yield f(value)
+
+        case Sub(description, dsl) => dsl.foldMap(configAlgebraParser)
       }
-
-      for {
-        res <- opt(field, mapping, g)
-        v <- res
-      } yield v
     }
+  }
 
-    override def opt[T, A](
-      field: Field,
-      f: Option[T] => A,
-      g: StringDecoder[T]):
-      ResultT[A] = {
+  def parseArg[T](value: String, g: StringDecoder[T]) = {
+    ResultTS.fromValidated[StringDecoderError, Arguments, T](
+      g.apply(value)).leftMap(
+      _.map[ParsingError](ParsingError.fromStringDecoderError))
+  }
 
-      for {
-        args   <- ResultTS.get[ParsingError, Arguments]
-        value  <- extractOptionFieldAndValue(field, args)
-        res    <- ResultTS.fromValidated[StringDecoderError, Arguments, Option[T]](
-                    value.traverseU(v => g.apply(v)))
-                    .leftMap(_.map[ParsingError](ParsingError.fromStringDecoderError))
-
-      } yield f(res)
-    }
-
-    override def flag[A](
-      field: Field,
-      f: Boolean => A):
-      ResultT[A] = {
-
-      for {
-        args   <- ResultTS.get[ParsingError, Arguments]
-        value  <- extractOptionFieldIfExists(field, args)
-      } yield f(value)
-    }
-
-    override def sub[G, A](
-      description: Description,
-      dsl: G)
-     (implicit ev: G => ResultT[A]):
-      ResultT[A] = ev(dsl)
-
-    override def pure[A](x: A): ResultT[A] = ResultTS.pure(x)
-
-    override def ap[A, B](
-      ff: ResultT[A => B])
-     (fa: ResultT[A]):
-      ResultT[B] = {
-
-      EitherT.apply[State[Arguments, ?], NonEmptyList[ParsingError], B](for {
-        ff1 <- ff.value
-        fa1 <- fa.value
-      } yield fa1.toValidated.ap(ff1.toValidated).toEither)
-
-    }
+  def parseOpt[T](value: Option[String], g: StringDecoder[T]) = {
+    ResultTS.fromValidated[StringDecoderError, Arguments, Option[T]](
+      value.traverseU(v => g.apply(v)))
+      .leftMap(_.map[ParsingError](ParsingError.fromStringDecoderError))
   }
 
   def extractOptionFieldIfExists(

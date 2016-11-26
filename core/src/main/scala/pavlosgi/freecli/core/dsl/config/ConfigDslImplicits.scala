@@ -1,36 +1,12 @@
 package pavlosgi.freecli.core.dsl.config
 
-import cats.Applicative
 import cats.syntax.all._
 import shapeless._
 import shapeless.ops.hlist.{LeftFolder, Prepend}
 
-import pavlosgi.freecli.core.api.config.Algebra
 import pavlosgi.freecli.core.dsl.generic
 
-trait ConfigDsl[A] {
-  def apply[F[_]: Algebra]: F[A]
-}
-
-object ConfigDsl {
-  implicit def dsl2FA[A, F[_]: Algebra]: ConfigDsl[A] => F[A] = _.apply[F]
-
-  implicit def applicativeDsl: Applicative[ConfigDsl] = {
-    new Applicative[ConfigDsl] {
-      override def pure[A](x: A): ConfigDsl[A] = new ConfigDsl[A] {
-        override def apply[F[_] : Algebra]: F[A] = x.pure[F]
-      }
-
-      override def ap[A, B]
-        (ff: ConfigDsl[(A) => B])
-        (fa: ConfigDsl[A]):
-        ConfigDsl[B] = new ConfigDsl[B] {
-
-        override def apply[F[_]: Algebra]: F[B] = ff.apply[F].ap(fa.apply[F])
-      }
-    }
-  }
-
+trait ConfigDslImplicits {
   object merge extends Poly2 {
     implicit def fromHList[L <: HList, H <: HList]
      (implicit ev: Prepend[L, H]) = {

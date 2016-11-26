@@ -2,11 +2,11 @@ package pavlosgi.freecli.core.dsl.config
 
 import scala.annotation.implicitNotFound
 
-import cats.syntax.all._
+import cats.free.FreeApplicative
 import shapeless._
 import shapeless.ops.hlist.{LeftFolder, Prepend}
 
-import pavlosgi.freecli.core.api.config.Algebra
+import pavlosgi.freecli.core.api.config.Sub
 import pavlosgi.freecli.core.dsl.generic
 
 case class SubDslBuilder[H <: HList, T](list: H) {
@@ -42,10 +42,7 @@ object SubDslBuilder {
       (s: SubDslBuilder[H, T]) => {
         val (description, remaining) = canProduceDescription.apply(s.list)
         val subDsl = dsl(remaining).head
-        new ConfigDsl[T] {
-          override def apply[F[_] : Algebra]: F[T] =
-            implicitly[Algebra[F]].sub(description, subDsl)
-        }
+        FreeApplicative.lift(Sub[T](description, subDsl))
       }
     }
 
@@ -62,14 +59,8 @@ object SubDslBuilder {
   implicit def toConfigDslMerger[H <: HList, T](
     s: SubDslBuilder[H, T])
    (implicit canProduceConfigDsl: CanProduceConfigDsl[H, T]):
-    ConfigDsl.Merger[T] = {
+    Merger[T] = {
 
     toConfigDsl(s)
   }
-
-  implicit def builder2FA[H <: HNil, Out <: HList, T, F[_]: Algebra](
-    implicit canProduceConfigDsl: CanProduceConfigDsl[H, T]):
-    SubDslBuilder[H, T] => F[T] =
-
-    toConfigDsl(_).apply[F]
 }

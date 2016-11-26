@@ -1,5 +1,6 @@
 package pavlosgi.freecli.core.dsl.config
 
+import cats.free.FreeApplicative
 import shapeless._
 import shapeless.ops.hlist.Prepend
 
@@ -70,11 +71,7 @@ object OptDslBuilder {
       (o: OptDslBuilder[H, T]) => {
         val (field, _) = canProduceField.apply(o.list)
 
-        new ConfigDsl[Option[T]] {
-          override def apply[F[_] : Algebra]: F[Option[T]] =
-            implicitly[Algebra[F]].opt[T, Option[T]](field, identity, decoder)
-
-        }
+        FreeApplicative.lift(Opt[T, Option[T]](field, identity, decoder))
       }
     }
 
@@ -88,14 +85,7 @@ object OptDslBuilder {
         val (field, remaining) = canProduceField.apply(o.list)
         val (default, _) = canProduceDefault.apply(remaining)
 
-        new ConfigDsl[T] {
-          override def apply[F[_] : Algebra]: F[T] =
-            implicitly[Algebra[F]].requiredOpt[T, T](
-              field,
-              identity,
-              decoder,
-              Some(default))
-        }
+        FreeApplicative.lift(RequiredOpt[T, T](field, identity, decoder, Some(default)))
       }
     }
 
@@ -108,14 +98,7 @@ object OptDslBuilder {
       (o: OptDslBuilder[H, T]) => {
         val (field, _) = canProduceField.apply(o.list)
 
-        new ConfigDsl[T] {
-          override def apply[F[_] : Algebra]: F[T] =
-            implicitly[Algebra[F]].requiredOpt[T, T](
-              field,
-              identity,
-              decoder,
-              None)
-        }
+        FreeApplicative.lift(RequiredOpt[T, T](field, identity, decoder, None))
       }
     }
   }
@@ -131,15 +114,8 @@ object OptDslBuilder {
   implicit def toConfigDslMerger[H <: HList, T, A](
     o: OptDslBuilder[H, T])
    (implicit canProduceConfigDsl: CanProduceConfigDsl[OptDslBuilder, H, T, A]):
-    ConfigDsl.Merger[A] = {
+    Merger[A] = {
 
     canProduceConfigDsl.apply(o)
-  }
-
-  implicit def builder2FA[H <: HList, T, A, Out <: HList, F[_]: Algebra](
-    implicit canProduceConfigDsl: CanProduceConfigDsl[OptDslBuilder, H, T, A]):
-    OptDslBuilder[H, T] => F[A] = {
-
-    canProduceConfigDsl(_).apply[F]
   }
 }

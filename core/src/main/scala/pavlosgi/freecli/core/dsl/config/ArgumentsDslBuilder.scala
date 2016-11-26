@@ -1,5 +1,6 @@
 package pavlosgi.freecli.core.dsl.config
 
+import cats.free.FreeApplicative
 import shapeless._
 import shapeless.ops.hlist.Prepend
 
@@ -43,11 +44,7 @@ object ArgumentsDslBuilder {
       (o: ArgumentsDslBuilder[H, T]) => {
         val (ad, _) = canProduceArgumentDetails.apply(o.list)
 
-        new ConfigDsl[T] {
-          override def apply[F[_] : Algebra]: F[T] =
-            implicitly[Algebra[F]].arg[T, T](ad, identity, decoder)
-
-        }
+        FreeApplicative.lift(Arg[T, T](ad, identity, decoder))
       }
     }
   }
@@ -63,15 +60,8 @@ object ArgumentsDslBuilder {
   implicit def toArgDslMerger[H <: HList, T, A](
     o: ArgumentsDslBuilder[H, T])
    (implicit canProduceArgDsl: CanProduceArgDsl[ArgumentsDslBuilder, H, T, A]):
-    ConfigDsl.Merger[A] = {
+    Merger[A] = {
 
     canProduceArgDsl.apply(o)
-  }
-
-  implicit def dsl2FA[H <: HList, T, A, Out <: HList, F[_]: Algebra](
-    implicit canProduceArgDsl: CanProduceArgDsl[ArgumentsDslBuilder, H, T, A]):
-    ArgumentsDslBuilder[H, T] => F[A] = {
-
-    canProduceArgDsl(_).apply[F]
   }
 }

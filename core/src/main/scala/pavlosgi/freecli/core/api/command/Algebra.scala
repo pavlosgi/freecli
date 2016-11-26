@@ -1,40 +1,37 @@
 package pavlosgi.freecli.core.api.command
 
-import cats.Alternative
+import cats.free.FreeApplicative
 
-import pavlosgi.freecli.core.api.AlgebraDependency
 import pavlosgi.freecli.core.api.config.{Algebra => ConfigAlgebra}
+import pavlosgi.freecli.core.free.FreeAlternative
 
-abstract class Algebra[F[_]] extends Alternative[F] {
+sealed abstract class Algebra[A]
 
-  def partialCmd[P](
-    field: CommandField,
-    run: P => Unit):
-    F[PartialCommand[P]]
+case class PartialCmd[P, A](
+  field: CommandField,
+  run: P => Unit,
+  f: PartialCommand[P] => A)
+  extends Algebra[A]
 
-  def partialCmdWithConfig[H[_], C[_], A, P](
-    field: CommandField,
-    config: H[A],
-    run: A => P => Unit)
-   (implicit ev: AlgebraDependency[ConfigAlgebra, F, C],
-    ev2: H[A] => C[A]):
-    F[PartialCommand[P]]
+case class PartialCmdWithConfig[C, P, A](
+  field: CommandField,
+  config: FreeApplicative[ConfigAlgebra, C],
+  run: C => P => Unit,
+  f: PartialCommand[P] => A)
+  extends Algebra[A]
 
-  def partialParentCmd[P, G[_]](
-    field: CommandField,
-    subs: G[PartialCommand[P]])
-   (implicit ev: G[PartialCommand[P]] => F[PartialCommand[P]]):
-    F[PartialCommand[P]]
+case class PartialParentCmd[P, A](
+  field: CommandField,
+  subs: FreeAlternative[Algebra, PartialCommand[P]],
+  f: PartialCommand[P] => A)
+  extends Algebra[A]
 
-  def partialParentCmdWithConfig[H[_], C[_], A, P, G[_]](
-    field: CommandField,
-    config: H[A],
-    subs: G[A => PartialCommand[P]])
-   (implicit ev: AlgebraDependency[ConfigAlgebra, F, C],
-    ev2: H[A] => C[A],
-    ev4: G[A => PartialCommand[P]] => F[A => PartialCommand[P]]):
-    F[PartialCommand[P]]
-}
+case class PartialParentCmdWithConfig[C, P, A](
+  field: CommandField,
+  config: FreeApplicative[ConfigAlgebra, C],
+  subs: FreeAlternative[Algebra, C => PartialCommand[P]],
+  f: PartialCommand[P] => A)
+  extends Algebra[A]
 
 
 

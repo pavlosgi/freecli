@@ -1,37 +1,36 @@
 package pavlosgi.freecli.core.api.config
 
-import cats.Applicative
+import cats.free.FreeApplicative
 
 import pavlosgi.freecli.core.api.Description
 
-trait Algebra[F[_]] extends Applicative[F] {
-  def arg[T, A](
-    details: ArgumentDetails,
-    f: T => A,
-    g: StringDecoder[T]):
-    F[A]
+trait Algebra[A]
 
-  def requiredOpt[T, A](
-    field: Field,
-    f: T => A,
-    g: StringDecoder[T],
-    default: Option[T]):
-    F[A]
+case class Arg[T, A](
+  details: ArgumentDetails,
+  f: T => A,
+  g: StringDecoder[T])
+  extends Algebra[A]
 
-  def opt[T, A](
-    field: Field,
-    f: Option[T] => A,
-    g: StringDecoder[T]):
-    F[A]
+case class RequiredOpt[T, A](
+  field: Field,
+  f: T => A,
+  g: StringDecoder[T],
+  default: Option[T])
+  extends Algebra[A]
 
-  def flag[A](
-    field: Field,
-    f: Boolean => A):
-    F[A]
+case class Opt[T, A](
+  field: Field,
+  f: Option[T] => A,
+  g: StringDecoder[T])
+  extends Algebra[A]
 
-  def sub[G, A](
-    description: Description,
-    f: G)
-   (implicit ev: G => F[A]):
-    F[A]
-}
+case class Flag[A](
+  field: Field,
+  f: Boolean => A)
+  extends Algebra[A]
+
+case class Sub[A](
+  description: Description,
+  f: FreeApplicative[Algebra, A])
+  extends Algebra[A]

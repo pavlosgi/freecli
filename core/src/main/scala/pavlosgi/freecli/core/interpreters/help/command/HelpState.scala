@@ -1,5 +1,6 @@
 package pavlosgi.freecli.core.interpreters.help.command
 
+import cats._
 import cats.syntax.all._
 
 import pavlosgi.freecli.core.api.command.CommandField
@@ -17,9 +18,7 @@ case class HelpState(commands: Seq[CommandHelp]) {
   }
 }
 
-object HelpState {
-  def empty = HelpState(Seq.empty)
-
+object HelpState extends HelpStateInstances {
   def display(indentation: Int, h: HelpState): String = {
     h.commands.map {
       case CommandHelp(Some(field), None, None) =>
@@ -47,7 +46,7 @@ object HelpState {
     val argsOneLine = s.arguments.map(C.ArgumentsHelp.oneline)
 
     Seq(
-      Some(s"${indent(indentation, f.name.show.yellow)} $argsOneLine"),
+      Some(s"${indent(indentation, f.name.show.yellow)} ${argsOneLine.getOrElse("")}"),
       optionalContentWithTitle(
         indent(
           indentation + 2, "Description".bold),
@@ -63,3 +62,13 @@ case class CommandHelp(
   field: Option[CommandField],
   config: Option[C.HelpState],
   subs: Option[HelpState])
+
+
+trait HelpStateInstances {
+  implicit def monoidInstance: Monoid[HelpState] = new Monoid[HelpState] {
+    def empty: HelpState = HelpState(Seq.empty)
+    def combine(x: HelpState, y: HelpState): HelpState = {
+      HelpState(x.commands ++ y.commands)
+    }
+  }
+}

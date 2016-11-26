@@ -5,8 +5,11 @@ import shapeless._
 import pavlosgi.freecli.core.api.Description
 import pavlosgi.freecli.core.api.command._
 import pavlosgi.freecli.core.dsl.config.ConfigDsl
+import pavlosgi.freecli.core.free.FreeAlternative
 
 package object command {
+  type CommandDsl[A] = FreeAlternative[Algebra, A]
+
   def cmd(name: String) =
     CommandPartsBuilder[CommandFieldName :: HNil, Unit, Unit](
       CommandFieldName(name) :: HNil)

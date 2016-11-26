@@ -1,15 +1,17 @@
 package pavlosgi.freecli.core.dsl
 
-import cats.syntax.all._
+import cats.free.FreeApplicative
 import shapeless._
 import shapeless.ops.hlist.Tupler
 
 import pavlosgi.freecli.core.api.Description
-import pavlosgi.freecli.core.api.config._
-import pavlosgi.freecli.core.dsl.config.OptDslBuilder.{DefaultValue, Required}
+import pavlosgi.freecli.core.api.config.{Algebra, ArgumentName, StringDecoder}
+import pavlosgi.freecli.core.dsl.config.OptDslBuilder.{Required, DefaultValue}
 
-package object config {
-  def config[T]: ConfigDsl.Apply[T] = new ConfigDsl.Apply[T]
+package object config extends ConfigDslImplicits {
+  type ConfigDsl[A] = FreeApplicative[Algebra, A]
+
+  def config[T]: Apply[T] = new Apply[T]
   def config[T <: HList, Tup](
     c: ConfigDsl[T])
    (implicit ev: Tupler.Aux[T, Tup]):

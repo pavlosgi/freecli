@@ -1,5 +1,6 @@
 package pavlosgi.freecli.core.dsl.config
 
+import cats.free.FreeApplicative
 import shapeless._
 import shapeless.ops.hlist.Prepend
 
@@ -51,11 +52,7 @@ object FlagDslBuilder {
       (f: FlagDslBuilder[H]) => {
         val (field, _) = canProduceField.apply(f.list)
 
-        new ConfigDsl[Boolean] {
-          override def apply[F[_] : Algebra]: F[Boolean] =
-            implicitly[Algebra[F]].flag[Boolean](field, identity)
-
-        }
+        FreeApplicative.lift(Flag[Boolean](field, identity))
       }
     }
   }
@@ -71,15 +68,8 @@ object FlagDslBuilder {
   implicit def toConfigDslMerger[H <: HList](
     f: FlagDslBuilder[H])
    (implicit canProduceConfigDsl: CanProduceConfigDsl[FlagDslBuilder, H, Boolean]):
-    ConfigDsl.Merger[Boolean] = {
+    Merger[Boolean] = {
 
     canProduceConfigDsl(f)
-  }
-
-  implicit def builder2FA[H <: HList, F[_]: Algebra](
-    implicit canProduceConfigDsl: CanProduceConfigDsl[FlagDslBuilder, H, Boolean]):
-    FlagDslBuilder[H] => F[Boolean] = {
-
-    canProduceConfigDsl(_).apply[F]
   }
 }
