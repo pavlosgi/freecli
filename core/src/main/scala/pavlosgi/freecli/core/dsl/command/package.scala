@@ -7,7 +7,7 @@ import pavlosgi.freecli.core.api.command._
 import pavlosgi.freecli.core.dsl.config.ConfigDsl
 import pavlosgi.freecli.core.free.FreeAlternative
 
-package object command {
+package object command extends CommandDslImplicits {
   type CommandDsl[A] = FreeAlternative[Algebra, A]
 
   def cmd(name: String) =

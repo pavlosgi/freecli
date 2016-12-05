@@ -5,9 +5,10 @@ import cats.syntax.all._
 
 import pavlosgi.freecli.core.api.command.CommandField
 import pavlosgi.freecli.core.interpreters.help.{config => C}
+import pavlosgi.freecli.core.interpreters.help.{arguments => A}
 import pavlosgi.freecli.core.interpreters.help._
 
-private[command] case class HelpState(commands: Seq[CommandHelp]) {
+case class HelpState(commands: Seq[CommandHelp]) {
   def addCommandHelp(
     field: Option[CommandField] = None,
     config: Option[C.HelpState] = None,
@@ -18,7 +19,7 @@ private[command] case class HelpState(commands: Seq[CommandHelp]) {
   }
 }
 
-private[command] object HelpState extends HelpStateInstances {
+object HelpState extends HelpStateInstances {
   def display(indentation: Int, h: HelpState): String = {
     h.commands.map {
       case CommandHelp(Some(field), None, None) =>
@@ -43,7 +44,7 @@ private[command] object HelpState extends HelpStateInstances {
   }
 
   def displayFieldWithConfig(indentation: Int, f: CommandField, s: C.HelpState): String = {
-    val argsOneLine = s.arguments.map(C.ArgumentsHelp.oneline)
+    val argsOneLine = s.arguments.map(A.HelpState.oneline)
 
     Seq(
       Some(s"${indent(indentation, f.name.show.yellow)} ${argsOneLine.getOrElse("")}"),
@@ -58,13 +59,13 @@ private[command] object HelpState extends HelpStateInstances {
   }
 }
 
-private[command] case class CommandHelp(
+case class CommandHelp(
   field: Option[CommandField],
   config: Option[C.HelpState],
   subs: Option[HelpState])
 
 
-private[command] sealed trait HelpStateInstances {
+sealed trait HelpStateInstances {
   implicit def monoidInstance: Monoid[HelpState] = new Monoid[HelpState] {
     def empty: HelpState = HelpState(Seq.empty)
     def combine(x: HelpState, y: HelpState): HelpState = {

@@ -1,45 +1,20 @@
 package pavlosgi.freecli.core.dsl.config
 
-import cats.syntax.all._
-import shapeless._
-import shapeless.ops.hlist.{LeftFolder, Prepend}
+import shapeless.HList
 
-import pavlosgi.freecli.core.dsl.generic
+import pavlosgi.freecli.core.dsl.CanProduce
+import pavlosgi.freecli.core.dsl.{arguments => A, options => O}
 
-private [config] trait ConfigDslImplicits {
-  object merge extends Poly2 {
-    implicit def fromHList[L <: HList, H <: HList]
-     (implicit ev: Prepend[L, H]) = {
+trait ConfigDslImplicits extends O.OptionDslImplicits with A.ArgumentsDslImplicits{
+  implicit def toConfigDsl[B, O](
+    b: B)
+   (implicit ev: CanProduce.Aux[B, ConfigDsl[O]]):
+    ConfigDsl[O] = {
 
-      at[L, H]((l, h) => l ++ h)
-    }
-
-    implicit def fromNonHList[L <: HList, H]
-     (implicit ev: Prepend[L, H :: HNil],
-      ev2: H <:!< HList) = {
-
-      at[L, H]((l, h) => l :+ h)
-    }
+    ev(b)
   }
 
-  implicit class Merger[H](private val c: ConfigDsl[H]) {
-    def ::[L, Out <: HList](
-      dsl: Merger[L])
-     (implicit ev: LeftFolder.Aux[L :: H :: HNil, HNil, merge.type, Out]):
-      ConfigDsl[Out] = {
-
-      (dsl.c |@| c).map((l, h) => ev.apply(l :: h :: HNil, HNil))
-    }
-  }
-
-  class Apply[T] {
-    def apply[Conf](
-      f: ConfigDsl[Conf])
-     (implicit folder: LeftFolder.Aux[Conf :: HNil, Option[T], generic.type, T]):
-      ConfigDsl[T] = {
-
-      f.map(c => folder(c :: HNil, Option.empty[T]))
-    }
-  }
-
+  implicit def canProduceConfigDslId[O] = CanProduce.Id[ConfigDsl[O]]
+  implicit def canProduceConfigDslBuilderId[H <: HList, O, A] =
+    CanProduce.Id[ConfigDslBuilder[H, O, A]]
 }

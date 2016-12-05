@@ -4,33 +4,42 @@ import cats.syntax.show._
 
 import pavlosgi.freecli.core.api.Description
 import pavlosgi.freecli.testkit.Test
-import pavlosgi.freecli.core.api.config._
+import pavlosgi.freecli.core.api.options._
+import pavlosgi.freecli.core.api.arguments._
 import pavlosgi.freecli.core.dsl.config._
 
 class ConfigHelpTest extends Test {
-  describe("Help") {
-    it("show help") {
-      case class A(a1: String, a2: Int, a3: B, a4: Boolean, a5: String, a6: String)
-      case class B(b1: String, b2: Int, b3: Boolean, b4: String, b5: C)
-      case class C(c1: String, c2: Int)
+  describe("Config help") {
+    it("show config help") {
+      case class A(a1: Option[String], a2: Option[Int], a3: B, a4: Boolean, a5: String, a6: String)
+      case class B(b1: Option[String], b2: Option[Int], b3: Boolean, b4: String, b5: C)
+      case class C(c1: Option[String], c2: Option[Int])
 
       val dsl =
-        config[A] {
-          o.string --"a1" -'a' -~ des("a1_description") ::
-          o.int    --"a2" -~ des("a2_description")      ::
-          sub[B]("a3 options") {
-            o.string --"b1" -'b' -~ des("b1_description") ::
-            o.int    --"b2" -'c' -~ des("b2_description") ::
-            flag     -'d' ::
-            o.string -'e' -~ or("default") -~ des("e option") ::
-            sub[C]("b5 options") {
-              o.string --"c1" ::
-              o.int -'c'
-            }
+        gen[A] {
+          options {
+            o.string --"a1" -'a' -~ des("a1_description") ::
+            o.int    --"a2" -~ des("a2_description")      ::
+            sub("a3 options") {
+              gen[B] {
+                o.string --"b1" -'b' -~ des("b1_description") ::
+                o.int    --"b2" -'c' -~ des("b2_description") ::
+                flag     -'d' ::
+                o.string -'e' -~ or("default") -~ des("e option") ::
+                sub("b5 options") {
+                  gen[C] {
+                    o.string --"c1" ::
+                    o.int -'c'
+                  }
+                }
+              }
+            } ::
+            flag --"a4"
           } ::
-          flag --"a4" ::
-          string -~ name("a5") -~ des("a5_description") ::
-          string -~ des("a6_description")
+          arguments {
+            string -~ name("a5") -~ des("a5_description") ::
+            string -~ des("a6_description")
+          }
         }
 
       val help = configHelp(dsl)

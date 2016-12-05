@@ -2,7 +2,7 @@ package pavlosgi.freecli.core.interpreters.help.command
 
 import cats.syntax.show._
 
-import pavlosgi.freecli.core.api.config.FieldName
+import pavlosgi.freecli.core.api.options.FieldName
 import pavlosgi.freecli.core.api.Description
 import pavlosgi.freecli.core.api.command.CommandFieldName
 import pavlosgi.freecli.core.dsl.command._
@@ -20,38 +20,42 @@ class CommandHelpTest extends Test {
       val dsl =
         cmd("command1", "command1 description") {
           takes {
-            config[A] {
-              o.int     --"a1" -~ des("a1 description")  ::
-              o.boolean --"a2"  ::
-              string ::
-              int
+            gen[A] {
+              options {
+                req[Int]  --"a1" -~ des("a1 description")  ::
+                flag --"a2"
+              } ::
+              arguments {
+                string ::
+                int
+              }
             }
           } ::
           cmd("subcommand1", "subcommand1 description") {
-            takes(config[String](o.string --"subfield1")) ::
+            takes(gen[String](options(req[String] --"subfield1"))) ::
             cmd("subcommand2") {
               cmd("subcommand3") {
-                takes(config[String](o.string --"subfield3")) ::
+                takes(gen[String](options(req[String] --"subfield3"))) ::
                 runs[B](s => ())
               }
             }
           } ::
           cmd("subcommand4") {
-            takes(config[String](o.string -- "subfield4")) ::
+            takes(gen[String](options(req[String] -- "subfield4"))) ::
             cmd("subcommand5") {
               runs[(A, String)](s => ())
             } ::
             cmd("subcommand6") {
-              takes(config[Int](o.int --"subfield6")) ::
+              takes(gen[Int](options(req[Int] --"subfield6"))) ::
               runs[(A, String, Int)](s => ())
             }
           } ::
           cmd("subcommand7") {
-            takes(config[String](o.string --"subfield7")) ::
+            takes(gen[String](options(req[String] --"subfield7"))) ::
             runs[(A, String)](s => ())
           } ::
           cmd("subcommand8") {
-            takes(config[C](o.string --"subfield8")) ::
+            takes(gen[C](options(req[String] --"subfield8"))) ::
             runs[D](s => ())
           }
         }

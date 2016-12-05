@@ -1,15 +1,15 @@
-package pavlosgi.freecli.core.api.config
+package pavlosgi.freecli.core.api.arguments
 
 import cats.Show
 import cats.syntax.show._
 
 import pavlosgi.freecli.core.api.Description
 
-private[core] case class ArgumentDetails(
+case class ArgumentDetails(
   name: Option[ArgumentName],
   description: Option[Description])
 
-private[core] object ArgumentDetails {
+object ArgumentDetails {
   implicit object showInstance extends Show[ArgumentDetails] {
     override def show(f: ArgumentDetails): String = {
       f match {

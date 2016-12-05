@@ -2,7 +2,7 @@ package pavlosgi.freecli.core.dsl
 
 import shapeless._
 
-private[core] object generic extends Poly2 {
+object generic extends Poly2 {
   implicit def fromHList[L <: HList, A](implicit ev: Generic.Aux[A, L]) =
     at[Option[A], L]((_, h) => ev.from(h))
 

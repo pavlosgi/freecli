@@ -7,7 +7,7 @@ import pavlosgi.freecli.core.api.command._
 import pavlosgi.freecli.core.dsl.config.ConfigDsl
 import pavlosgi.freecli.core.free.FreeAlternative
 
-private[command] sealed trait CanProduceDsl[H <: HList, Conf, Run] {
+sealed trait CanProduceDsl[H <: HList, Conf, Run] {
   type OutConf
   type OutRun
 

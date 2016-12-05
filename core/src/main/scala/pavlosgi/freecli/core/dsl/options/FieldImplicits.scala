@@ -1,41 +1,31 @@
-package pavlosgi.freecli.core.dsl.config
+package pavlosgi.freecli.core.dsl.options
 
 import shapeless._
 import shapeless.ops.hlist.{Diff, Intersection, LeftFolder}
 
 import pavlosgi.freecli.core.api.Description
-import pavlosgi.freecli.core.api.config._
+import pavlosgi.freecli.core.api.options._
+import pavlosgi.freecli.core.dsl.CanProduce
 
-trait CanProduceField[H <: HList] {
-  type Out <: HList
-
-  def apply(list: H): (Field, Out)
-}
-
-object CanProduceField {
-  type FieldTypes =
-    FieldName :: FieldAbbreviation :: Description :: HNil
+trait FieldImplicits {
+  type FieldTypes = FieldName :: FieldAbbreviation :: Description :: HNil
 
   case class PartialField(
     name: Option[FieldName],
     abbreviation: Option[FieldAbbreviation],
     description: Option[Description])
 
-  type Aux[H <: HList, Out_ <: HList] = CanProduceField[H] {
-    type Out = Out_
-  }
-
-  implicit def canProduceField[H <: HList, Out0 <: HList, Out1 <: HList](
+  implicit def canProduceField[H <: HList, Out0 <: HList, Rem <: HList](
     implicit ev: Intersection.Aux[H, FieldTypes, Out0],
-    ev2: LeftFolder.Aux[Out0, PartialField, aggregate.type, Field],
-    ev3: Diff.Aux[H, Out0, Out1]) = {
+    ev2: LeftFolder.Aux[Out0, PartialField, fieldBuilder.type, Field],
+    ev3: Diff.Aux[H, Out0, Rem]) = {
 
-    new CanProduceField[H] {
-      override type Out = Out1
+    new CanProduce[H] {
+      type Out = (Field, Rem)
 
-      def apply(list: H): (Field, Out) = {
+      def apply(list: H): Out = {
         val inters = ev.apply(list)
-        val field = inters.foldLeft(PartialField(None, None, None))(aggregate)
+        val field = inters.foldLeft(PartialField(None, None, None))(fieldBuilder)
         val remaining = ev3.apply(list)
 
         field -> remaining
@@ -43,7 +33,7 @@ object CanProduceField {
     }
   }
 
-  object aggregate extends Poly2 {
+  object fieldBuilder extends Poly2 {
     implicit def caseFieldFieldName:
       Case.Aux[Field, FieldName, Field] =
 

@@ -2,12 +2,12 @@ package pavlosgi.freecli.core.dsl.command
 
 import shapeless._
 
-private[command] sealed trait ToFromHList[T, H <: HList] {
+sealed trait ToFromHList[T, H <: HList] {
   def from(h: H): T
   def to(t: T): H
 }
 
-private[command] object ToFromHList {
+object ToFromHList {
   implicit def toFromHList[T <: HList, H <: HList](
     implicit ev: T =:= H,
     ev2: H =:= T) = {

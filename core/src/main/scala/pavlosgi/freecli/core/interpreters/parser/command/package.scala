@@ -26,7 +26,7 @@ package object command {
       case (Arguments(argsLeft), res) =>
         val ers = res.fold(_.toList, _ => List.empty)
         Validated.invalid(
-          NonEmptyList(UnknownArgumentsCommandParsingError(argsLeft), ers))
+          NonEmptyList(AdditionalArgumentsFound(argsLeft), ers))
     }
   }
 

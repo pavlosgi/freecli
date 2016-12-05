@@ -1,4 +1,4 @@
-package pavlosgi.freecli.core.api.config
+package pavlosgi.freecli.core.api
 
 import cats.data.{Validated, ValidatedNel}
 
