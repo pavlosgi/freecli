@@ -12,6 +12,7 @@ object Build extends Build {
   val commonSettings = Seq(
     organization := "pavlosgi",
     version := appVersion,
+    scalaOrganization := "org.typelevel",
     scalaVersion := "2.12.0",
     offline := true,
     excludeFilter in unmanagedResources := NothingFilter,
@@ -22,7 +23,6 @@ object Build extends Build {
       Classpaths.sbtPluginReleases
     ),
     addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.3"),
-    addCompilerPlugin("com.milessabin" % "si2712fix-plugin_2.11.8" % "1.2.0"),
     addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
     scalacOptions in (Compile, console) := Seq.empty,
     scalacOptions in (Test, console) := Seq.empty,
@@ -40,8 +40,9 @@ object Build extends Build {
       "-language:existentials",
       "-Ywarn-unused-import",
 //      "-Ylog-classpath",
-//      "-Ypartial-unification",
 //      "-Xprint:typer",
+      "-Ypartial-unification",
+      "-Yliteral-types",
       "-Xlint",
       "-Yno-adapted-args",
       "-Ywarn-dead-code",
