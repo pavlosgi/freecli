@@ -7,8 +7,7 @@ import io.circe.generic.auto._
 import io.circe.{Decoder, Json}
 import io.circe.syntax._
 
-import pavlosgi.freecli.config.dsl._
-import pavlosgi.freecli.config.interpreters.parser._
+import pavlosgi.freecli.config._
 import pavlosgi.freecli.testkit
 
 class Test extends testkit.Test {

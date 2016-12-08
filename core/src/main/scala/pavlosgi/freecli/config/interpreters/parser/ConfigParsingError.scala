@@ -2,8 +2,8 @@ package pavlosgi.freecli.config.interpreters.parser
 
 import cats.data.NonEmptyList
 
-import pavlosgi.freecli.arguments.interpreters.{parser => A}
-import pavlosgi.freecli.options.interpreters.{parser => O}
+import pavlosgi.freecli.argument.interpreters.{parser => A}
+import pavlosgi.freecli.option.interpreters.{parser => O}
 
 sealed trait ConfigParsingError {
   def message: String

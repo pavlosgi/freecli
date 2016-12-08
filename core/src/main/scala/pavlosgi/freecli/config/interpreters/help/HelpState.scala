@@ -4,9 +4,9 @@ import cats.Monoid
 import cats.instances.all._
 import cats.syntax.all._
 
-import pavlosgi.freecli.arguments.interpreters.{help => A}
+import pavlosgi.freecli.argument.interpreters.{help => A}
 import pavlosgi.freecli.core._
-import pavlosgi.freecli.options.interpreters.{help => O}
+import pavlosgi.freecli.option.interpreters.{help => O}
 
 case class HelpState(options: Option[O.HelpState], arguments: Option[A.HelpState])
 

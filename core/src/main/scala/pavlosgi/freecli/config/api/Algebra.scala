@@ -2,8 +2,8 @@ package pavlosgi.freecli.config.api
 
 import cats.free.FreeApplicative
 
-import pavlosgi.freecli.arguments.{api => A}
-import pavlosgi.freecli.options.{api => O}
+import pavlosgi.freecli.argument.{api => A}
+import pavlosgi.freecli.option.{api => O}
 
 sealed trait Algebra[A]
 

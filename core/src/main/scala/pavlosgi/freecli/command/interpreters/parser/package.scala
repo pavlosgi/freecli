@@ -6,32 +6,14 @@ import cats.syntax.all._
 import cats.{Alternative, ~>}
 
 import pavlosgi.freecli.command.api._
-import pavlosgi.freecli.command.dsl.CommandDsl
-import pavlosgi.freecli.core.{Arguments, ResultTS}
+import pavlosgi.freecli.core.Arguments
 import pavlosgi.freecli.core.ResultTS
 import pavlosgi.freecli.config.interpreters.{parser => C}
 
 package object parser {
   type ResultT[A] = ResultTS[CommandParsingError, Arguments, A]
 
-  def parseCommand[A](
-    args: Seq[String])
-   (dsl: CommandDsl[A]):
-    ValidatedNel[CommandParsingError, A] = {
-
-    val resultT: ResultT[A] =
-      dsl.foldMap(commandAlgebraParser)(alternativeResultInstance)
-
-    ResultTS.run[CommandParsingError, Arguments, A](Arguments(args))(resultT) match {
-      case (Arguments(Nil), res) => res.toValidated
-      case (Arguments(argsLeft), res) =>
-        val ers = res.fold(_.toList, _ => List.empty)
-        Validated.invalid(
-          NonEmptyList(AdditionalArgumentsFound(argsLeft), ers))
-    }
-  }
-
-  implicit def commandAlgebraParser: Algebra ~> ResultT = {
+  implicit def commandParserInterpreter: Algebra ~> ResultT = {
     new (Algebra ~> ResultT) {
       def apply[A](fa: Algebra[A]): ResultT[A] =
         fa match {
@@ -43,20 +25,20 @@ package object parser {
           case PartialCmdWithConfig(field, config, run, f) =>
             for {
               _    <- findAndSetCommandArgs(field)
-              conf <- configNat(config.foldMap(C.configAlgebraParser))
+              conf <- configNat(config.foldMap(C.configParserInterpreter))
             } yield f(PartialCommand(p => Command(field, run(conf)(p))))
 
           case PartialParentCmd(field, subs, f) =>
             for {
               cmdArgs <- findAndSetCommandArgs(field)
-              partial <- subs.foldMap(commandAlgebraParser)
+              partial <- subs.foldMap(commandParserInterpreter)
             } yield f(partial)
 
           case PartialParentCmdWithConfig(field, config, subs, f) =>
             for {
               _       <- findAndSetCommandArgs(field)
-              conf    <- configNat(config.foldMap(C.configAlgebraParser))
-              partial <- subs.foldMap(commandAlgebraParser)
+              conf    <- configNat(config.foldMap(C.configParserInterpreter))
+              partial <- subs.foldMap(commandParserInterpreter)
             } yield f(partial(conf))
         }
       }

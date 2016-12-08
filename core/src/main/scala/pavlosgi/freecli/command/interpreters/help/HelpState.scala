@@ -5,7 +5,7 @@ import cats.syntax.all._
 
 import pavlosgi.freecli.command.api.CommandField
 import pavlosgi.freecli.config.interpreters.{help => C}
-import pavlosgi.freecli.arguments.interpreters.{help => A}
+import pavlosgi.freecli.argument.interpreters.{help => A}
 import pavlosgi.freecli.core._
 
 case class HelpState(commands: Seq[CommandHelp]) {

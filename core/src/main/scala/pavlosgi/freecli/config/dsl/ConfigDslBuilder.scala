@@ -4,39 +4,39 @@ import cats.free.FreeApplicative
 import shapeless._
 import shapeless.ops.hlist.LeftFolder
 
+import pavlosgi.freecli.argument.{dsl => A}
 import pavlosgi.freecli.config.api._
-import pavlosgi.freecli.arguments.{dsl => A}
 import pavlosgi.freecli.core.{CanProduce, toHList}
-import pavlosgi.freecli.options.{dsl => O}
+import pavlosgi.freecli.option.{dsl => O}
 
 case class ConfigDslBuilder[H <: HList, O, A](list: H)
 object ConfigDslBuilder {
-  def arguments[A](a: A.ArgumentsDsl[A]) = {
-    ConfigDslBuilder[A.ArgumentsDsl[A] :: HNil, Unit, A](a :: HNil)
+  def arguments[A](a: A.ArgumentDsl[A]) = {
+    ConfigDslBuilder[A.ArgumentDsl[A] :: HNil, Unit, A](a :: HNil)
   }
 
-  def options[O](o: O.OptionsDsl[O]) = {
-    ConfigDslBuilder[O.OptionsDsl[O] :: HNil, O, Unit](o :: HNil)
+  def options[O](o: O.OptionDsl[O]) = {
+    ConfigDslBuilder[O.OptionDsl[O] :: HNil, O, Unit](o :: HNil)
   }
 
   implicit def canProduceConfigDslFromOptions[O]:
-    CanProduce.Aux[ConfigDslBuilder[O.OptionsDsl[O] :: HNil, O, Unit], ConfigDsl[O]] = {
+    CanProduce.Aux[ConfigDslBuilder[O.OptionDsl[O] :: HNil, O, Unit], ConfigDsl[O]] = {
 
-    new CanProduce[ConfigDslBuilder[O.OptionsDsl[O] :: HNil, O, Unit]] {
+    new CanProduce[ConfigDslBuilder[O.OptionDsl[O] :: HNil, O, Unit]] {
       type Out = ConfigDsl[O]
-      def apply(v: ConfigDslBuilder[O.OptionsDsl[O] :: HNil, O, Unit]): Out = {
+      def apply(v: ConfigDslBuilder[O.OptionDsl[O] :: HNil, O, Unit]): Out = {
         FreeApplicative.lift(Opts[O](v.list.head))
       }
     }
   }
 
   implicit def canProduceConfigDslFromArguments[A]:
-    CanProduce.Aux[ConfigDslBuilder[A.ArgumentsDsl[A] :: HNil, Unit, A], ConfigDsl[A]] = {
+    CanProduce.Aux[ConfigDslBuilder[A.ArgumentDsl[A] :: HNil, Unit, A], ConfigDsl[A]] = {
 
-    new CanProduce[ConfigDslBuilder[A.ArgumentsDsl[A] :: HNil, Unit, A]] {
+    new CanProduce[ConfigDslBuilder[A.ArgumentDsl[A] :: HNil, Unit, A]] {
       type Out = ConfigDsl[A]
       def apply(
-        v: ConfigDslBuilder[A.ArgumentsDsl[A] :: HNil, Unit, A]):
+        v: ConfigDslBuilder[A.ArgumentDsl[A] :: HNil, Unit, A]):
         Out = {
 
         FreeApplicative.lift(Args[A](v.list.head))
@@ -46,13 +46,13 @@ object ConfigDslBuilder {
 
   implicit def canProduceConfigDslFromOptionsAndArguments[O, A, Out0 <: HList](
     implicit ev: LeftFolder.Aux[O :: A :: HNil, HNil, toHList.type, Out0]):
-    CanProduce.Aux[ConfigDslBuilder[O.OptionsDsl[O] :: A.ArgumentsDsl[A] :: HNil, O, A], ConfigDsl[Out0]] = {
+    CanProduce.Aux[ConfigDslBuilder[O.OptionDsl[O] :: A.ArgumentDsl[A] :: HNil, O, A], ConfigDsl[Out0]] = {
 
-    new CanProduce[ConfigDslBuilder[O.OptionsDsl[O] :: A.ArgumentsDsl[A] :: HNil, O, A]] {
+    new CanProduce[ConfigDslBuilder[O.OptionDsl[O] :: A.ArgumentDsl[A] :: HNil, O, A]] {
       type Out = ConfigDsl[Out0]
 
       def apply(
-        v: ConfigDslBuilder[O.OptionsDsl[O] :: A.ArgumentsDsl[A] :: HNil, O, A]):
+        v: ConfigDslBuilder[O.OptionDsl[O] :: A.ArgumentDsl[A] :: HNil, O, A]):
         Out = {
 
         def f(o: O, a: A) = {
