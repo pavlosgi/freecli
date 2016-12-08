@@ -21,7 +21,7 @@ object Field {
 
     case FieldNameAndAbbreviation(name, abbr, description) =>
       name.show + ", " + abbr.show +
-        description.fold("")(d => " " + d)
+        description.fold("")(d => " " + d.show)
   }
 
   def withFieldName(field: Field, name: FieldName): Field = {

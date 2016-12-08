@@ -4,9 +4,18 @@ import cats.syntax.show._
 
 import pavlosgi.freecli.command.api.CommandField
 import pavlosgi.freecli.config.interpreters.parser.ConfigParsingError
+import pavlosgi.freecli.core.Error
 
 sealed trait CommandParsingError {
   val message: String
+}
+
+object CommandParsingError {
+  implicit object errorInstance extends Error[CommandParsingError] {
+    def message(error: CommandParsingError): String = {
+      error.message
+    }
+  }
 }
 
 case class AdditionalArgumentsFound(args: Seq[String])

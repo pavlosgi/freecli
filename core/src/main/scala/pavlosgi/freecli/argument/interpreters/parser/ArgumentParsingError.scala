@@ -1,18 +1,19 @@
 package pavlosgi.freecli.argument.interpreters.parser
 
-import cats.Show
 import cats.syntax.show._
 
 import pavlosgi.freecli.argument.api.ArgumentDetails
-import pavlosgi.freecli.core.StringDecoderError
+import pavlosgi.freecli.core.{Error, StringDecoderError}
 
 sealed trait ArgumentParsingError {
   val message: String
 }
 
 object ArgumentParsingError {
-  implicit object showInstance extends Show[ArgumentParsingError] {
-    override def show(f: ArgumentParsingError): String = f.message
+  implicit object errorInstance extends Error[ArgumentParsingError] {
+    def message(error: ArgumentParsingError): String = {
+      error.message
+    }
   }
 }
 
@@ -25,7 +26,7 @@ case class AdditionalArgumentsFound(args: Seq[String])
 case class ArgumentValueMissing(details: ArgumentDetails)
   extends ArgumentParsingError  {
 
-  val message = s"Argument ${details.show} missing"
+  val message = s"Argument ${details.show}, missing"
 }
 
 case class FailedToDecodeArgument(details: ArgumentDetails, error: StringDecoderError)

@@ -16,7 +16,7 @@ object ArgumentDetails {
         case ArgumentDetails(None, None) => ""
         case ArgumentDetails(Some(p), None) => p.show
         case ArgumentDetails(None, Some(d)) => d.show
-        case ArgumentDetails(Some(p), Some(d)) => s"$p $d"
+        case ArgumentDetails(Some(p), Some(d)) => s"$p ${d.show}"
       }
     }
   }

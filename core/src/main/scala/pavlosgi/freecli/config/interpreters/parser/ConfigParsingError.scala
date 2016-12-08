@@ -4,9 +4,16 @@ import cats.data.NonEmptyList
 
 import pavlosgi.freecli.argument.interpreters.{parser => A}
 import pavlosgi.freecli.option.interpreters.{parser => O}
+import pavlosgi.freecli.core.Error
 
 sealed trait ConfigParsingError {
   def message: String
+}
+
+object ConfigParsingError {
+  implicit object errorInstance extends Error[ConfigParsingError] {
+    override def message(error: ConfigParsingError): String = error.message
+  }
 }
 
 case class ArgumentErrors(errors: NonEmptyList[A.ArgumentParsingError])

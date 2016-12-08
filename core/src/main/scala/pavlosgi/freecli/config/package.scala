@@ -48,8 +48,11 @@ package object config
     parseConfig(args)(dsl) match {
       case Validated.Valid(r) => r
       case Validated.Invalid(e) =>
-        println(e.toList.mkString(", "))
-        println(configHelp(dsl))
+        println(
+          s"""${Error.displayErrors(e)}
+             |${configHelp(dsl)}
+             |""".stripMargin)
+
         sys.exit(1)
     }
   }

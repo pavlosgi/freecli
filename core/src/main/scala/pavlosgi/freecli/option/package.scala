@@ -49,8 +49,11 @@ package object option
     parseOptions(args)(dsl) match {
       case Validated.Valid(r) => r
       case Validated.Invalid(e) =>
-        println(e.toList.mkString(", "))
-        println(optionsHelp(dsl))
+        println(
+          s"""${Error.displayErrors(e)}
+             |${optionsHelp(dsl)}
+             |""".stripMargin)
+
         sys.exit(1)
     }
   }

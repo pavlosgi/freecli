@@ -48,8 +48,11 @@ package object command
     parseCommand(args)(dsl) match {
       case Validated.Valid(r) => r
       case Validated.Invalid(e) =>
-        println(e.toList.mkString(", "))
-        println(commandHelp(dsl))
+        println(
+          s"""${Error.displayErrors(e)}
+             |${commandHelp(dsl)}
+             |""".stripMargin)
+
         sys.exit(1)
     }
   }
