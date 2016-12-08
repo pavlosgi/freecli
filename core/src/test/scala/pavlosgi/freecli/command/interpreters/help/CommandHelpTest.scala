@@ -20,42 +20,38 @@ class CommandHelpTest extends Test {
       val dsl =
         cmd("command1", "command1 description") {
           takes {
-            gen[A] {
-              options {
-                req[Int]  --"a1" -~ des("a1 description")  ::
-                flag --"a2"
-              } ::
-              arguments {
-                string ::
-                int
-              }
+            group[A] {
+              req[Int]  --"a1" -~ des("a1 description")  ::
+              flag --"a2" ::
+              string ::
+              int
             }
           } ::
           cmd("subcommand1", "subcommand1 description") {
-            takes(gen[String](options(req[String] --"subfield1"))) ::
+            takes(group[String](req[String] --"subfield1")) ::
             cmd("subcommand2") {
               cmd("subcommand3") {
-                takes(gen[String](options(req[String] --"subfield3"))) ::
+                takes(group[String](req[String] --"subfield3")) ::
                 runs[B](s => ())
               }
             }
           } ::
           cmd("subcommand4") {
-            takes(gen[String](options(req[String] -- "subfield4"))) ::
+            takes(group[String](req[String] -- "subfield4")) ::
             cmd("subcommand5") {
               runs[(A, String)](s => ())
             } ::
             cmd("subcommand6") {
-              takes(gen[Int](options(req[Int] --"subfield6"))) ::
+              takes(group[Int](req[Int] --"subfield6")) ::
               runs[(A, String, Int)](s => ())
             }
           } ::
           cmd("subcommand7") {
-            takes(gen[String](options(req[String] --"subfield7"))) ::
-            runs[(A, String)](s => ())
+            takes(groupT(req[String] --"subfield7" :: int)) ::
+            runs[(A, (String, Int))](s => ())
           } ::
           cmd("subcommand8") {
-            takes(gen[C](options(req[String] --"subfield8"))) ::
+            takes(group[C](req[String] --"subfield8")) ::
             runs[D](s => ())
           }
         }

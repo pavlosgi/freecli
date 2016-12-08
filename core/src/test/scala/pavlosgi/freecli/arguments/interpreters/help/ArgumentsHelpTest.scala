@@ -13,7 +13,7 @@ class ArgumentsHelpTest extends Test {
       case class A(a1: Int, a2: String, a3: String)
 
       val dsl =
-        gen[A] {
+        group[A] {
           int -~ name("a1") ::
           string -~ name("a2") -~ des("a2_description") ::
           string -~ des("a3_description")

@@ -4,7 +4,7 @@ import cats.free.FreeApplicative
 import shapeless.ops.hlist.LeftFolder
 import shapeless.{::, HNil}
 
-class Gen[T] {
+class Group[T] {
   def apply[Algebra[_], Conf](
     f: FreeApplicative[Algebra, Conf])
    (implicit folder: LeftFolder.Aux[Conf :: HNil, Option[T], generic.type, T]):

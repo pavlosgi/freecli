@@ -29,36 +29,26 @@ class ConfigParserTest extends Test {
       case class D(d1: Boolean)
 
       val dsl =
-        gen[A] {
-          options {
-            req[String] --"a1" ::
-            flag        --"a2" ::
-            req[Int]    --"a3" ::
-            sub("b") {
-              gen[B] {
-                req[String] --"b1" ::
-                flag        --"b2" ::
-                o.int       --"b3" ::
-                sub("c") {
-                  gen[C] {
-                    req[String] --"c1" ::
-                    req[Int]    --"c2"
-                  }
-                } ::
-                sub("d") {
-                  gen[D] {
-                    flag -- "d1"
-                  }
-                }
-              }
+        group[A] {
+          req[String] --"a1" ::
+          flag        --"a2" ::
+          req[Int]    --"a3" ::
+          sub[B]("b") {
+            req[String] --"b1" ::
+            flag        --"b2" ::
+            o.int       --"b3" ::
+            sub[C]("c") {
+              req[String] --"c1" ::
+              req[Int]    --"c2"
             } ::
-            req[String] --"a5"
+            sub[D]("d") {
+              flag -- "d1"
+            }
           } ::
-          arguments {
-            string ::
-            int ::
-            boolean
-          }
+          req[String] --"a5" ::
+          string ::
+          int ::
+          boolean
         }
 
       val args = Seq(

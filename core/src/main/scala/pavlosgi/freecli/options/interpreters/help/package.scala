@@ -36,6 +36,7 @@ package object help {
 
         case Sub(description, dsl) =>
           HelpState(List(SubHelp(description, dsl.analyze(optionsAlgebraHelp))))
+
       }
     }
   }

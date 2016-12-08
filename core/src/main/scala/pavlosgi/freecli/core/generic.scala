@@ -6,7 +6,7 @@ object generic extends Poly2 {
   implicit def fromHList[L <: HList, A](implicit ev: Generic.Aux[A, L]) =
     at[Option[A], L]((_, h) => ev.from(h))
 
-  implicit def fromHList2[A] =
+  implicit def fromSingleHList[A] =
     at[Option[A], A :: HNil]((_, h) => h.head)
 
   implicit def fromNonHList[L, A](

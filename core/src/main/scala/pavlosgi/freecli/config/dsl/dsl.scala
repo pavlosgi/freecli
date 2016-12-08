@@ -4,19 +4,11 @@ import cats.free.FreeApplicative
 
 import pavlosgi.freecli.arguments.{dsl => A}
 import pavlosgi.freecli.config.api.Algebra
-import pavlosgi.freecli.core.{Description, StringDecoder, TransformationOps}
+import pavlosgi.freecli.core.{Description, StringDecoder, Grouping}
 import pavlosgi.freecli.options.{dsl => O}
 
-package object dsl extends ConfigDslImplicits with TransformationOps {
+package object dsl extends ConfigDslImplicits with Grouping {
   type ConfigDsl[A] = FreeApplicative[Algebra, A]
-
-  def options[O](o: O.OptionsDsl[O]) = {
-    ConfigDslBuilder.options(o)
-  }
-
-  def arguments[A](a: A.ArgumentsDsl[A]) = {
-    ConfigDslBuilder.arguments(a)
-  }
 
   def arg[T](implicit ev: StringDecoder[T]) = A.arg[T]
 
@@ -28,7 +20,8 @@ package object dsl extends ConfigDslImplicits with TransformationOps {
   def flag(implicit ev: StringDecoder[Boolean]) = O.flag(ev)
   def req[T](implicit ev: StringDecoder[T]) = O.req(ev)
   def opt[T](implicit ev: StringDecoder[T]) = O.opt(ev)
-  def sub[T](description: String) = O.sub(description)
+  def sub[T](description: String) = O.sub[T](description)
+  def subT(description: String) = O.subT(description)
 
   def required = O.required
   def or[T](default: T) = O.or(default)
@@ -41,4 +34,6 @@ package object dsl extends ConfigDslImplicits with TransformationOps {
     def boolean = O.boolean
   }
 }
+
+
 

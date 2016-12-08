@@ -3,9 +3,9 @@ package pavlosgi.freecli.arguments
 import cats.free.FreeApplicative
 
 import pavlosgi.freecli.arguments.api.{Algebra, ArgumentName}
-import pavlosgi.freecli.core.{Description, StringDecoder, TransformationOps}
+import pavlosgi.freecli.core.{Description, StringDecoder, Grouping}
 
-package object dsl extends ArgumentsDslImplicits with TransformationOps {
+package object dsl extends ArgumentsDslImplicits with Grouping {
   type ArgumentsDsl[A] = FreeApplicative[Algebra, A]
 
   def arg[T](implicit ev: StringDecoder[T]) = ArgumentsDslBuilder.arg[T]

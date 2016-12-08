@@ -135,7 +135,7 @@ class OptionsParserTest extends Test {
 
     it("parse tuple string int with name") {
       val res = parseOptions(Seq("--host", "localhost", "--port", "8080"))(
-        tupled(string --"host" :: int --"port"))
+        groupT(string --"host" :: int --"port"))
 
       res.valid should === (Some("localhost") -> Some(8080))
     }
@@ -151,7 +151,7 @@ class OptionsParserTest extends Test {
       case class ServerConfig(host: Option[String], port: Option[Int], debug: Boolean)
 
       val dsl =
-        gen[ServerConfig] {
+        group[ServerConfig] {
           string --"host"  ::
           int    --"port"  ::
           flag   --"debug1"
@@ -166,15 +166,13 @@ class OptionsParserTest extends Test {
       case class ServerConfig(host: String, port: Int, debug: Boolean, dbConfig: DbConfig)
 
       val dsl =
-        gen[ServerConfig] {
+        group[ServerConfig] {
           req[String] --"host"  ::
           req[Int]    --"port"  ::
           flag   --"debug" ::
-          sub("Database configuration") {
-            gen[DbConfig] {
-              req[String] --"dbhost" ::
-              req[Int]    --"dbport"
-            }
+          sub[DbConfig]("Database configuration") {
+            req[String] --"dbhost" ::
+            req[Int]    --"dbport"
           }
         }
 
@@ -201,7 +199,7 @@ class OptionsParserTest extends Test {
       case class Flags(first: Boolean, second: Boolean, third: Boolean, fourth: Boolean)
 
       val dsl =
-        gen[Flags] {
+        group[Flags] {
           flag   - 'p' ::
           flag   - 'n' ::
           flag   - 's' ::
@@ -214,7 +212,7 @@ class OptionsParserTest extends Test {
       case class Flags2(first: Boolean, second: Boolean, third: Option[String])
 
       val dsl2 =
-        gen[Flags2] {
+        group[Flags2] {
           flag   - 'p' ::
           flag   - 'n' ::
           string - 's'
@@ -229,7 +227,7 @@ class OptionsParserTest extends Test {
       case class A(first: String)
 
       val dsl =
-        gen[A] {
+        group[A] {
           req[String] -'p'
         }
 

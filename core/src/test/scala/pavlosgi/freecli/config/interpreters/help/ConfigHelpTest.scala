@@ -16,30 +16,22 @@ class ConfigHelpTest extends Test {
       case class C(c1: Option[String], c2: Option[Int])
 
       val dsl =
-        gen[A] {
-          options {
-            o.string --"a1" -'a' -~ des("a1_description") ::
-            o.int    --"a2" -~ des("a2_description")      ::
-            sub("a3 options") {
-              gen[B] {
-                o.string --"b1" -'b' -~ des("b1_description") ::
-                o.int    --"b2" -'c' -~ des("b2_description") ::
-                flag     -'d' ::
-                o.string -'e' -~ or("default") -~ des("e option") ::
-                sub("b5 options") {
-                  gen[C] {
-                    o.string --"c1" ::
-                    o.int -'c'
-                  }
-                }
-              }
-            } ::
-            flag --"a4"
+        group[A] {
+          o.string --"a1" -'a' -~ des("a1_description") ::
+          o.int    --"a2" -~ des("a2_description")      ::
+          sub[B]("a3 options") {
+            o.string --"b1" -'b' -~ des("b1_description") ::
+            o.int    --"b2" -'c' -~ des("b2_description") ::
+            flag     -'d' ::
+            o.string -'e' -~ or("default") -~ des("e option") ::
+            sub[C]("b5 options") {
+              o.string --"c1" ::
+              o.int -'c'
+            }
           } ::
-          arguments {
-            string -~ name("a5") -~ des("a5_description") ::
-            string -~ des("a6_description")
-          }
+          flag --"a4" ::
+          string -~ name("a5") -~ des("a5_description") ::
+          string -~ des("a6_description")
         }
 
       val help = configHelp(dsl)

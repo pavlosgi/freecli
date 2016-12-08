@@ -13,18 +13,14 @@ class CommandParserTest extends Test {
   case class ParentSubConfig(parent: Config, sub: SubConfig)
 
   val optionsDsl =
-    options(req[String] --"host" :: req[Int] --"port")
+    req[String] --"host" :: req[Int] --"port"
 
   val argumentsDsl =
-    arguments(string -~ name("arg1") :: int)
+    string -~ name("arg1") :: int
 
   val optionsAndArgumentsDsl =
-    options {
-      req[String] --"host"
-    } ::
-    arguments {
-      int
-    }
+    req[String] --"host" ::
+    int
 
   describe("Parser") {
     it("parse command without config") {
@@ -55,7 +51,7 @@ class CommandParserTest extends Test {
 
       parseCommand(Seq("command", "--host", "localhost", "--port", "8080"))(
         cmd("command") {
-          takes(gen[Config](optionsDsl)) ::
+          takes(group[Config](optionsDsl)) ::
           runs[Config](c => conf = Some(c))
         }).valid.run
 
@@ -68,7 +64,7 @@ class CommandParserTest extends Test {
       val res =
         parseCommand(Seq("command2", "--host", "localhost", "--port", "8080"))(
           cmd("command") {
-            takes(gen[Config](optionsDsl)) ::
+            takes(group[Config](optionsDsl)) ::
             runs[Config](c => conf = Some(c))
           })
 
@@ -83,7 +79,7 @@ class CommandParserTest extends Test {
       val res =
         parseCommand(Seq("command", "--host", "localhost", "file1"))(
           cmd("command") {
-            takes(gen[Config](optionsDsl)) ::
+            takes(group[Config](optionsDsl)) ::
             runs[Config](c => conf = Some(c))
           })
 
@@ -124,7 +120,7 @@ class CommandParserTest extends Test {
       parseCommand(Seq("command", "subcommand", "--host", "localhost", "--port", "8080"))(
         cmd("command") {
           cmd("subcommand") {
-            takes(gen[Config](optionsDsl)) ::
+            takes(group[Config](optionsDsl)) ::
             runs[Config](c => conf = Some(c))
           }
         }).valid.run
@@ -138,7 +134,7 @@ class CommandParserTest extends Test {
       parseCommand(Seq("command", "subcommand", "localhost", "8080"))(
         cmd("command") {
           cmd("subcommand") {
-            takes(gen[Config](argumentsDsl)) ::
+            takes(group[Config](argumentsDsl)) ::
             runs[Config](c => conf = Some(c))
           }
         }).valid.run
@@ -152,7 +148,7 @@ class CommandParserTest extends Test {
       parseCommand(Seq("command", "subcommand", "--host", "localhost", "8080"))(
         cmd("command") {
           cmd("subcommand") {
-            takes(gen[Config](optionsAndArgumentsDsl)) ::
+            takes(group[Config](optionsAndArgumentsDsl)) ::
             runs[Config](c => conf = Some(c))
           }
         }).valid.run
@@ -166,7 +162,7 @@ class CommandParserTest extends Test {
         parseCommand(Seq("command", "subcommand", "--host", "localhost"))(
           cmd("command") {
             cmd("subcommand") {
-              takes(gen[Config](optionsDsl)) ::
+              takes(group[Config](optionsDsl)) ::
               runs[Config](c => conf = Some(c))
             }
           })
@@ -182,7 +178,7 @@ class CommandParserTest extends Test {
         parseCommand(Seq("command"))(
           cmd("command") {
             cmd("subcommand") {
-              takes(gen[Config](optionsDsl)) ::
+              takes(group[Config](optionsDsl)) ::
               runs[Config](c => conf = Some(c))
             }
           })
@@ -207,9 +203,9 @@ class CommandParserTest extends Test {
         "5432"))(
 
         cmd("command") {
-          takes(gen[Config](optionsDsl)) ::
+          takes(group[Config](optionsDsl)) ::
           cmd("subcommand") {
-            takes(gen[SubConfig](options(req[String] --"dbName" :: req[Int] --"dbPort"))) ::
+            takes(group[SubConfig](req[String] --"dbName" :: req[Int] --"dbPort")) ::
             runs[ParentSubConfig](c => conf = Some(c))
           }
         }).valid.run
@@ -233,9 +229,9 @@ class CommandParserTest extends Test {
           "8080"))(
 
           cmd("command") {
-            takes(gen[Config](optionsDsl)) ::
+            takes(group[Config](optionsDsl)) ::
             cmd("subcommand") {
-              takes(gen[SubConfig](options(req[String] --"dbName" :: req[Int] --"dbPort"))) ::
+              takes(group[SubConfig](req[String] --"dbName" :: req[Int] --"dbPort")) ::
               runs[ParentSubConfig](c => conf = Some(c))
             }
           })
@@ -250,9 +246,9 @@ class CommandParserTest extends Test {
 
       parseCommand(Seq("command", "--host", "localhost1", "subcommand", "--host", "localhost2"))(
         cmd("command") {
-          takes(gen[String](options(req[String] --"host"))) ::
+          takes(group[String](req[String] --"host")) ::
           cmd("subcommand") {
-            takes(gen[String](options(req[String] --"host"))) ::
+            takes(group[String](req[String] --"host")) ::
             runs[(String, String)](c => conf = Some(c))
           }
         }).valid.run
@@ -275,17 +271,17 @@ class CommandParserTest extends Test {
         "--dbPort1",
         "5432"))(
         cmd("command") {
-          takes(gen[Config](optionsDsl)) ::
+          takes(group[Config](optionsDsl)) ::
           cmd("subcommand1") {
-            takes(gen[SubConfig](options(req[String] --"dbName1" :: req[Int] --"dbPort1"))) ::
+            takes(group[SubConfig](req[String] --"dbName1" :: req[Int] --"dbPort1")) ::
             runs[ParentSubConfig](c => conf = Some(c))
           } ::
           cmd("subcommand2") {
-            takes(gen[SubConfig](options(req[String] --"dbName2" :: req[Int] --"dbPort2"))) ::
+            takes(group[SubConfig](req[String] --"dbName2" :: req[Int] --"dbPort2")) ::
             runs[ParentSubConfig](c => conf = Some(c))
           } ::
           cmd("subcommand3") {
-            takes(gen[SubConfig](options(req[String] --"dbName3" :: req[Int] --"dbPort3"))) ::
+            takes(group[SubConfig](req[String] --"dbName3" :: req[Int] --"dbPort3")) ::
             runs[ParentSubConfig](c => conf = Some(c))
           }
         }).valid.run
@@ -308,17 +304,17 @@ class CommandParserTest extends Test {
         "--dbPort3",
         "5432"))(
         cmd("command") {
-          takes(gen[Config](optionsDsl)) ::
+          takes(group[Config](optionsDsl)) ::
           cmd("subcommand1") {
-            takes(gen[SubConfig](options(req[String] --"dbName1" :: req[Int] --"dbPort1"))) ::
+            takes(group[SubConfig](req[String] --"dbName1" :: req[Int] --"dbPort1")) ::
             runs[ParentSubConfig](c => conf = Some(c))
           } ::
           cmd("subcommand2") {
-            takes(gen[SubConfig](options(req[String] --"dbName2" :: req[Int] --"dbPort2"))) ::
+            takes(group[SubConfig](req[String] --"dbName2" :: req[Int] --"dbPort2")) ::
             runs[ParentSubConfig](c => conf = Some(c))
           } ::
           cmd("subcommand3") {
-            takes(gen[SubConfig](options(req[String] --"dbName3" :: req[Int] --"dbPort3"))) ::
+            takes(group[SubConfig](req[String] --"dbName3" :: req[Int] --"dbPort3")) ::
             runs[ParentSubConfig](c => conf = Some(c))
           }
         }).valid.run
@@ -347,17 +343,17 @@ class CommandParserTest extends Test {
           "--dbPort3",
           "5432"))(
           cmd("command") {
-            takes(gen[Config](optionsDsl)) ::
+            takes(group[Config](optionsDsl)) ::
             cmd("subcommand1") {
-              takes(gen[SubConfig](options(req[String] --"dbName1" :: req[Int] --"dbPort1"))) ::
+              takes(group[SubConfig](req[String] --"dbName1" :: req[Int] --"dbPort1")) ::
               runs[ParentSubConfig](c => conf = Some(c))
             } ::
             cmd("subcommand2") {
-              takes(gen[SubConfig](options(req[String] --"dbName2" :: req[Int] --"dbPort2"))) ::
+              takes(group[SubConfig](req[String] --"dbName2" :: req[Int] --"dbPort2")) ::
               runs[ParentSubConfig](c => conf = Some(c))
             } ::
             cmd("subcommand3") {
-              takes(gen[SubConfig](options(req[String] --"dbName3" :: req[Int] --"dbPort3"))) ::
+              takes(group[SubConfig](req[String] --"dbName3" :: req[Int] --"dbPort3")) ::
               runs[ParentSubConfig](c => conf = Some(c))
             }
           })
@@ -386,17 +382,17 @@ class CommandParserTest extends Test {
           "--dbPort",
           "5432"))(
           cmd("command") {
-            takes(gen[Config](optionsDsl)) ::
+            takes(group[Config](optionsDsl)) ::
             cmd("subcommand") {
-              takes(gen[SubConfig](options(req[String] --"dbName1" :: req[Int] --"dbPort"))) ::
+              takes(group[SubConfig](req[String] --"dbName1" :: req[Int] --"dbPort")) ::
               runs[ParentSubConfig](c => conf = Some(c))
             } ::
             cmd("subcommand2") {
-              takes(gen[SubConfig](options(req[String] --"dbName2" :: req[Int] --"dbPort2"))) ::
+              takes(group[SubConfig](req[String] --"dbName2" :: req[Int] --"dbPort2")) ::
               runs[ParentSubConfig](c => conf = Some(c))
             } ::
             cmd("subcommand3") {
-              takes(gen[SubConfig](options(req[String] --"dbName3" :: req[Int] --"dbPort3"))) ::
+              takes(group[SubConfig](req[String] --"dbName3" :: req[Int] --"dbPort3")) ::
               runs[ParentSubConfig](c => conf = Some(c))
             }
           })

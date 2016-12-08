@@ -15,21 +15,17 @@ class OptionsHelpTest extends Test {
       case class C(c1: Option[String], c2: Option[Int])
 
       val dsl =
-        gen[A] {
+        group[A] {
           string --"a1" -'a' -~ des("a1_description") ::
           int    --"a2" -~ des("a2_description")      ::
-          sub("a3 options") {
-            gen[B] {
-              string --"b1" -'b' -~ des("b1_description") ::
-              int    --"b2" -'c' -~ des("b2_description") ::
-              flag     -'d' ::
-              string -'e' -~ or("default") -~ des("e option") ::
-              sub("b5 options") {
-                gen[C] {
-                  string --"c1" ::
-                  int -'c'
-                }
-              }
+          sub[B]("a3 options") {
+            string --"b1" -'b' -~ des("b1_description") ::
+            int    --"b2" -'c' -~ des("b2_description") ::
+            flag     -'d' ::
+            string -'e' -~ or("default") -~ des("e option") ::
+            sub[C]("b5 options") {
+              string --"c1" ::
+              int -'c'
             }
           } ::
           flag --"a4"

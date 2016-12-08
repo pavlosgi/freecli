@@ -20,7 +20,7 @@ class ArgumentsParserTest extends Test {
 
     it("parse multiple tuple") {
       val res = parseConfig(Seq("c1", "2", "c3"))(
-        tupled {
+        groupT {
           string ::
           int    ::
           string
@@ -32,7 +32,7 @@ class ArgumentsParserTest extends Test {
     it("parse multiple case class") {
       case class A(c1: String, c2: Int, c3: String)
       val res = parseConfig(Seq("c1", "2", "c3"))(
-        gen[A] {
+        group[A] {
           string ::
           int    ::
           string

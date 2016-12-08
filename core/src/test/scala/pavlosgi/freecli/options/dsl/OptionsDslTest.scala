@@ -34,12 +34,10 @@ class OptionsDslTest extends Test {
     it("allow sub with case class") {
       case class A(value: Option[String], value2: Option[String], value3: Option[String])
 
-      sub("description") {
-        gen[A] {
-          string --"one" ::
-          string --"two" ::
-          opt[String] --"three"
-        }
+      sub[A]("description") {
+        string --"one" ::
+        string --"two" ::
+        opt[String] --"three"
       }: OptionsDsl[A]
     }
 
@@ -54,52 +52,46 @@ class OptionsDslTest extends Test {
       string --"name1" ::
       string --"name2" -~ des("name2") ::
       int -'n' ::
-      sub("sub") {
-        gen[A] {
-          string -'f' -~ des("f") ::
-          boolean -'b' ::
-          flag -'g'
-        }
+      sub[A]("sub") {
+        string -'f' -~ des("f") ::
+        boolean -'b' ::
+        flag -'g'
       }: OptionsDsl[Option[String] :: Option[String] :: Option[Int] :: A :: HNil]
     }
 
-    it("gen to single case class") {
+    it("group to single case class") {
       case class A(o: Option[String])
 
-      gen[A] {
+      group[A] {
         string --"name1"
       }
     }
 
-    it("gen to case class") {
+    it("group to case class") {
       case class A(o: Option[String], o2: Option[String], o3: Option[Int], o4: B)
       case class B(o: Option[String], o2: Option[Boolean], o3: Boolean)
 
-      gen[A] {
+      group[A] {
         string --"name1" ::
         string --"name2" -~ des("name2") ::
         int -'n' ::
-        sub("sub") {
-          gen[B] {
-            string -'f' -~ des("f") ::
-            boolean -'b' ::
-            flag -'g'
-          }
+        sub[B]("sub") {
+          string -'f' -~ des("f") ::
+          boolean -'b' ::
+          flag -'g'
         }
       }
     }
 
-    it("tupled") {
-      tupled {
+    it("group to tuple") {
+      groupT {
         string --"name1" ::
         string --"name2" -~ des("name2") ::
         int -'n' ::
-        sub("sub") {
-          tupled {
-            string -'f' -~ des("f") ::
-            boolean -'b' ::
-            flag -'g'
-          }
+        subT("sub") {
+          string -'f' -~ des("f") ::
+          boolean -'b' ::
+          flag -'g'
         }
       }: OptionsDsl[(Option[String], Option[String], Option[Int], (Option[String], Option[Boolean], Boolean))]
     }
