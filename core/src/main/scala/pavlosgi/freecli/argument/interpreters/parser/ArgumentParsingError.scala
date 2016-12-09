@@ -1,9 +1,7 @@
 package pavlosgi.freecli.argument.interpreters.parser
 
-import cats.syntax.show._
-
 import pavlosgi.freecli.argument.api.ArgumentDetails
-import pavlosgi.freecli.core.{Error, StringDecoderError}
+import pavlosgi.freecli.core._
 
 sealed trait ArgumentParsingError {
   val message: String
@@ -26,11 +24,12 @@ case class AdditionalArgumentsFound(args: Seq[String])
 case class ArgumentValueMissing(details: ArgumentDetails)
   extends ArgumentParsingError  {
 
-  val message = s"Argument ${details.show}, missing"
+  val message = s"Argument ${details.shortDescription.yellow}, missing"
 }
 
 case class FailedToDecodeArgument(details: ArgumentDetails, error: StringDecoderError)
   extends ArgumentParsingError  {
 
-  val message = s"Failed to decode argument ${details.show}. ${error.message}"
+  val message =
+    s"Failed to decode argument ${details.shortDescription.yellow}. ${error.message}"
 }
