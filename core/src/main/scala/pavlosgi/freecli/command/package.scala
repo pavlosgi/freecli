@@ -21,10 +21,10 @@ package object command
    (dsl: CommandDsl[A]):
     ValidatedNel[CommandParsingError, A] = {
 
-    val resultT: ResultT[A] =
+    val resultT: ParseResult[A] =
       dsl.foldMap(commandParserInterpreter)(alternativeResultInstance)
 
-    ResultTS.run[CommandParsingError, Arguments, A](Arguments(args))(resultT) match {
+    ResultT.run[CommandParsingError, Arguments, A](Arguments(args))(resultT) match {
       case (Arguments(Nil), res) => res.toValidated
       case (Arguments(argsLeft), res) =>
         val ers = res.fold(_.toList, _ => List.empty)

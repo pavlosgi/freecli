@@ -5,15 +5,14 @@ import cats.~>
 
 import pavlosgi.freecli.config.api._
 import pavlosgi.freecli.argument.interpreters.{parser => A}
-import pavlosgi.freecli.core.Arguments
-import pavlosgi.freecli.core.ResultTS
+import pavlosgi.freecli.core.{Arguments, ResultT}
 import pavlosgi.freecli.option.interpreters.{parser => O}
 
 package object parser {
-  type ResultT[A] = ResultTS[ConfigParsingError, Arguments, A]
+  type ParseResult[A] = ResultT[ConfigParsingError, Arguments, A]
 
-  implicit object configParserInterpreter extends (Algebra ~> ResultT) {
-    def apply[A](fa: Algebra[A]): ResultT[A] = {
+  implicit object configParserInterpreter extends (Algebra ~> ParseResult) {
+    def apply[A](fa: Algebra[A]): ParseResult[A] = {
       fa match {
         case Args(args) =>
           args.foldMap(A.argumentParserInterpreter)

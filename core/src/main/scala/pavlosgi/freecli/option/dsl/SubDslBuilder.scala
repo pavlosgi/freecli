@@ -4,7 +4,7 @@ import cats.free.FreeApplicative
 import shapeless._
 import shapeless.ops.hlist.{LeftFolder, Prepend, Tupler}
 
-import pavlosgi.freecli.core.{CanProduce, Description, generic}
+import pavlosgi.freecli.core.{CanProduce, Description, genericPoly}
 import pavlosgi.freecli.option.api.Sub
 
 case class SubDslBuilder[H <: HList, T](list: H)
@@ -13,7 +13,7 @@ case class SubDslBuilderApply[H <: HList, T](list: H) {
   def apply[Conf](
     dsl: OptionDsl[Conf])
   (implicit ev: NotContainsConstraint[H, OptionDsl[_]],
-    ev2: LeftFolder.Aux[Conf :: HNil, Option[T], generic.type, T],
+    ev2: LeftFolder.Aux[Conf :: HNil, Option[T], genericPoly.type, T],
     ev3: Prepend[H, OptionDsl[T] :: HNil]) = {
 
     new SubDslBuilder[ev3.Out, T](list :+ dsl.map(d => ev2(d :: HNil, None)))

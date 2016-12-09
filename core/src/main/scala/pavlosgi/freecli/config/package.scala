@@ -21,7 +21,7 @@ package object config
    (dsl: ConfigDsl[A]):
     ValidatedNel[ConfigParsingError, A] = {
 
-    ResultTS.run(Arguments(args))(dsl.foldMap(configParserInterpreter)) match {
+    ResultT.run(Arguments(args))(dsl.foldMap(configParserInterpreter)) match {
       case (Arguments(Nil), res) => res.toValidated
       case (Arguments(argsLeft), res) =>
         val ers = res.fold(_.toList, _ => List.empty)

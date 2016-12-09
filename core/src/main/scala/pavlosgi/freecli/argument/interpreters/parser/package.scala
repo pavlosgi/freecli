@@ -3,17 +3,17 @@ package pavlosgi.freecli.argument.interpreters
 import cats.~>
 
 import pavlosgi.freecli.argument.api._
-import pavlosgi.freecli.core.{Arguments, ResultTS, StringDecoder, StringDecoderError}
+import pavlosgi.freecli.core.{Arguments, ResultT, StringDecoder, StringDecoderError}
 
 package object parser {
-  type ResultT[A] = ResultTS[ArgumentParsingError, Arguments, A]
+  type ParseResult[A] = ResultT[ArgumentParsingError, Arguments, A]
 
-  implicit object argumentParserInterpreter extends (Algebra ~> ResultT) {
-    def apply[A](fa: Algebra[A]): ResultT[A] = {
+  implicit object argumentParserInterpreter extends (Algebra ~> ParseResult) {
+    def apply[A](fa: Algebra[A]): ParseResult[A] = {
       fa match {
         case Arg(details, f, g) =>
           for {
-            args   <- ResultTS.get[ArgumentParsingError, Arguments]
+            args   <- ResultT.get[ArgumentParsingError, Arguments]
             value  <- extractArgumentValue(details, args)
             res    <- parseArg(details, value, g)
           } yield f(res)
@@ -22,25 +22,24 @@ package object parser {
   }
 
   def parseArg[T](details: ArgumentDetails, value: String, g: StringDecoder[T]) = {
-    ResultTS.fromValidated[StringDecoderError, Arguments, T](
-      g.apply(value)).leftMap { e =>
-        e.map[ArgumentParsingError](er =>
-          FailedToDecodeArgument(details, er))
+    ResultT.fromValidated[StringDecoderError, Arguments, T](
+      g.apply(value)).leftMapInner[ArgumentParsingError] { e =>
+        FailedToDecodeArgument(details, e)
       }
   }
 
   def extractArgumentValue(
     details: ArgumentDetails,
     args: Arguments):
-    ResultT[String] = {
+    ParseResult[String] = {
 
     args.args.headOption match {
       case None =>
-        ResultTS.leftNE(ArgumentValueMissing(details))
+        ResultT.leftNE(ArgumentValueMissing(details))
 
       case Some(v) =>
         val remArgs = args.args.drop(1)
-          ResultTS.set(Arguments(remArgs)).map(_ => v)
+          ResultT.set(Arguments(remArgs)).map(_ => v)
     }
   }
 }

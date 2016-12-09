@@ -19,13 +19,13 @@ object ConfigParsingError {
 case class ArgumentErrors(errors: NonEmptyList[A.ArgumentParsingError])
   extends ConfigParsingError {
 
-  def message = errors.toList.map(_.message).mkString(", ")
+  def message = errors.toList.map(_.message).mkString("\n")
 }
 
 case class OptionErrors(errors: NonEmptyList[O.OptionParsingError])
   extends ConfigParsingError {
 
-  def message = errors.toList.map(_.message).mkString(", ")
+  def message = errors.toList.map(_.message).mkString("\n")
 }
 
 case class OptionAndArgumentErrors(

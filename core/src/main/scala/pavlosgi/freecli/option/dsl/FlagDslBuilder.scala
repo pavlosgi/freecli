@@ -6,7 +6,6 @@ import shapeless.ops.hlist.Prepend
 
 import pavlosgi.freecli.core.{CanProduce, Description, StringDecoder}
 import pavlosgi.freecli.option.api._
-import pavlosgi.freecli.core.{Description, StringDecoder}
 
 case class FlagDslBuilder[H <: HList](list: H) {
 

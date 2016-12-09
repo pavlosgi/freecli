@@ -21,7 +21,7 @@ package object argument
    (dsl: ArgumentDsl[A]):
     ValidatedNel[ArgumentParsingError, A] = {
 
-    ResultTS.run(Arguments(args))(dsl.foldMap(argumentParserInterpreter)) match {
+    ResultT.run(Arguments(args))(dsl.foldMap(argumentParserInterpreter)) match {
         case (Arguments(Nil), res) => res.toValidated
         case (Arguments(argsLeft), res) =>
           val ers = res.fold(_.toList, _ => List.empty)

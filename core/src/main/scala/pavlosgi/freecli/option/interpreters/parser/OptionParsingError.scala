@@ -1,8 +1,6 @@
 package pavlosgi.freecli.option.interpreters.parser
 
-import cats.syntax.show._
-
-import pavlosgi.freecli.core.{Error, StringDecoderError}
+import pavlosgi.freecli.core._
 import pavlosgi.freecli.option.api.Field
 
 sealed trait OptionParsingError {
@@ -26,18 +24,18 @@ case class AdditionalOptionsFound(args: Seq[String])
 case class OptionFieldMissing(field: Field)
   extends OptionParsingError  {
 
-  val message = s"""Field ${field.show}, is missing"""
+  val message = s"""Field ${field.shortDescription.yellow}, is missing"""
 }
 
 case class OptionFieldValueMissing(field: Field)
   extends OptionParsingError  {
 
-  val message = s"Field value for ${field.show}, is missing"
+  val message = s"Field value for ${field.shortDescription.yellow}, is missing"
 }
 
 case class FailedToDecodeOption(field: Field, error: StringDecoderError)
   extends OptionParsingError  {
 
   val message =
-    s"Failed to decode option ${field.show}. ${error.message}"
+    s"Failed to decode option ${field.shortDescription}. ${error.message}"
 }

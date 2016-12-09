@@ -6,16 +6,15 @@ import cats.syntax.all._
 import cats.{Alternative, ~>}
 
 import pavlosgi.freecli.command.api._
-import pavlosgi.freecli.core.Arguments
-import pavlosgi.freecli.core.ResultTS
+import pavlosgi.freecli.core.{Arguments, ResultT}
 import pavlosgi.freecli.config.interpreters.{parser => C}
 
 package object parser {
-  type ResultT[A] = ResultTS[CommandParsingError, Arguments, A]
+  type ParseResult[A] = ResultT[CommandParsingError, Arguments, A]
 
-  implicit def commandParserInterpreter: Algebra ~> ResultT = {
-    new (Algebra ~> ResultT) {
-      def apply[A](fa: Algebra[A]): ResultT[A] =
+  implicit def commandParserInterpreter: Algebra ~> ParseResult = {
+    new (Algebra ~> ParseResult) {
+      def apply[A](fa: Algebra[A]): ParseResult[A] =
         fa match {
           case PartialCmd(field, run, f) =>
             for {
@@ -31,7 +30,7 @@ package object parser {
           case PartialParentCmd(field, subs, f) =>
             for {
               cmdArgs <- findAndSetCommandArgs(field)
-              partial <- subs.foldMap(commandParserInterpreter)
+              partial <- subs.foldMap(commandParserInterpreter)(alternativeResultInstance)
             } yield f(partial)
 
           case PartialParentCmdWithConfig(field, config, subs, f) =>
@@ -44,44 +43,44 @@ package object parser {
       }
   }
 
-  def configNat: C.ResultT ~> ResultT = {
-    new (C.ResultT ~> ResultT) {
-      def apply[A](fa: C.ResultT[A]): ResultT[A] = {
+  def configNat: C.ParseResult ~> ParseResult = {
+    new (C.ParseResult ~> ParseResult) {
+      def apply[A](fa: C.ParseResult[A]): ParseResult[A] = {
         val st =
-          fa.value.transformS[Arguments](identity, (t, a) =>
+          fa.value.value.transformS[Arguments](identity, (t, a) =>
             Arguments(a.args))
 
-        EitherT.apply(st.map(_.leftMap(_.map(FailedToParseConfig))))
+        ResultT.fromState(st.map(_.leftMap(_.map(FailedToParseConfig))))
       }
     }
   }
 
-  def findAndSetCommandArgs(field: CommandField): ResultT[Unit] = {
+  def findAndSetCommandArgs(field: CommandField): ParseResult[Unit] = {
     for {
-      st <- ResultTS.get[CommandParsingError, Arguments]
+      st <- ResultT.get[CommandParsingError, Arguments]
       _    <-
         st.args.indexWhere(field.matches) match {
           case idx if idx === -1 =>
-            ResultTS.leftNE[CommandParsingError, Arguments, Unit](
+            ResultT.leftNE[CommandParsingError, Arguments, Unit](
               CommandNotFound(field))
 
           case idx =>
-            ResultTS.set[CommandParsingError, Arguments](
+            ResultT.set[CommandParsingError, Arguments](
               Arguments(st.args.drop(idx + 1)))
         }
 
     } yield ()
   }
 
-  implicit object alternativeResultInstance extends Alternative[ResultT] {
+  implicit object alternativeResultInstance extends Alternative[ParseResult] {
     override def combineK[A](
-      x: ResultT[A],
-      y: ResultT[A]):
-      ResultT[A] = {
+      x: ParseResult[A],
+      y: ParseResult[A]):
+      ParseResult[A] = {
 
-      EitherT.apply(for {
-        xS <- x.value
-        yS <- y.value
+      ResultT.fromState(for {
+        xS <- x.value.value
+        yS <- y.value.value
       } yield {
         (xS, yS) match {
           case (Right(c1), Left(_)) => Right(c1)
@@ -93,20 +92,20 @@ package object parser {
       })
     }
 
-    override def pure[A](x: A): ResultT[A] =
-      EitherT.pure(x)
+    override def pure[A](x: A): ParseResult[A] =
+      ResultT.pure(x)
 
-    override def empty[A]: ResultT[A] =
-      ResultTS.leftNE(NoCommandWasMatched)
+    override def empty[A]: ParseResult[A] =
+      ResultT.leftNE(NoCommandWasMatched)
 
     override def ap[A, B](
-      ff: ResultT[A => B])
-     (fa: ResultT[A]):
-      ResultT[B] = {
+      ff: ParseResult[A => B])
+     (fa: ParseResult[A]):
+      ParseResult[B] = {
 
-      EitherT.apply(for {
-        ff1 <- ff.value
-        fa1 <- fa.value
+      ResultT.fromState(for {
+        ff1 <- ff.value.value
+        fa1 <- fa.value.value
       } yield {
         fa1.toValidated.ap(ff1.toValidated).toEither
       })

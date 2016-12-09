@@ -23,7 +23,7 @@ package object option
    (dsl: OptionDsl[A]):
     ValidatedNel[OptionParsingError, A] = {
 
-    ResultTS.run(Arguments(args))(dsl.foldMap(optionParserInterpreter)) match {
+    ResultT.run(Arguments(args))(dsl.foldMap(optionParserInterpreter)) match {
         case (Arguments(Nil), res) => res.toValidated
         case (Arguments(argsLeft), res) =>
           val ers = res.fold(_.toList, _ => List.empty)

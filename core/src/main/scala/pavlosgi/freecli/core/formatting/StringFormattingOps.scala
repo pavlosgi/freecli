@@ -1,6 +1,6 @@
-package pavlosgi.freecli.core
+package pavlosgi.freecli.core.formatting
 
-class StringOps(s: String) {
+class StringFormattingOps(s: String) {
   def bold: String = s"${Console.BOLD}$s${Console.RESET}"
   def cyan: String = s"${Console.CYAN}$s${Console.RESET}"
   def magenta: String = s"${Console.MAGENTA}$s${Console.RESET}"

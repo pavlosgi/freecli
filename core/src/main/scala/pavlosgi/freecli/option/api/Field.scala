@@ -4,24 +4,25 @@ import cats.Show
 import cats.instances.all._
 import cats.syntax.all._
 
-import pavlosgi.freecli.core.Description
+import pavlosgi.freecli.core._
 
 sealed trait Field {
-  def description: Option[Description]
+  def shortDescription: String
+  def fullDescription: String
   def matches(s: String): Boolean
 }
 
 object Field {
   implicit def showInstance: Show[Field] = {
     case FieldNameOnly(name, description) =>
-      name.show + description.fold("")(d => " " + d)
+      name.show + description.fold("")(d => s" ${d.show}")
 
     case FieldAbbreviationOnly(abbr, description) =>
-      abbr.show + description.fold("")(d => " " + d)
+      abbr.show + description.fold("")(d => s" ${d.show}")
 
     case FieldNameAndAbbreviation(name, abbr, description) =>
       name.show + ", " + abbr.show +
-        description.fold("")(d => " " + d.show)
+        description.fold("")(d => s" ${d.show}")
   }
 
   def withFieldName(field: Field, name: FieldName): Field = {
@@ -73,14 +74,19 @@ case class FieldNameOnly(
   fieldName: FieldName,
   description: Option[Description]
 ) extends Field {
-  override def matches(s: String): Boolean = fieldName.show === s
+  def matches(s: String): Boolean = fieldName.show === s
+
+  def shortDescription: String = fieldName.show
+  def fullDescription: String = s"${fieldName.show}${showWithSpace(description)}"
 }
 
 case class FieldAbbreviationOnly(
   fieldAbbreviation: FieldAbbreviation,
   description: Option[Description]
 ) extends Field {
-  override def matches(s: String): Boolean = fieldAbbreviation.show === s
+  def matches(s: String): Boolean = fieldAbbreviation.show === s
+  def shortDescription: String = fieldAbbreviation.show
+  def fullDescription: String = s"${fieldAbbreviation.show}${showWithSpace(description)}"
 }
 
 case class FieldNameAndAbbreviation(
@@ -88,8 +94,12 @@ case class FieldNameAndAbbreviation(
   fieldAbbreviation: FieldAbbreviation,
   description: Option[Description]
 ) extends Field {
-  override def matches(s: String): Boolean =
+  def matches(s: String): Boolean =
     fieldName.show === s || fieldAbbreviation.show === s
+
+  def shortDescription: String = s"${fieldAbbreviation.show}, ${fieldName.show}"
+  def fullDescription: String =
+    s"${fieldName.show}, ${fieldAbbreviation.show}${showWithSpace(description)}"
 }
 
 class FieldAbbreviation private(val abbr: Char) {
