@@ -59,7 +59,7 @@ package object parser {
     for {
       st <- ResultT.get[CommandParsingError, Arguments]
       _    <-
-        st.args.indexWhere(field.matches) match {
+        st.args.indexWhere(a => field.matches(a.arg)) match {
           case idx if idx === -1 =>
             ResultT.leftNE[CommandParsingError, Arguments, Unit](
               CommandNotFound(field))

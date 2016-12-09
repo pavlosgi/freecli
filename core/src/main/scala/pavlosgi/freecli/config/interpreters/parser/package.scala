@@ -5,7 +5,7 @@ import cats.~>
 
 import pavlosgi.freecli.config.api._
 import pavlosgi.freecli.argument.interpreters.{parser => A}
-import pavlosgi.freecli.core.{Arguments, ResultT}
+import pavlosgi.freecli.core.{Argument, Arguments, Marked, ResultT}
 import pavlosgi.freecli.option.interpreters.{parser => O}
 
 package object parser {
@@ -25,9 +25,22 @@ package object parser {
         case OptsAndArgs(opts, args, f) =>
           for {
             optsRes <- apply(Opts(opts))
+            remainingArgs <- ResultT.get[ConfigParsingError, Arguments]
+            newArgs = dropBeforeLastMarked(remainingArgs)
+            _ <- ResultT.set(newArgs)
             argsRes <- apply(Args(args))
           } yield f(optsRes, argsRes)
       }
+    }
+
+    def dropBeforeLastMarked(args: Arguments): Arguments = {
+      val newArgs =
+        args.args.foldLeft(Seq.empty[Argument]) {
+          case (r, Argument(_, Marked)) => Seq.empty
+          case (r, a) => r :+ a
+        }
+
+      Arguments(newArgs)
     }
   }
 }

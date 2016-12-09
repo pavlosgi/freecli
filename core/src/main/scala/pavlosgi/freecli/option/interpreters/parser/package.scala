@@ -4,7 +4,7 @@ import cats.instances.all._
 import cats.syntax.all._
 import cats.~>
 
-import pavlosgi.freecli.core.{Arguments, ResultT, StringDecoder, StringDecoderError}
+import pavlosgi.freecli.core._
 import pavlosgi.freecli.option.api._
 
 package object parser {
@@ -58,7 +58,7 @@ package object parser {
     args: Arguments):
     ParseResult[Boolean] = {
 
-    args.args.indexWhere(field.matches) match {
+    args.args.indexWhere(a => field.matches(a.arg)) match {
       case idx if idx === -1 =>
         tryBySplittingArgs(
           field,
@@ -77,7 +77,7 @@ package object parser {
     args: Arguments):
     ParseResult[Option[String]] = {
 
-    args.args.indexWhere(field.matches) match {
+    args.args.indexWhere(a => field.matches(a.arg)) match {
       case idx if idx === -1 =>
         tryBySplittingArgs(
           field,
@@ -91,8 +91,8 @@ package object parser {
             ResultT.leftNE(OptionFieldValueMissing(field))
 
           case Some(v) =>
-            val remArgs = args.args.take(idx) ++ args.args.drop(idx + 2)
-            ResultT.set(Arguments(remArgs)).map(_ => Some(v))
+            val newArgs = args.marked(idx).marked(idx + 1)
+            ResultT.set(newArgs).map(_ => Some(v.arg))
         }
     }
   }
@@ -103,15 +103,22 @@ package object parser {
     f: (Field, Arguments) => ParseResult[T],
     fallback: ParseResult[T]) = {
 
-    val newArgs = args.args.foldLeft(Seq.empty[String]) {
-      case (curr, arg) =>
-        curr ++ FieldAbbreviation.splitMultiFieldAbbreviation(arg)
-    }
+    val newArgs =
+      args.copy(args = args.args.foldLeft(Seq.empty[Argument]) {
+        case (c, Argument(arg, Unmarked)) =>
+          val split =
+            FieldAbbreviation.splitMultiFieldAbbreviation(arg)
+              .map(a => Argument(a, Unmarked))
 
-    if (newArgs.diff(args.args).isEmpty) {
+          c ++ split
+
+        case (c, other) => c :+ other
+      })
+
+    if (newArgs.args.size === args.args.size) {
       fallback
     } else {
-      f(field, Arguments(newArgs))
+      f(field, newArgs)
     }
   }
 }

@@ -21,15 +21,15 @@ package object command
    (dsl: CommandDsl[A]):
     ValidatedNel[CommandParsingError, A] = {
 
-    val resultT: ParseResult[A] =
-      dsl.foldMap(commandParserInterpreter)(alternativeResultInstance)
+    val (outArgs, res) =
+      ResultT.run(Arguments.fromStrings(args))(dsl.foldMap(commandParserInterpreter)(alternativeResultInstance))
 
-    ResultT.run[CommandParsingError, Arguments, A](Arguments(args))(resultT) match {
-      case (Arguments(Nil), res) => res.toValidated
-      case (Arguments(argsLeft), res) =>
+    outArgs.unmarked match {
+      case Nil => res.toValidated
+      case u =>
         val ers = res.fold(_.toList, _ => List.empty)
-        Validated.invalid(
-          NonEmptyList(AdditionalArgumentsFound(argsLeft), ers))
+          Validated.invalid(
+            NonEmptyList(AdditionalArgumentsFound(u.map(_.arg)), ers))
     }
   }
 

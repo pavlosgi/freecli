@@ -39,7 +39,7 @@ package object parser {
 
       case Some(v) =>
         val remArgs = args.args.drop(1)
-          ResultT.set(Arguments(remArgs)).map(_ => v)
+          ResultT.set(Arguments(remArgs)).map(_ => v.arg)
     }
   }
 }

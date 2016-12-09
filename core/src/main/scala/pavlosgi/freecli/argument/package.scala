@@ -5,7 +5,7 @@ import cats.data.{NonEmptyList, Validated, _}
 
 import pavlosgi.freecli.argument.dsl._
 import pavlosgi.freecli.argument.interpreters.help.{HelpState, argumentHelpInterpreter}
-import pavlosgi.freecli.argument.interpreters.parser.{AdditionalArgumentsFound, ArgumentParsingError, argumentParserInterpreter}
+import pavlosgi.freecli.argument.interpreters.parser._
 import pavlosgi.freecli.core._
 
 package object argument
@@ -21,13 +21,16 @@ package object argument
    (dsl: ArgumentDsl[A]):
     ValidatedNel[ArgumentParsingError, A] = {
 
-    ResultT.run(Arguments(args))(dsl.foldMap(argumentParserInterpreter)) match {
-        case (Arguments(Nil), res) => res.toValidated
-        case (Arguments(argsLeft), res) =>
-          val ers = res.fold(_.toList, _ => List.empty)
+    val (outArgs, res) =
+      ResultT.run(Arguments.fromStrings(args))(dsl.foldMap(argumentParserInterpreter))
+
+    outArgs.unmarked match {
+      case Nil => res.toValidated
+      case u =>
+        val ers = res.fold(_.toList, _ => List.empty)
           Validated.invalid(
-            NonEmptyList(AdditionalArgumentsFound(argsLeft), ers))
-      }
+            NonEmptyList(AdditionalArgumentsFound(u.map(_.arg)), ers))
+    }
   }
 
   def argumentsHelp[A](dsl: ArgumentDsl[A]): String = {

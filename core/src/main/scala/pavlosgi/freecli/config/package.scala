@@ -21,12 +21,15 @@ package object config
    (dsl: ConfigDsl[A]):
     ValidatedNel[ConfigParsingError, A] = {
 
-    ResultT.run(Arguments(args))(dsl.foldMap(configParserInterpreter)) match {
-      case (Arguments(Nil), res) => res.toValidated
-      case (Arguments(argsLeft), res) =>
+    val (outArgs, res) =
+      ResultT.run(Arguments.fromStrings(args))(dsl.foldMap(configParserInterpreter))
+
+    outArgs.unmarked match {
+      case Nil => res.toValidated
+      case u =>
         val ers = res.fold(_.toList, _ => List.empty)
-        Validated.invalid(
-          NonEmptyList(AdditionalArgumentsFound(argsLeft), ers))
+          Validated.invalid(
+            NonEmptyList(AdditionalArgumentsFound(u.map(_.arg)), ers))
     }
   }
 
