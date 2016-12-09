@@ -9,7 +9,12 @@ trait Ops extends Grouping {
 
   def string = A.string
   def int = A.int
+  def long = A.long
+  def double = A.double
   def boolean = A.boolean
+  def file = A.file
+  def existentFile = A.existentFile
+  def newFile = A.newFile
   def name(name: String) = A.name(name)
 
   def flag(implicit ev: StringDecoder[Boolean]) = O.flag(ev)
@@ -25,6 +30,11 @@ trait Ops extends Grouping {
   object o {
     def string = O.string
     def int = O.int
+    def long = O.long
+    def double = O.double
     def boolean = O.boolean
+    def file = O.file
+    def existentFile = O.existentFile
+    def newFile = O.newFile
   }
 }
