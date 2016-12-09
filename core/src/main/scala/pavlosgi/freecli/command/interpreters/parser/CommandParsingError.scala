@@ -21,7 +21,7 @@ object CommandParsingError {
 case class AdditionalArgumentsFound(args: Seq[String])
   extends CommandParsingError  {
 
-  val message = s"Additional arguments found ${args.mkString(", ")}"
+  val message = s"Additional arguments found: ${args.mkString(", ")}"
 }
 
 case class FailedToParseConfig(configError: ConfigParsingError)

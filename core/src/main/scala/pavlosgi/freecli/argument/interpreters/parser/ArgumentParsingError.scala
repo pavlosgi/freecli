@@ -20,7 +20,7 @@ object ArgumentParsingError {
 case class AdditionalArgumentsFound(args: Seq[String])
   extends ArgumentParsingError  {
 
-  val message = s"Additional arguments found ${args.mkString(", ")}"
+  val message = s"Additional arguments found: ${args.mkString(", ")}"
 }
 
 case class ArgumentValueMissing(details: ArgumentDetails)

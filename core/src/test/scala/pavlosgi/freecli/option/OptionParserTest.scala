@@ -37,13 +37,13 @@ class OptionParserTest extends Test {
       val res = parseOptions(Seq("-host", "localhost"))(dsl)
 
       res.invalid.toList.collect {
-        case c: AdditionalOptionsFound => c.getClass.getName
+        case c: AdditionalArgumentsFound => c.getClass.getName
       }.distinct.size should === (1)
 
       val res1 = parseOptions(Seq("host", "localhost"))(dsl)
 
       res1.invalid.toList.collect {
-        case c: AdditionalOptionsFound => c.getClass.getName
+        case c: AdditionalArgumentsFound => c.getClass.getName
         case c: OptionFieldMissing => c.getClass.getName
       }.distinct.size should === (2)
     }
@@ -53,14 +53,14 @@ class OptionParserTest extends Test {
       val res = parseOptions(Seq("--h", "localhost"))(dsl)
 
       res.invalid.toList.collect {
-        case c: AdditionalOptionsFound => c.getClass.getName
+        case c: AdditionalArgumentsFound => c.getClass.getName
         case c: OptionFieldMissing => c.getClass.getName
       }.distinct.size should === (2)
 
       val res1 = parseOptions(Seq("h", "localhost"))(dsl)
 
       res1.invalid.toList.collect {
-        case c: AdditionalOptionsFound => c.getClass.getName
+        case c: AdditionalArgumentsFound => c.getClass.getName
         case c: OptionFieldMissing => c.getClass.getName
       }.distinct.size should === (2)
     }
@@ -70,7 +70,7 @@ class OptionParserTest extends Test {
       val res = parseOptions(Seq("-h"))(dsl)
 
       res.invalid.toList.collect {
-        case c: AdditionalOptionsFound => c.getClass.getName
+        case c: AdditionalArgumentsFound => c.getClass.getName
         case c: OptionFieldValueMissing => c.getClass.getName
       }.distinct.size should === (2)
     }
@@ -128,7 +128,7 @@ class OptionParserTest extends Test {
 
       val res2 = parseOptions(Seq("--debug"))(int --"debug" -'d')
       res2.invalid.toList.collect {
-        case c: AdditionalOptionsFound => c.getClass.getName
+        case c: AdditionalArgumentsFound => c.getClass.getName
         case c: OptionFieldValueMissing => c.getClass.getName
       }.distinct.size should === (2)
     }

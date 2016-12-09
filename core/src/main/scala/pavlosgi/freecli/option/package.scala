@@ -28,7 +28,7 @@ package object option
         case (Arguments(argsLeft), res) =>
           val ers = res.fold(_.toList, _ => List.empty)
           Validated.invalid(
-            NonEmptyList(AdditionalOptionsFound(argsLeft), ers))
+            NonEmptyList(AdditionalArgumentsFound(argsLeft), ers))
       }
   }
 

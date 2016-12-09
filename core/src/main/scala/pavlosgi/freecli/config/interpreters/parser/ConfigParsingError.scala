@@ -42,5 +42,5 @@ case class OptionAndArgumentErrors(
 case class AdditionalArgumentsFound(args: Seq[String])
   extends ConfigParsingError  {
 
-  val message = s"Additional arguments found ${args.mkString(", ")}"
+  val message = s"Additional arguments found: ${args.mkString(", ")}"
 }

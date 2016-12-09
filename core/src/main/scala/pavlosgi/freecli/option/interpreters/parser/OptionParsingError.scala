@@ -15,10 +15,10 @@ object OptionParsingError {
   }
 }
 
-case class AdditionalOptionsFound(args: Seq[String])
+case class AdditionalArgumentsFound(args: Seq[String])
   extends OptionParsingError  {
 
-  val message = s"Additional options found ${args.mkString(", ")}"
+  val message = s"Additional arguments found: ${args.mkString(", ")}"
 }
 
 case class OptionFieldMissing(field: Field)
