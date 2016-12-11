@@ -2,328 +2,291 @@ package pavlosgi.freecli.command
 
 import pavlosgi.freecli.command.api._
 import pavlosgi.freecli.config._
-import pavlosgi.freecli.command.interpreters.parser.{CommandNotFound, FailedToParseConfig}
+import pavlosgi.freecli.command.interpreters.parser.{AdditionalArgumentsFound, CommandNotFound, FailedToParseConfig}
 import pavlosgi.freecli.testkit.Test
 
 class CommandParserTest extends Test {
-  case class Config(host: String, port: Int)
-  case class SubConfig(dbName: String, dbPort: Int)
-  case class ParentSubConfig(parent: Config, sub: SubConfig)
-
-  val optionsDsl =
-    o.string --"host" -~ req :: o.int --"port" -~ req
-
-  val argumentsDsl =
-    string -~ name("arg1") :: int
-
-  val optionsAndArgumentDsl =
-    o.string --"host" -~ req ::
-    int
-
-  describe("Parser") {
-    it("parse command without config") {
-      var hasRun = false
-      parseCommand(Seq("command"))(
-        cmd("command") {
-          runs(hasRun = true)
-        }).valid.run
-
-      hasRun shouldBe true
-    }
-
-    it("fail to parse command without config if not in args") {
-      val res =
-        parseCommand(Seq("command2"))(
+  describe("Command Parser") {
+    describe("Single command") {
+      it("parse command without config") {
+        var hasRun = false
+        parseCommand(Seq("command"))(
           cmd("command") {
-            runs(())
-          })
-
-      res.invalid.toList.collect {
-        case c: CommandNotFound => c.getClass.getName
-      }.distinct.size should === (1)
-    }
-
-    it("parse command with config") {
-      case class Config(host: String, port: Int)
-      var conf = Option.empty[Config]
-
-      parseCommand(Seq("command", "--host", "localhost", "--port", "8080"))(
-        cmd("command") {
-          takes(group[Config](optionsDsl)) ::
-          runs[Config](c => conf = Some(c))
-        }).valid.run
-
-      conf.get should === (Config("localhost", 8080))
-    }
-
-    it("fail to parse command with config due to command failure") {
-      var conf = Option.empty[Config]
-
-      val res =
-        parseCommand(Seq("command2", "--host", "localhost", "--port", "8080"))(
-          cmd("command") {
-            takes(group[Config](optionsDsl)) ::
-            runs[Config](c => conf = Some(c))
-          })
-
-      res.invalid.toList.collect {
-        case c: CommandNotFound => c.getClass.getName
-      }.distinct.size should === (1)
-    }
-
-    it("fail to parse command with config due to config failure") {
-      var conf = Option.empty[Config]
-
-      val res =
-        parseCommand(Seq("command", "--host", "localhost", "file1"))(
-          cmd("command") {
-            takes(group[Config](optionsDsl)) ::
-            runs[Config](c => conf = Some(c))
-          })
-
-      res.invalid.toList.collect {
-        case c: FailedToParseConfig => c.getClass.getName
-      }.distinct.size should === (1)
-    }
-
-    it("parse command with subcommand") {
-      var hasRun = false
-
-      parseCommand(Seq("command", "subcommand"))(
-        cmd("command") {
-          cmd("subcommand") {
             runs(hasRun = true)
-          }
-        }).valid.run
+          }).valid.run
 
-      hasRun shouldBe true
-    }
+        hasRun shouldBe true
+      }
 
-    it("fail to parse command with subcommand") {
-      val res =
-        parseCommand(Seq("command"))(
-          cmd("command") {
-            cmd("subcommand") {
+      it("fail to parse command without config if not in args") {
+        val res =
+          parseCommand(Seq("command2"))(
+            cmd("command") {
               runs(())
-            }
-          })
+            })
 
-      res.invalid.toList should contain theSameElementsAs
-        Seq(CommandNotFound(CommandField(CommandFieldName("subcommand"), None)))
-    }
+        res.invalid.toList.collect {
+          case c: CommandNotFound => c.getClass.getName
+        }.distinct.size should === (1)
+      }
 
-    it("parse command with subcommand that has config from options") {
-      var conf = Option.empty[Config]
+      it("parse command with config") {
+        case class Config(host: String, port: Int)
+        var conf = Option.empty[Config]
 
-      parseCommand(Seq("command", "subcommand", "--host", "localhost", "--port", "8080"))(
-        cmd("command") {
-          cmd("subcommand") {
-            takes(group[Config](optionsDsl)) ::
+        parseCommand(Seq("command", "--host", "localhost", "--port", "8080"))(
+          cmd("command") {
+            takesG[Config](o.string --"host" -~ req :: o.int --"port" -~ req) ::
             runs[Config](c => conf = Some(c))
-          }
-        }).valid.run
+          }).valid.run
 
-      conf.get should === (Config("localhost", 8080))
+        conf.get should === (Config("localhost", 8080))
+      }
+
+      it("fail to parse command with config due to command failure") {
+        case class Config(host: String, port: Int)
+        var conf = Option.empty[Config]
+
+        val res =
+          parseCommand(Seq("command2", "--host", "localhost", "--port", "8080"))(
+            cmd("command") {
+              takesG[Config](o.string --"host" -~ req :: o.int --"port" -~ req) ::
+              runs[Config](c => conf = Some(c))
+            })
+
+        res.invalid.toList.collect {
+          case c: CommandNotFound => c.getClass.getName
+        }.distinct.size should === (1)
+      }
+
+      it("fail to parse command with config due to config failure") {
+        case class Config(host: String, port: Int)
+        var conf = Option.empty[Config]
+
+        val res =
+          parseCommand(Seq("command", "--host", "localhost", "file1"))(
+            cmd("command") {
+              takesG[Config](o.string --"host" -~ req :: o.int --"port" -~ req) ::
+              runs[Config](c => conf = Some(c))
+            })
+
+        res.invalid.toList.collect {
+          case c: FailedToParseConfig => c.getClass.getName
+        }.distinct.size should === (1)
+      }
     }
 
-    it("parse command with subcommand that has config from arguments") {
-      var conf = Option.empty[Config]
+    describe("Command with single subcommand") {
+      it("parse command with subcommand") {
+        var hasRun = false
 
-      parseCommand(Seq("command", "subcommand", "localhost", "8080"))(
-        cmd("command") {
-          cmd("subcommand") {
-            takes(group[Config](argumentsDsl)) ::
-            runs[Config](c => conf = Some(c))
-          }
-        }).valid.run
-
-      conf.get should === (Config("localhost", 8080))
-    }
-
-    it("parse command with subcommand that has config from options and arguments") {
-      var conf = Option.empty[Config]
-
-      parseCommand(Seq("command", "subcommand", "--host", "localhost", "8080"))(
-        cmd("command") {
-          cmd("subcommand") {
-            takes(group[Config](optionsAndArgumentDsl)) ::
-            runs[Config](c => conf = Some(c))
-          }
-        }).valid.run
-
-      conf.get should === (Config("localhost", 8080))
-    }
-
-    it("fail to parse command with subcommand that has config") {
-      var conf = Option.empty[Config]
-      val res =
-        parseCommand(Seq("command", "subcommand", "--host", "localhost"))(
+        parseCommand(Seq("command", "subcommand"))(
           cmd("command") {
             cmd("subcommand") {
-              takes(group[Config](optionsDsl)) ::
-              runs[Config](c => conf = Some(c))
+              runs(hasRun = true)
             }
-          })
+          }).valid.run
 
-      res.invalid.toList.collect {
-        case c: FailedToParseConfig => c.getClass.getName
-      }.distinct.size should === (1)
-    }
+        hasRun shouldBe true
+      }
 
-    it("fail to parse command with subcommand that has config due to subcommand missing") {
-      var conf = Option.empty[Config]
-      val res =
-        parseCommand(Seq("command"))(
+      it("fail to parse command with subcommand") {
+        val res =
+          parseCommand(Seq("command"))(
+            cmd("command") {
+              cmd("subcommand") {
+                runs(())
+              }
+            })
+
+        res.invalid.toList should contain theSameElementsAs
+          Seq(CommandNotFound(CommandField(CommandFieldName("subcommand"), None)))
+      }
+
+      it("parse command with subcommand that has config from options") {
+        case class Config(host: String, port: Int)
+        var conf = Option.empty[Config]
+
+        parseCommand(Seq("command", "subcommand", "--host", "localhost", "--port", "8080"))(
           cmd("command") {
             cmd("subcommand") {
-              takes(group[Config](optionsDsl)) ::
+              takesG[Config](o.string --"host" -~ req :: o.int --"port" -~ req) ::
               runs[Config](c => conf = Some(c))
             }
-          })
+          }).valid.run
 
-      res.invalid.toList should contain theSameElementsAs
-        Seq(CommandNotFound(CommandField(CommandFieldName("subcommand"), None)))
-    }
+        conf.get should === (Config("localhost", 8080))
+      }
 
-    it("parse command that has config with subcommand that has config") {
-      var conf = Option.empty[ParentSubConfig]
+      it("parse command with subcommand that has config from arguments") {
+        case class Config(host: String, port: Int)
+        var conf = Option.empty[Config]
 
-      parseCommand(Seq(
-        "command",
-        "--host",
-        "localhost",
-        "--port",
-        "8080",
-        "subcommand",
-        "--dbName",
-        "mydb",
-        "--dbPort",
-        "5432"))(
+        parseCommand(Seq("command", "subcommand", "localhost", "8080"))(
+          cmd("command") {
+            cmd("subcommand") {
+              takesG[Config](string -~ name("arg1") :: int) ::
+              runs[Config](c => conf = Some(c))
+            }
+          }).valid.run
 
-        cmd("command") {
-          takes(group[Config](optionsDsl)) ::
-          cmd("subcommand") {
-            takes(group[SubConfig](o.string --"dbName" -~ req :: o.int --"dbPort"-~ req )) ::
-            runs[ParentSubConfig](c => conf = Some(c))
-          }
-        }).valid.run
+        conf.get should === (Config("localhost", 8080))
+      }
 
-      conf.get should === (ParentSubConfig(Config("localhost", 8080), SubConfig("mydb", 5432)))
-    }
+      it("parse command with subcommand that has config from options and arguments") {
+        case class Config(host: String, port: Int)
+        var conf = Option.empty[Config]
 
-    it("fail to parse command that has config with subcommand that has config") {
-      var conf = Option.empty[ParentSubConfig]
+        parseCommand(Seq("command", "subcommand", "--host", "localhost", "8080"))(
+          cmd("command") {
+            cmd("subcommand") {
+              takesG[Config](o.string --"host" -~ req :: int) ::
+              runs[Config](c => conf = Some(c))
+            }
+          }).valid.run
 
-      val res =
-        parseCommand(Seq("command",
-          "--dbName",
-          "mydb",
-          "--dbPort",
-          "5432",
-          "subcommand",
+        conf.get should === (Config("localhost", 8080))
+      }
+
+      it("fail to parse command with subcommand that has config") {
+        case class Config(host: String, port: Int)
+        var conf = Option.empty[Config]
+        val res =
+          parseCommand(Seq("command", "subcommand", "--host", "localhost"))(
+            cmd("command") {
+              cmd("subcommand") {
+                takesG[Config](o.string --"host" -~ req :: o.int --"port" -~ req) ::
+                runs[Config](c => conf = Some(c))
+              }
+            })
+
+        res.invalid.toList.collect {
+          case c: FailedToParseConfig => c.getClass.getName
+        }.distinct.size should === (1)
+      }
+
+      it("fail to parse command with subcommand that has config due to subcommand missing") {
+        case class Config(host: String, port: Int)
+        var conf = Option.empty[Config]
+        val res =
+          parseCommand(Seq("command"))(
+            cmd("command") {
+              cmd("subcommand") {
+                takesG[Config](o.string --"host" -~ req :: o.int --"port" -~ req) ::
+                runs[Config](c => conf = Some(c))
+              }
+            })
+
+        res.invalid.toList should contain theSameElementsAs
+          Seq(CommandNotFound(CommandField(CommandFieldName("subcommand"), None)))
+      }
+
+      it("parse command that has config with subcommand that has config") {
+        case class Config(host: String, port: Int)
+        case class SubConfig(dbName: String, dbPort: Int)
+        case class ParentSubConfig(parent: Config, sub: SubConfig)
+
+        var conf = Option.empty[ParentSubConfig]
+
+        parseCommand(Seq(
+          "command",
           "--host",
           "localhost",
           "--port",
-          "8080"))(
+          "8080",
+          "subcommand",
+          "--dbName",
+          "mydb",
+          "--dbPort",
+          "5432"))(
 
           cmd("command") {
-            takes(group[Config](optionsDsl)) ::
+            takesG[Config](o.string --"host" -~ req :: o.int --"port" -~ req) ::
             cmd("subcommand") {
-              takes(group[SubConfig](o.string --"dbName" -~ req :: o.int --"dbPort"-~ req )) ::
+              takesG[SubConfig](o.string --"dbName" -~ req :: o.int --"dbPort"-~ req) ::
               runs[ParentSubConfig](c => conf = Some(c))
             }
-          })
+          }).valid.run
 
-      res.invalid.toList.collect {
-        case c: FailedToParseConfig => c.getClass.getName
-      }.distinct.size should === (1)
-    }
+        conf.get should === (ParentSubConfig(Config("localhost", 8080), SubConfig("mydb", 5432)))
+      }
 
-    it("parse command that has config with subcommand that has config if same config") {
-      var conf = Option.empty[(String, String)]
+      it("fail to parse command that has config with subcommand that has config if arguments for config are parse in the wrong order") {
+        case class Config(host: String, port: Int)
+        case class SubConfig(dbName: String, dbPort: Int)
+        case class ParentSubConfig(parent: Config, sub: SubConfig)
 
-      parseCommand(Seq("command", "--host", "localhost1", "subcommand", "--host", "localhost2"))(
-        cmd("command") {
-          takes(group[String](o.string --"host"-~ req )) ::
-          cmd("subcommand") {
-            takes(group[String](o.string --"host"-~ req )) ::
-            runs[(String, String)](c => conf = Some(c))
-          }
+        var conf = Option.empty[ParentSubConfig]
+
+        val res =
+          parseCommand(Seq("command",
+            "--dbName",
+            "mydb",
+            "--dbPort",
+            "5432",
+            "subcommand",
+            "--host",
+            "localhost",
+            "--port",
+            "8080"))(
+
+            cmd("command") {
+              takesG[Config](o.string --"host" -~ req :: o.int --"port" -~ req) ::
+              cmd("subcommand") {
+                takesG[SubConfig](o.string --"dbName" -~ req :: o.int --"dbPort" -~ req) ::
+                runs[ParentSubConfig](c => conf = Some(c))
+              }
+            })
+
+        res.invalid.toList.collect {
+          case c: AdditionalArgumentsFound => c.getClass.getName
+          case c: CommandNotFound => c.getClass.getName
+        }.distinct.size should === (2)
+      }
+
+      it("parse command that has config with subcommand that has config if same config") {
+        var conf = Option.empty[(String, String)]
+
+        parseCommand(Seq("command", "--host", "localhost1", "subcommand", "--host", "localhost2"))(
+          cmd("command") {
+            takesG[String](o.string --"host"-~ req) ::
+            cmd("subcommand") {
+              takesG[String](o.string --"host"-~ req) ::
+              runs[(String, String)](c => conf = Some(c))
+            }
         }).valid.run
 
-      conf.get should === ("localhost1" -> "localhost2")
+        conf.get should === ("localhost1" -> "localhost2")
+      }
     }
 
-    it("parse command with multiple subcommands (run first)") {
+    describe("Multiple subcommands distinct names") {
+      case class Config(host: String, port: Int)
+      case class SubConfig(dbName: String, dbPort: Int)
+      case class ParentSubConfig(parent: Config, sub: SubConfig)
+
       var conf = Option.empty[ParentSubConfig]
 
-      parseCommand(Seq(
-        "command",
-        "--host",
-        "localhost",
-        "--port",
-        "8080",
-        "subcommand1",
-        "--dbName1",
-        "mydb",
-        "--dbPort1",
-        "5432"))(
+      val dsl =
         cmd("command") {
-          takes(group[Config](optionsDsl)) ::
+          takesG[Config](o.string --"host" -~ req :: o.int --"port" -~ req) ::
           cmd("subcommand1") {
-            takes(group[SubConfig](o.string --"dbName1" -~ req :: o.int --"dbPort1"-~ req )) ::
+            takesG[SubConfig](o.string --"dbName1" -~ req :: o.int --"dbPort1"-~ req) ::
             runs[ParentSubConfig](c => conf = Some(c))
           } ::
           cmd("subcommand2") {
-            takes(group[SubConfig](o.string --"dbName2" -~ req :: o.int --"dbPort2"-~ req )) ::
+            takesG[SubConfig](o.string --"dbName2" -~ req :: o.int --"dbPort2"-~ req) ::
             runs[ParentSubConfig](c => conf = Some(c))
           } ::
           cmd("subcommand3") {
-            takes(group[SubConfig](o.string --"dbName3" -~ req :: o.int --"dbPort3"-~ req )) ::
+            takesG[SubConfig](o.string --"dbName3" -~ req :: o.int --"dbPort3"-~ req) ::
             runs[ParentSubConfig](c => conf = Some(c))
           }
-        }).valid.run
+        }
 
-      conf.get should === (ParentSubConfig(Config("localhost", 8080), SubConfig("mydb", 5432)))
-    }
+      it("parse command with multiple subcommands (run first)") {
+        conf = Option.empty[ParentSubConfig]
 
-    it("parse command with multiple subcommands (run third)") {
-      var conf = Option.empty[ParentSubConfig]
-
-      parseCommand(Seq(
-        "command",
-        "--host",
-        "localhost",
-        "--port",
-        "8080",
-        "subcommand3",
-        "--dbName3",
-        "mydb",
-        "--dbPort3",
-        "5432"))(
-        cmd("command") {
-          takes(group[Config](optionsDsl)) ::
-          cmd("subcommand1") {
-            takes(group[SubConfig](o.string --"dbName1" -~ req :: o.int --"dbPort1"-~ req )) ::
-            runs[ParentSubConfig](c => conf = Some(c))
-          } ::
-          cmd("subcommand2") {
-            takes(group[SubConfig](o.string --"dbName2" -~ req :: o.int --"dbPort2"-~ req )) ::
-            runs[ParentSubConfig](c => conf = Some(c))
-          } ::
-          cmd("subcommand3") {
-            takes(group[SubConfig](o.string --"dbName3" -~ req :: o.int --"dbPort3"-~ req )) ::
-            runs[ParentSubConfig](c => conf = Some(c))
-          }
-        }).valid.run
-
-      conf.get should === (ParentSubConfig(Config("localhost", 8080), SubConfig("mydb", 5432)))
-    }
-
-    it("fail to parse command with multiple subcommands if multiple commands match") {
-      var conf = Option.empty[ParentSubConfig]
-
-      val res =
         parseCommand(Seq(
           "command",
           "--host",
@@ -334,69 +297,156 @@ class CommandParserTest extends Test {
           "--dbName1",
           "mydb",
           "--dbPort1",
-          "5432",
-          "subcommand3",
-          "--dbName3",
-          "mydb",
-          "--dbPort3",
-          "5432"))(
-          cmd("command") {
-            takes(group[Config](optionsDsl)) ::
-            cmd("subcommand1") {
-              takes(group[SubConfig](o.string --"dbName1" -~ req :: o.int --"dbPort1"-~ req )) ::
-              runs[ParentSubConfig](c => conf = Some(c))
-            } ::
-            cmd("subcommand2") {
-              takes(group[SubConfig](o.string --"dbName2" -~ req :: o.int --"dbPort2"-~ req )) ::
-              runs[ParentSubConfig](c => conf = Some(c))
-            } ::
-            cmd("subcommand3") {
-              takes(group[SubConfig](o.string --"dbName3" -~ req :: o.int --"dbPort3"-~ req )) ::
-              runs[ParentSubConfig](c => conf = Some(c))
-            }
-          })
+          "5432"))(dsl).valid.run
 
-      res.invalid
-    }
+        conf.get should === (ParentSubConfig(Config("localhost", 8080), SubConfig("mydb", 5432)))
+      }
 
-    it("fail to parse command with multiple subcommands if subcommands have the same name") {
-      var conf = Option.empty[ParentSubConfig]
+      it("parse command with multiple subcommands (run third)") {
+        conf = Option.empty[ParentSubConfig]
 
-      val res =
         parseCommand(Seq(
           "command",
           "--host",
           "localhost",
           "--port",
           "8080",
-          "subcommand",
-          "--dbName",
+          "subcommand3",
+          "--dbName3",
           "mydb",
-          "--dbPort",
-          "5432",
-          "subcommand",
-          "--dbName",
-          "mydb",
-          "--dbPort",
-          "5432"))(
+          "--dbPort3",
+          "5432"))(dsl).valid.run
+
+        conf.get should === (ParentSubConfig(Config("localhost", 8080), SubConfig("mydb", 5432)))
+      }
+
+      it("fail to parse command with multiple subcommands if multiple commands match") {
+        val res =
+          parseCommand(Seq(
+            "command",
+            "--host",
+            "localhost",
+            "--port",
+            "8080",
+            "subcommand1",
+            "--dbName1",
+            "mydb",
+            "--dbPort1",
+            "5432",
+            "subcommand3",
+            "--dbName3",
+            "mydb",
+            "--dbPort3",
+            "5432"))(dsl)
+
+        res.invalid
+      }
+
+      it("fail to parse command with multiple subcommands if subcommands have the same name") {
+        val res =
+          parseCommand(Seq(
+            "command",
+            "--host",
+            "localhost",
+            "--port",
+            "8080",
+            "subcommand",
+            "--dbName1",
+            "mydb",
+            "--dbPort1",
+            "5432",
+            "subcommand",
+            "--dbName1",
+            "mydb",
+            "--dbPort1",
+            "5432"))(dsl)
+
+        res.invalid
+      }
+    }
+
+    describe("Multiple subcommands similar names") {
+      case class Config(host: String, port: Int)
+      case class SubConfig(dbName: String, dbPort: Int)
+      case class ParentSubConfig(parent: Config, sub: SubConfig)
+
+      var conf = Option.empty[ParentSubConfig]
+
+      it("parse command with subcommands with the same name at different depths when parsed subcommand comes first") {
+        conf = Option.empty[ParentSubConfig]
+        val dsl =
           cmd("command") {
-            takes(group[Config](optionsDsl)) ::
-            cmd("subcommand") {
-              takes(group[SubConfig](o.string --"dbName1" -~ req :: o.int --"dbPort"-~ req )) ::
-              runs[ParentSubConfig](c => conf = Some(c))
+            takesG[Config](o.string --"host" -~ req :: o.int --"port" -~ req) ::
+            cmd("subcommand1") {
+              cmd("subcommand2") {
+                takesG[SubConfig](o.string --"dbName1" -~ req :: o.int --"dbPort1"-~ req) ::
+                runs[ParentSubConfig](c => conf = Some(c))
+              }
             } ::
             cmd("subcommand2") {
-              takes(group[SubConfig](o.string --"dbName2" -~ req :: o.int --"dbPort2"-~ req )) ::
+              takesG[SubConfig](o.string --"dbName2" -~ req :: o.int --"dbPort2"-~ req) ::
               runs[ParentSubConfig](c => conf = Some(c))
             } ::
             cmd("subcommand3") {
-              takes(group[SubConfig](o.string --"dbName3" -~ req :: o.int --"dbPort3"-~ req )) ::
+              takesG[SubConfig](o.string --"dbName3" -~ req :: o.int --"dbPort3"-~ req) ::
               runs[ParentSubConfig](c => conf = Some(c))
             }
-          })
+          }
 
-      res.invalid
+        val res =
+          parseCommand(Seq(
+            "command",
+            "--host",
+            "localhost",
+            "--port",
+            "8080",
+            "subcommand1",
+            "subcommand2",
+            "--dbName1",
+            "mydb",
+            "--dbPort1",
+            "5432"))(dsl).valid.run
+
+        conf.get should === (ParentSubConfig(Config("localhost", 8080), SubConfig("mydb", 5432)))
+      }
+
+      it("parse command with subcommands with the same name at different depths when parse subcommand comes second") {
+        conf = Option.empty[ParentSubConfig]
+        val dsl =
+          cmd("command") {
+            takesG[Config](o.string --"host" -~ req :: o.int --"port" -~ req) ::
+            cmd("subcommand2") {
+              takesG[SubConfig](o.string --"dbName2" -~ req :: o.int --"dbPort2"-~ req) ::
+              runs[ParentSubConfig](c => conf = Some(c))
+            } ::
+            cmd("subcommand1") {
+              cmd("subcommand2") {
+                takesG[SubConfig](o.string --"dbName1" -~ req :: o.int --"dbPort1"-~ req) ::
+                runs[ParentSubConfig](c => conf = Some(c))
+              }
+            } ::
+            cmd("subcommand3") {
+              takesG[SubConfig](o.string --"dbName3" -~ req :: o.int --"dbPort3"-~ req) ::
+              runs[ParentSubConfig](c => conf = Some(c))
+            }
+          }
+
+        val res =
+          parseCommand(Seq(
+            "command",
+            "--host",
+            "localhost",
+            "--port",
+            "8080",
+            "subcommand1",
+            "subcommand2",
+            "--dbName1",
+            "mydb",
+            "--dbPort1",
+            "5432"))(dsl).valid.run
+
+        conf.get should === (ParentSubConfig(Config("localhost", 8080), SubConfig("mydb", 5432)))
+      }
     }
   }
-
 }

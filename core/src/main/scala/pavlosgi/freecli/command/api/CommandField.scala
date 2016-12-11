@@ -4,10 +4,12 @@ import cats.Show
 import cats.instances.all._
 import cats.syntax.all._
 
-import pavlosgi.freecli.core.Description
+import pavlosgi.freecli.core._
 
 case class CommandField(name: CommandFieldName, description: Option[Description]) {
   def matches(s: String): Boolean = name.show === s
+  def shortDescription: String = name.show
+  def longDescription: String = s"${name.show}${showWithSpace(description)}"
 }
 
 object CommandField {

@@ -8,7 +8,7 @@ import pavlosgi.freecli.core._
 import pavlosgi.freecli.option.api._
 
 package object parser {
-  type ParseResult[A] = ResultT[OptionParsingError, Arguments, A]
+  type ParseResult[A] = ResultT[OptionParsingError, CommandLineArguments, A]
 
   implicit object optionParserInterpreter extends (Algebra ~> ParseResult) {
     def apply[A](fa: Algebra[A]): ParseResult[A] = {
@@ -31,94 +31,107 @@ package object parser {
 
         case Opt(field, f, g) =>
           for {
-            args   <- ResultT.get[OptionParsingError, Arguments]
+            args   <- ResultT.get[OptionParsingError, CommandLineArguments]
             value  <- extractOptionFieldAndValue(field, args)
             res    <- parseOpt(field, value, g)
           } yield f(res)
 
         case Flag(field, f) =>
           for {
-            args   <- ResultT.get[OptionParsingError, Arguments]
+            args   <- ResultT.get[OptionParsingError, CommandLineArguments]
             value  <- extractOptionFieldIfExists(field, args)
           } yield f(value)
 
-        case Sub(description, dsl) => dsl.foldMap(optionParserInterpreter)
+        case Sub(_, dsl) => dsl.foldMap(optionParserInterpreter)
       }
     }
   }
 
-  def parseOpt[T](field: Field, value: Option[String], g: StringDecoder[T]) = {
-    ResultT.fromValidated[StringDecoderError, Arguments, Option[T]](
+  def parseOpt[T](field: Field, value: Option[String], g: StringDecoder[T]): ParseResult[Option[T]] = {
+    ResultT.fromValidated[StringDecoderError, CommandLineArguments, Option[T]](
       value.traverseU(g.apply)).leftMapInner[OptionParsingError](
         e => FailedToDecodeOption(field, e))
   }
 
   def extractOptionFieldIfExists(
     field: Field,
-    args: Arguments):
+    args: CommandLineArguments):
     ParseResult[Boolean] = {
 
-    args.args.indexWhere(a => field.matches(a.arg)) match {
-      case idx if idx === -1 =>
-        tryBySplittingArgs(
-          field,
-          args,
-          extractOptionFieldIfExists,
-          ResultT.right(false))
+    args.extract(field.matches) match {
+      case ExtractSingle(cliArgs, Some(_)) => ResultT.set(cliArgs).map(_ => true)
+      case ExtractSingle(cliArgs, None) =>
+        val expandedArgs =
+          splitAbbreviationsOnFirstMatch(
+            field,
+            cliArgs.args,
+            (arg, abbr) => arg.matches(s"-[a-zA-Z]*$abbr[a-zA-Z]*"))
 
-      case idx =>
-        val remArgs = args.args.take(idx) ++ args.args.drop(idx + 1)
-        ResultT.set(Arguments(remArgs)).map(_ => true)
+        if (expandedArgs.diff(cliArgs.args).nonEmpty) {
+          extractOptionFieldIfExists(field, CommandLineArguments(expandedArgs))
+        } else {
+          ResultT.set(cliArgs).map(_ => false)
+        }
     }
   }
 
   def extractOptionFieldAndValue(
     field: Field,
-    args: Arguments):
+    args: CommandLineArguments):
     ParseResult[Option[String]] = {
 
-    args.args.indexWhere(a => field.matches(a.arg)) match {
-      case idx if idx === -1 =>
-        tryBySplittingArgs(
-          field,
-          args,
-          extractOptionFieldAndValue,
-          ResultT.right(None))
+    args.extractPair(field.matches) match {
+      case ExtractPair(cliArgs, Some(_), Some(v)) =>
+        ResultT.set(cliArgs).map(_ => Some(v))
 
-      case idx =>
-        args.args.lift(idx + 1) match {
-          case None =>
-            ResultT.leftNE(OptionFieldValueMissing(field))
+      case ExtractPair(_, Some(_), None) =>
+        ResultT.leftNE(OptionFieldValueMissing(field))
 
-          case Some(v) =>
-            val newArgs = args.marked(idx).marked(idx + 1)
-            ResultT.set(newArgs).map(_ => Some(v.arg))
+      case ExtractPair(cliArgs, None, _) =>
+        val expandedArgs =
+          splitAbbreviationsOnFirstMatch(
+            field,
+            cliArgs.args,
+            (arg, abbr) => arg.matches(s"-[a-zA-Z][a-zA-Z]*$abbr"))
+
+        if (expandedArgs.diff(cliArgs.args).nonEmpty) {
+          extractOptionFieldAndValue(field, CommandLineArguments(expandedArgs))
+        } else {
+          ResultT.set(cliArgs).map(_ => None)
         }
     }
   }
 
-  def tryBySplittingArgs[T](
+  def splitAbbreviationsOnFirstMatch(
     field: Field,
-    args: Arguments,
-    f: (Field, Arguments) => ParseResult[T],
-    fallback: ParseResult[T]) = {
+    args: Seq[ArgumentWithMarking],
+    f: (String, Char) => Boolean):
+    Seq[ArgumentWithMarking] = {
 
-    val newArgs =
-      args.copy(args = args.args.foldLeft(Seq.empty[Argument]) {
-        case (c, Argument(arg, Unmarked)) =>
-          val split =
-            FieldAbbreviation.splitMultiFieldAbbreviation(arg)
-              .map(a => Argument(a, Unmarked))
+    def splitOnMatch(args: Seq[ArgumentWithMarking], abbr: Char): Seq[ArgumentWithMarking] = {
+      case class Result(res: Seq[ArgumentWithMarking], found: Boolean)
+      val result = args.foldLeft(Result(Seq.empty, found = false)) {
+        case (Result(curr, false), arg) if f(arg.value, abbr) =>
+          val expanded =
+            arg.value.tail.map(c => ArgumentWithMarking(s"-$c", isMarked = false))
 
-          c ++ split
+          Result(curr ++ expanded, found = true)
 
-        case (c, other) => c :+ other
-      })
+        case (r, arg) =>
+          r.copy(res = r.res :+ arg)
 
-    if (newArgs.args.size === args.args.size) {
-      fallback
-    } else {
-      f(field, newArgs)
+      }
+
+      result.res
+    }
+
+    field match {
+      case FieldNameOnly(_, _) => args
+      case FieldAbbreviationOnly(abbr, _) =>
+        splitOnMatch(args, abbr.abbr)
+
+      case FieldNameAndAbbreviation(_, abbr, _) =>
+        splitOnMatch(args, abbr.abbr)
     }
   }
 }

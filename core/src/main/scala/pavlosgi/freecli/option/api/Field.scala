@@ -107,18 +107,13 @@ class FieldAbbreviation private(val abbr: Char) {
 }
 
 object FieldAbbreviation {
-  private val fieldAbbreviationCanditateRegex = "^[a-zA-Z]$"
+  private val fieldAbbreviationCandidateRegex = "^[a-zA-Z]$"
   private val fieldAbbreviationRegex = "^-[a-zA-Z]$"
-  private val multiFieldAbbreviationRegex = "^-[a-zA-Z]+"
 
   def isFieldAbbreviation(value: String): Boolean = value.matches(fieldAbbreviationRegex)
-  def splitMultiFieldAbbreviation(value: String): Seq[String] =
-    if (value.matches(multiFieldAbbreviationRegex)) {
-      value.tail.map(v => s"-$v")
-    } else Seq(value)
 
   def apply(abbr: Char): FieldAbbreviation = {
-    if (!abbr.toString.matches(fieldAbbreviationCanditateRegex))
+    if (!abbr.toString.matches(fieldAbbreviationCandidateRegex))
       throw new IllegalArgumentException("Field abbreviation needs to be a letter")
 
     new FieldAbbreviation(abbr)

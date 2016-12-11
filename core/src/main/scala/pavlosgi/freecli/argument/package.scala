@@ -10,8 +10,6 @@ import pavlosgi.freecli.core._
 
 package object argument
   extends Ops
-  with MergerImplicits
-  with ArgumentsDetailsImplicits
   with ArgumentDslImplicits {
 
   type ArgumentDsl[A] = dsl.ArgumentDsl[A]
@@ -22,14 +20,15 @@ package object argument
     ValidatedNel[ArgumentParsingError, A] = {
 
     val (outArgs, res) =
-      ResultT.run(Arguments.fromStrings(args))(dsl.foldMap(argumentParserInterpreter))
+      ResultT.run(CommandLineArguments.fromArgs(args))(
+        dsl.foldMap(argumentParserInterpreter))
 
     outArgs.unmarked match {
       case Nil => res.toValidated
       case u =>
         val ers = res.fold(_.toList, _ => List.empty)
           Validated.invalid(
-            NonEmptyList(AdditionalArgumentsFound(u.map(_.arg)), ers))
+            NonEmptyList(AdditionalArgumentsFound(u), ers))
     }
   }
 

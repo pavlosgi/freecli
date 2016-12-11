@@ -1,6 +1,6 @@
 package pavlosgi.freecli.option
 
-import shapeless.{tupled => _, _}
+import shapeless._
 
 import pavlosgi.freecli.option.interpreters.parser._
 import pavlosgi.freecli.testkit.Test
@@ -68,7 +68,6 @@ class OptionParserTest extends Test {
     it("fail to parse string option if value not provided") {
       val dsl = string --"host" -'h'
       val res = parseOptions(Seq("-h"))(dsl)
-
       res.invalid.toList.collect {
         case c: AdditionalArgumentsFound => c.getClass.getName
         case c: OptionFieldValueMissing => c.getClass.getName

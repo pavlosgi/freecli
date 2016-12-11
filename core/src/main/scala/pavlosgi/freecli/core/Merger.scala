@@ -12,4 +12,8 @@ object Merger {
 
     def apply(f1: F1, f2: F2): Out
   }
+
+  object CanMerge {
+    type Aux[F1, F2, Out0] = CanMerge[F1, F2] { type Out = Out0 }
+  }
 }

@@ -23,13 +23,13 @@ object HelpState extends HelpStateInstances {
   def display(indentation: Int, h: HelpState): String = {
     h.commands.map {
       case CommandHelp(Some(field), None, None) =>
-        indent(indentation, field.name.show.yellow)
+        indent(indentation, field.name.show.bold)
 
       case CommandHelp(Some(field), Some(conf), None) =>
         displayFieldWithConfig(indentation, field, conf)
 
       case CommandHelp(Some(field), None, Some(subs)) =>
-        s"""${indent(indentation, field.name.show.yellow)}
+        s"""${indent(indentation, field.name.show.bold)}
            |
            |${indent(indentation + 2, contentWithTitle("Commands".bold, HelpState.display(2, subs)))}""".stripMargin
 
@@ -47,7 +47,7 @@ object HelpState extends HelpStateInstances {
     val argsOneLine = s.arguments.map(A.HelpState.oneline)
 
     Seq(
-      Some(s"${indent(indentation, f.name.show.yellow)} ${argsOneLine.getOrElse("")}"),
+      Some(s"${indent(indentation, f.name.show.bold)} ${argsOneLine.getOrElse("")}"),
       optionalContentWithTitle(
         indent(
           indentation + 2, "Description".bold),

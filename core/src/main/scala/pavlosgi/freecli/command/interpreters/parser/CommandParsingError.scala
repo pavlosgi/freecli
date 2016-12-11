@@ -1,10 +1,10 @@
 package pavlosgi.freecli.command.interpreters.parser
 
-import cats.syntax.show._
+import cats.data.NonEmptyList
 
 import pavlosgi.freecli.command.api.CommandField
 import pavlosgi.freecli.config.interpreters.parser.ConfigParsingError
-import pavlosgi.freecli.core.Error
+import pavlosgi.freecli.core._
 
 sealed trait CommandParsingError {
   val message: String
@@ -24,16 +24,16 @@ case class AdditionalArgumentsFound(args: Seq[String])
   val message = s"Additional arguments found: ${args.mkString(", ")}"
 }
 
-case class FailedToParseConfig(configError: ConfigParsingError)
+case class FailedToParseConfig(configErrors: NonEmptyList[ConfigParsingError])
   extends CommandParsingError  {
 
-  val message = s"Failed to parse config ${configError.message}"
+  val message = s"Config errors, ${configErrors.map(_.message).toList.mkString(", ")}"
 }
 
 case class CommandNotFound(field: CommandField)
   extends CommandParsingError  {
 
-  val message = s"Command not found for ${field.show}"
+  val message = s"${field.shortDescription.yellow} command not found"
 }
 
 case object NoCommandWasMatched extends CommandParsingError {

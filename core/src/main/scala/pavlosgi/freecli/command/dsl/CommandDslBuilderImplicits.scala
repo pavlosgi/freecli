@@ -10,7 +10,10 @@ import pavlosgi.freecli.free.FreeAlternative
 
 trait CommandDslBuilderImplicits {
   implicit def canProducePartialFromRun[H <: HList, Run](
-    implicit ev: CanProduce.Aux[H, (CommandField, RunCommand[Run] :: HNil)]) = {
+    implicit ev: CanProduce.Aux[H, (CommandField, RunCommand[Run] :: HNil)]):
+    CanProduce.Aux[
+      CommandDslBuilder[H, Unit, Run],
+      CommandDslBuilder[CommandDsl[PartialCommand[Run]] :: HNil, Unit, Run]] = {
 
     new CanProduce[CommandDslBuilder[H, Unit, Run]] {
       type Out = CommandDslBuilder[CommandDsl[PartialCommand[Run]] :: HNil, Unit, Run]
@@ -31,7 +34,10 @@ trait CommandDslBuilderImplicits {
     implicit ev: CanProduce.Aux[H, (CommandField, C.ConfigDsl[Conf] :: RunCommand[Run] :: HNil)],
     runToFrom: ToFromHList[Run, RunH],
     diff: Diff.Aux[RunH, Conf :: HNil, OutRun],
-    prepend: Prepend.Aux[OutRun, Conf :: HNil, RunH]) = {
+    prepend: Prepend.Aux[OutRun, Conf :: HNil, RunH]):
+    CanProduce.Aux[
+      CommandDslBuilder[H, Conf, Run],
+      CommandDslBuilder[CommandDsl[PartialCommand[OutRun]] :: HNil, Unit, OutRun]] = {
 
     new CanProduce[CommandDslBuilder[H, Conf, Run]] {
       type Out = CommandDslBuilder[CommandDsl[PartialCommand[OutRun]] :: HNil, Unit, OutRun]
@@ -58,7 +64,10 @@ trait CommandDslBuilderImplicits {
 
   implicit def canProducePartialFromConfigAndRunSame[H <: HList, Conf, Run](
     implicit ev: CanProduce.Aux[H, (CommandField, C.ConfigDsl[Conf] :: RunCommand[Run] :: HNil)],
-    equal: Conf =:= Run) = {
+    equal: Conf =:= Run):
+    CanProduce.Aux[
+      CommandDslBuilder[H, Conf, Run],
+      CommandDslBuilder[CommandDsl[PartialCommand[HNil]] :: HNil, Unit, HNil]] = {
 
     new CanProduce[CommandDslBuilder[H, Conf, Run]] {
       type Out = CommandDslBuilder[CommandDsl[PartialCommand[HNil]] :: HNil, Unit, HNil]
@@ -88,7 +97,10 @@ trait CommandDslBuilderImplicits {
     implicit ev: CanProduce.Aux[H, (CommandField, C.ConfigDsl[Conf] :: CommandDsl[PartialCommand[Run]] :: HNil)],
     runToFrom: ToFromHList[Run, RunH],
     diff: Diff.Aux[RunH, Conf :: HNil, OutRun],
-    prepend: Prepend.Aux[OutRun, Conf :: HNil, RunH]) = {
+    prepend: Prepend.Aux[OutRun, Conf :: HNil, RunH]):
+    CanProduce.Aux[
+      CommandDslBuilder[H, Conf, Run],
+      CommandDslBuilder[CommandDsl[PartialCommand[OutRun]] :: HNil, Unit, OutRun]] = {
 
     new CanProduce[CommandDslBuilder[H, Conf, Run]] {
       type Out = CommandDslBuilder[CommandDsl[PartialCommand[OutRun]] :: HNil, Unit, OutRun]
@@ -115,7 +127,10 @@ trait CommandDslBuilderImplicits {
   }
 
   implicit def canProducePartialFromPartial[H <: HList, Run](
-    implicit ev: CanProduce.Aux[H, (CommandField, CommandDsl[PartialCommand[Run]] :: HNil)]) = {
+    implicit ev: CanProduce.Aux[H, (CommandField, CommandDsl[PartialCommand[Run]] :: HNil)]):
+    CanProduce.Aux[
+      CommandDslBuilder[H, Unit, Run],
+      CommandDslBuilder[CommandDsl[PartialCommand[Run]] :: HNil, Unit, Run]] = {
 
     new CanProduce[CommandDslBuilder[H, Unit, Run]] {
       type Out = CommandDslBuilder[CommandDsl[PartialCommand[Run]] :: HNil, Unit, Run]
@@ -134,7 +149,8 @@ trait CommandDslBuilderImplicits {
 
   implicit def flattenBuilderCommandDsl[P, F](
     b: CommandDslBuilder[CommandDsl[PartialCommand[P]] :: HNil, Unit, P])(
-    implicit ev: FlattenPartialCommand[P]) = {
+    implicit ev: FlattenPartialCommand[P]):
+    FreeAlternative[Algebra, Command] = {
 
     b.list.head.map(ev.apply)
   }

@@ -11,7 +11,6 @@ import pavlosgi.freecli.core._
 
 package object config
   extends Ops
-  with MergerImplicits
   with ConfigDslImplicits {
 
   type ConfigDsl[A] = dsl.ConfigDsl[A]
@@ -22,14 +21,15 @@ package object config
     ValidatedNel[ConfigParsingError, A] = {
 
     val (outArgs, res) =
-      ResultT.run(Arguments.fromStrings(args))(dsl.foldMap(configParserInterpreter))
+      ResultT.run(CommandLineArguments.fromArgs(args))(
+        dsl.foldMap(configParserInterpreter))
 
     outArgs.unmarked match {
       case Nil => res.toValidated
       case u =>
         val ers = res.fold(_.toList, _ => List.empty)
           Validated.invalid(
-            NonEmptyList(AdditionalArgumentsFound(u.map(_.arg)), ers))
+            NonEmptyList(AdditionalArgumentsFound(u), ers))
     }
   }
 

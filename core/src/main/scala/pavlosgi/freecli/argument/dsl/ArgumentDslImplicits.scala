@@ -11,5 +11,9 @@ trait ArgumentDslImplicits extends ArgumentsDetailsImplicits with MergerImplicit
     ev(b)
   }
 
-  implicit def canProduceArgumentDslId[O] = CanProduce.Id[ArgumentDsl[O]]
+  implicit def canProduceArgumentDslId[A]:
+    CanProduce.Aux[ArgumentDsl[A], ArgumentDsl[A]] = {
+
+    CanProduce.Id[ArgumentDsl[A]]
+  }
 }

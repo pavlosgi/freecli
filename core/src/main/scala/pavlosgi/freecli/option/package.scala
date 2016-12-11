@@ -9,11 +9,7 @@ import pavlosgi.freecli.option.interpreters.help.{HelpState, optionHelpInterpret
 import pavlosgi.freecli.option.interpreters.parser._
 
 package object option
-  extends DefaultImplicits
-  with DescriptionImplicits
-  with FieldImplicits
-  with MergerImplicits
-  with OptionDslImplicits
+  extends OptionDslImplicits
   with Ops {
 
   type OptionDsl[A] = dsl.OptionDsl[A]
@@ -24,14 +20,15 @@ package object option
     ValidatedNel[OptionParsingError, A] = {
 
     val (outArgs, res) =
-      ResultT.run(Arguments.fromStrings(args))(dsl.foldMap(optionParserInterpreter))
+      ResultT.run(CommandLineArguments.fromArgs(args))(
+        dsl.foldMap(optionParserInterpreter))
 
     outArgs.unmarked match {
       case Nil => res.toValidated
       case u =>
         val ers = res.fold(_.toList, _ => List.empty)
           Validated.invalid(
-            NonEmptyList(AdditionalArgumentsFound(u.map(_.arg)), ers))
+            NonEmptyList(AdditionalArgumentsFound(u), ers))
     }
   }
 

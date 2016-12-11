@@ -30,12 +30,12 @@ class ConfigParserTest extends Test {
       val dsl =
         group[A] {
           o.string --"a1" -~ req ::
-          flag        --"a2" ::
+          flag     --"a2"        ::
           o.int    --"a3" -~ req ::
           sub[B]("b") {
             o.string --"b1" -~ req ::
-            flag        --"b2" ::
-            o.int       --"b3" ::
+            flag     --"b2" ::
+            o.int    --"b3" ::
             sub[C]("c") {
               o.string --"c1" -~ req ::
               o.int    --"c2" -~ req

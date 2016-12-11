@@ -18,39 +18,37 @@ class CommandHelpTest extends Test {
 
       val dsl =
         cmd("command1", "command1 description") {
-          takes {
-            group[A] {
-              o.int  --"a1" -~ req -~ des("a1 description")  ::
-              flag --"a2" ::
-              string ::
-              int
-            }
+          takesG[A] {
+            o.int  --"a1" -~ req -~ des("a1 description")  ::
+            flag --"a2" ::
+            string ::
+            int
           } ::
           cmd("subcommand1", "subcommand1 description") {
-            takes(group[String](o.string --"subfield1" -~ req)) ::
+            takesG[String](o.string --"subfield1" -~ req) ::
             cmd("subcommand2") {
               cmd("subcommand3") {
-                takes(group[String](o.string --"subfield3" -~ req)) ::
+                takesG[String](o.string --"subfield3" -~ req) ::
                 runs[B](s => ())
               }
             }
           } ::
           cmd("subcommand4") {
-            takes(group[String](o.string -- "subfield4" -~ req)) ::
+            takesG[String](o.string -- "subfield4" -~ req) ::
             cmd("subcommand5") {
               runs[(A, String)](s => ())
             } ::
             cmd("subcommand6") {
-              takes(group[Int](o.int --"subfield6" -~ req)) ::
+              takesG[Int](o.int --"subfield6" -~ req) ::
               runs[(A, String, Int)](s => ())
             }
           } ::
           cmd("subcommand7") {
-            takes(groupT(o.string --"subfield7" -~ req :: int)) ::
+            takesT(o.string --"subfield7" -~ req :: int) ::
             runs[(A, (String, Int))](s => ())
           } ::
           cmd("subcommand8") {
-            takes(group[C](o.string --"subfield8" -~ req)) ::
+            takesG[C](o.string --"subfield8" -~ req) ::
             runs[D](s => ())
           }
         }

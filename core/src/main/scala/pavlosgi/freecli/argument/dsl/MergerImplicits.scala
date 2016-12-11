@@ -10,13 +10,15 @@ import pavlosgi.freecli.core.{CanProduce, Merger, toHList}
 trait MergerImplicits {
   implicit def arguments2Merger[B, O](
     b: B)(
-    implicit ev: CanProduce.Aux[B, ArgumentDsl[O]]): Merger[ArgumentDsl[O]] = {
+    implicit ev: CanProduce.Aux[B, ArgumentDsl[O]]):
+    Merger[ArgumentDsl[O]] = {
 
     Merger[ArgumentDsl[O]](ev(b))
   }
 
   implicit def canMergeArguments[A1, A2, A <: HList](
-    implicit folder: LeftFolder.Aux[A1 :: A2 :: HNil, HNil, toHList.type, A]) = {
+    implicit folder: LeftFolder.Aux[A1 :: A2 :: HNil, HNil, toHList.type, A]) =
+//    CanMerge.Aux[ArgumentDsl[A1], ArgumentDsl[A2], ArgumentDsl[A]] = {
 
     new CanMerge[ArgumentDsl[A1], ArgumentDsl[A2]] {
       type Out = ArgumentDsl[A]
@@ -24,5 +26,5 @@ trait MergerImplicits {
         (f1 |@| f2).map((ff1, ff2) => folder(ff1 :: ff2 :: HNil, HNil))
       }
     }
-  }
+//  }
 }

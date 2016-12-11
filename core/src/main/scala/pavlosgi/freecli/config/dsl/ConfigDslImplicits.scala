@@ -7,7 +7,11 @@ import pavlosgi.freecli.config.api.{Args, Opts}
 import pavlosgi.freecli.core.CanProduce
 import pavlosgi.freecli.option.{dsl => O}
 
-trait ConfigDslImplicits extends O.OptionDslImplicits with A.ArgumentDslImplicits with MergerImplicits {
+trait ConfigDslImplicits
+  extends O.OptionDslImplicits
+  with A.ArgumentDslImplicits
+  with MergerImplicits {
+
   implicit def toConfigDsl[B, C](
     b: B)
    (implicit ev: CanProduce.Aux[B, ConfigDsl[C]]):
@@ -30,5 +34,6 @@ trait ConfigDslImplicits extends O.OptionDslImplicits with A.ArgumentDslImplicit
     FreeApplicative.lift(Args(ev(b)))
   }
 
-  implicit def canProduceConfigDslId[O] = CanProduce.Id[ConfigDsl[O]]
+  implicit def canProduceConfigDslId[O]: CanProduce[ConfigDsl[O]] =
+    CanProduce.Id[ConfigDsl[O]]
 }

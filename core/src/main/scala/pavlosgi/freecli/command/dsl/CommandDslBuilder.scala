@@ -6,14 +6,6 @@ import shapeless.ops.hlist.Prepend
 import pavlosgi.freecli.core.CanProduce
 
 case class CommandDslBuilder[H <: HList, Conf, Run](list: H) {
-  def ::[L <: HList, Conf2, Run2](
-    c: CommandDslBuilder[L, Conf2, Run2])
-    (implicit ev: PartsMerger[L, Conf2, Run2, H, Conf, Run]):
-     ev.Out = {
-
-    ev(c, this)
-  }
-
   def apply[H2 <: HList, Conf2, Run2, HH2 <: HList, Out](
     f: CommandDslBuilder[H2, Conf2, Run2])
    (implicit ev: Prepend.Aux[H, H2, HH2],

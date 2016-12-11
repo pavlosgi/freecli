@@ -1,16 +1,15 @@
 package pavlosgi.freecli.command.interpreters
 
 import cats.data._
-import cats.instances.all._
 import cats.syntax.all._
 import cats.{Alternative, ~>}
 
 import pavlosgi.freecli.command.api._
-import pavlosgi.freecli.core.{Arguments, ResultT}
+import pavlosgi.freecli.core.{CommandLineArguments, ExtractSingle, ResultT}
 import pavlosgi.freecli.config.interpreters.{parser => C}
 
 package object parser {
-  type ParseResult[A] = ResultT[CommandParsingError, Arguments, A]
+  type ParseResult[A] = ResultT[CommandParsingError, CommandLineArguments, A]
 
   implicit def commandParserInterpreter: Algebra ~> ParseResult = {
     new (Algebra ~> ParseResult) {
@@ -24,51 +23,46 @@ package object parser {
           case PartialCmdWithConfig(field, config, run, f) =>
             for {
               _    <- findAndSetCommandArgs(field)
-              conf <- configNat(config.foldMap(C.configParserInterpreter))
+              conf <- config.foldMap(C.configParserInterpreter)
+                .leftMap[CommandParsingError](ers => NonEmptyList.of(FailedToParseConfig(ers)))
+
+              args <- ResultT.get[CommandParsingError, CommandLineArguments]
+              _ <- ResultT.set(args.markAllBeforeLastMarked)
+
             } yield f(PartialCommand(p => Command(field, run(conf)(p))))
 
           case PartialParentCmd(field, subs, f) =>
             for {
-              cmdArgs <- findAndSetCommandArgs(field)
+              _ <- findAndSetCommandArgs(field)
               partial <- subs.foldMap(commandParserInterpreter)(alternativeResultInstance)
             } yield f(partial)
 
           case PartialParentCmdWithConfig(field, config, subs, f) =>
             for {
               _       <- findAndSetCommandArgs(field)
-              conf    <- configNat(config.foldMap(C.configParserInterpreter))
+              conf <- config.foldMap(C.configParserInterpreter)
+                .leftMap[CommandParsingError](ers => NonEmptyList.of(FailedToParseConfig(ers)))
+
+              args <- ResultT.get[CommandParsingError, CommandLineArguments]
+              _ <- ResultT.set(args.markAllBeforeLastMarked)
               partial <- subs.foldMap(commandParserInterpreter)
+
             } yield f(partial(conf))
         }
       }
   }
 
-  def configNat: C.ParseResult ~> ParseResult = {
-    new (C.ParseResult ~> ParseResult) {
-      def apply[A](fa: C.ParseResult[A]): ParseResult[A] = {
-        val st =
-          fa.value.value.transformS[Arguments](identity, (t, a) =>
-            Arguments(a.args))
-
-        ResultT.fromState(st.map(_.leftMap(_.map(FailedToParseConfig))))
-      }
-    }
-  }
-
   def findAndSetCommandArgs(field: CommandField): ParseResult[Unit] = {
     for {
-      st <- ResultT.get[CommandParsingError, Arguments]
-      _    <-
-        st.args.indexWhere(a => field.matches(a.arg)) match {
-          case idx if idx === -1 =>
-            ResultT.leftNE[CommandParsingError, Arguments, Unit](
-              CommandNotFound(field))
+      cliArgs <- ResultT.get[CommandParsingError, CommandLineArguments]
+      _  <- cliArgs.extractNextIfMatches(field.matches) match {
+        case ExtractSingle(updated, Some(_)) =>
+          ResultT.set[CommandParsingError, CommandLineArguments](updated)
 
-          case idx =>
-            ResultT.set[CommandParsingError, Arguments](
-              Arguments(st.args.drop(idx + 1)))
-        }
-
+        case ExtractSingle(_, None) =>
+          ResultT.leftNE[CommandParsingError, CommandLineArguments, Unit](
+            CommandNotFound(field))
+      }
     } yield ()
   }
 

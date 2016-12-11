@@ -10,9 +10,7 @@ import pavlosgi.freecli.core._
 
 package object command
   extends Ops
-  with CommandDslBuilderImplicits
-  with CommandDslImplicits
-  with CommandFieldImplicits {
+  with CommandDslImplicits {
 
   type CommandDsl[A] = dsl.CommandDsl[A]
 
@@ -22,14 +20,15 @@ package object command
     ValidatedNel[CommandParsingError, A] = {
 
     val (outArgs, res) =
-      ResultT.run(Arguments.fromStrings(args))(dsl.foldMap(commandParserInterpreter)(alternativeResultInstance))
+      ResultT.run(CommandLineArguments.fromArgs(args))(
+        dsl.foldMap(commandParserInterpreter)(alternativeResultInstance))
 
     outArgs.unmarked match {
       case Nil => res.toValidated
       case u =>
         val ers = res.fold(_.toList, _ => List.empty)
           Validated.invalid(
-            NonEmptyList(AdditionalArgumentsFound(u.map(_.arg)), ers))
+            NonEmptyList(AdditionalArgumentsFound(u), ers))
     }
   }
 

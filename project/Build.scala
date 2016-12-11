@@ -42,7 +42,7 @@ object Build extends Build {
 //      "-Ylog-classpath",
 //      "-Xprint:typer",
       "-Ypartial-unification",
-      "-Yliteral-types",
+//      "-Yliteral-types",
       "-Xlint",
       "-Yno-adapted-args",
       "-Ywarn-dead-code",

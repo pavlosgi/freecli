@@ -20,7 +20,7 @@ object HelpState {
 
   def calculateMaxNameLength(o: HelpState): Int = {
     o.options.map {
-      case OptionFieldHelp(f, _) =>
+      case OptionFieldHelp(f, _, _) =>
         OptionFieldHelp.displayName(f).lengthExclANSI
 
       case SubHelp(d, s) =>
@@ -33,18 +33,18 @@ object HelpState {
     val maxNameLength =
       HelpState.calculateMaxNameLength(value).max(currMaxName.getOrElse(0))
 
-    val res = value.options.foldLeft(List.empty[String]) {
-      case (Nil, f@OptionFieldHelp(_, _)) =>
-        List(OptionFieldHelp.display(indentation, maxNameLength, f))
+    val res = value.options.zipWithIndex.map {
+      case (f: OptionFieldHelp, _) =>
+        OptionFieldHelp.display(indentation, maxNameLength, f)
 
-      case (l, f@OptionFieldHelp(_, _)) =>
-        l :+ OptionFieldHelp.display(indentation, maxNameLength, f)
+      case (f: SubHelp, idx) if idx === 0 && value.options.size > 1 =>
+        s"${SubHelp.display(indentation, f, Some(maxNameLength))}\n"
 
-      case (Nil, f@SubHelp(_, _)) =>
-        List(SubHelp.display(indentation, f, Some(maxNameLength)))
+      case (f: SubHelp, idx) if idx === value.options.size - 1 =>
+        s"\n${SubHelp.display(indentation, f, Some(maxNameLength))}"
 
-      case (l, f@SubHelp(_, _)) =>
-        l :+ SubHelp.display(indentation, f, Some(maxNameLength))
+      case (f: SubHelp, idx) if idx > 0 && idx < value.options.size - 1 =>
+        s"\n${SubHelp.display(indentation, f, Some(maxNameLength))}\n"
 
     }.mkString("\n")
 
@@ -59,6 +59,7 @@ sealed trait OptionHelp
 
 case class OptionFieldHelp(
   field: Field,
+  required: Boolean,
   default: Option[String] = None)
   extends OptionHelp
 
@@ -77,18 +78,19 @@ object OptionFieldHelp {
   }
 
   def display(indentation: Int, maxNameLength: Int, value: OptionFieldHelp): String = {
-    val default = value.default.map(v => s"default = $v")
+    val required = if (value.required) Some("Required".bold) else None
+    val modifiers = value.default.map(v => s"Defaults to $v".bold).orElse(required)
 
     val res = value.field match {
       case f@FieldNameOnly(_, description) =>
-        displayName(f) -> optionalPair(default, description.map(_.show))
+        displayName(f) -> optionalPair(modifiers, description.map(_.show), " - ")
 
       case f@FieldAbbreviationOnly(_, description) =>
-        displayName(f) -> optionalPair(default, description.map(_.show))
+        displayName(f) -> optionalPair(modifiers, description.map(_.show), " - ")
 
       case f@FieldNameAndAbbreviation(_, _, description) =>
         displayName(f) ->
-        optionalPair(default, description.map(_.show))
+        optionalPair(modifiers, description.map(_.show), " - ")
     }
 
     val space = maxNameLength - res._1.lengthExclANSI + 2

@@ -28,9 +28,9 @@ trait Formatting {
     }
   }
 
-  def optionalPair(v1: Option[String], v2: Option[String]): String = {
+  def optionalPair(v1: Option[String], v2: Option[String], spaceDelimiter: String): String = {
     v1 -> v2 match {
-      case (Some(v1_), Some(v2_)) => s"$v1_, $v2_"
+      case (Some(v1_), Some(v2_)) => s"$v1_$spaceDelimiter$v2_"
       case (Some(v1_), None) => s"$v1_"
       case (None, Some(v2_)) => s"$v2_"
       case (None, None) => s""
