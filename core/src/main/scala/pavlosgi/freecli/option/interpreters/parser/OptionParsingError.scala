@@ -1,6 +1,7 @@
 package pavlosgi.freecli.option.interpreters.parser
 
 import pavlosgi.freecli.core._
+import pavlosgi.freecli.core.parsing.Error
 import pavlosgi.freecli.option.api.Field
 
 sealed trait OptionParsingError {

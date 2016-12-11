@@ -2,6 +2,7 @@ package pavlosgi.freecli.argument.interpreters.parser
 
 import pavlosgi.freecli.argument.api.ArgumentDetails
 import pavlosgi.freecli.core._
+import pavlosgi.freecli.core.parsing.Error
 
 sealed trait ArgumentParsingError {
   val message: String

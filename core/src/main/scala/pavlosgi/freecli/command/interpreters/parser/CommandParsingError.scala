@@ -5,6 +5,7 @@ import cats.data.NonEmptyList
 import pavlosgi.freecli.command.api.CommandField
 import pavlosgi.freecli.config.interpreters.parser.ConfigParsingError
 import pavlosgi.freecli.core._
+import pavlosgi.freecli.core.parsing.Error
 
 sealed trait CommandParsingError {
   val message: String

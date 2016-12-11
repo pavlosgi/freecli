@@ -17,11 +17,11 @@ object HelpState {
 
     Seq(
       optionalContentWithTitle(
-        indent(indentation, "Options".bold),
+        indent(indentation, "Options"),
         s.options.map(v => O.HelpState.display(indentation + 2, v, Some(optsMax)))),
 
       optionalContentWithTitle(
-        indent(indentation, "Arguments".bold),
+        indent(indentation, "Arguments"),
         s.arguments.map(v => A.HelpState.display(indentation + 2, v, Some(argsMax))))
 
     ).flatten.mkString("\n\n")

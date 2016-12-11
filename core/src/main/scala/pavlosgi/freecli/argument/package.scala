@@ -1,12 +1,13 @@
 package pavlosgi.freecli
 
 import cats.syntax.all._
-import cats.data.{NonEmptyList, Validated, _}
+import cats.data.{NonEmptyList, Validated}
 
 import pavlosgi.freecli.argument.dsl._
 import pavlosgi.freecli.argument.interpreters.help.{HelpState, argumentHelpInterpreter}
 import pavlosgi.freecli.argument.interpreters.parser._
 import pavlosgi.freecli.core._
+import pavlosgi.freecli.core.parsing.ParsingFailure
 
 package object argument
   extends Ops
@@ -17,18 +18,19 @@ package object argument
   def parseConfig[A](
     args: Seq[String])
    (dsl: ArgumentDsl[A]):
-    ValidatedNel[ArgumentParsingError, A] = {
+    Validated[ParsingFailure[ArgumentParsingError], A] = {
 
     val (outArgs, res) =
       ResultT.run(CommandLineArguments.fromArgs(args))(
         dsl.foldMap(argumentParserInterpreter))
 
     outArgs.unmarked match {
-      case Nil => res.toValidated
+      case Nil => res.toValidated.leftMap(ers => ParsingFailure(outArgs, ers))
       case u =>
         val ers = res.fold(_.toList, _ => List.empty)
-          Validated.invalid(
-            NonEmptyList(AdditionalArgumentsFound(u), ers))
+          Validated.invalid(ParsingFailure(
+            outArgs,
+            NonEmptyList(AdditionalArgumentsFound(u), ers)))
     }
   }
 
@@ -36,8 +38,7 @@ package object argument
     val result = dsl.analyze(argumentHelpInterpreter)
     val argsOneLine = HelpState.oneline(result)
 
-    s"""
-       |${"Usage".bold.underline}
+    s"""${"Usage".bold.underline}
        |
        |  Program $argsOneLine
        |
@@ -47,16 +48,7 @@ package object argument
   }
 
   def parseArgumentsOrHelp[A](args: Seq[String])(dsl: ArgumentDsl[A]): A = {
-    parseConfig(args)(dsl) match {
-      case Validated.Valid(r) => r
-      case Validated.Invalid(e) =>
-        println(
-          s"""${Error.displayErrors(e)}
-             |${argumentsHelp(dsl)}
-             |""".stripMargin)
-
-        sys.exit(1)
-    }
+    parsing.getOrReportAndExit(parseConfig(args)(dsl), argumentsHelp(dsl))
   }
 
 }

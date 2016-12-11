@@ -31,12 +31,12 @@ object HelpState extends HelpStateInstances {
       case CommandHelp(Some(field), None, Some(subs)) =>
         s"""${indent(indentation, field.name.show.bold)}
            |
-           |${indent(indentation + 2, contentWithTitle("Commands".bold, HelpState.display(2, subs)))}""".stripMargin
+           |${indent(indentation + 2, contentWithTitle("Commands", HelpState.display(2, subs)))}""".stripMargin
 
       case CommandHelp(Some(field), Some(conf), Some(subs)) =>
         s"""${displayFieldWithConfig(indentation, field, conf)}
            |
-           |${indent(indentation + 2, contentWithTitle("Commands".bold, HelpState.display(2, subs)))}""".stripMargin
+           |${indent(indentation + 2, contentWithTitle("Commands", HelpState.display(2, subs)))}""".stripMargin
 
       case _ => ""
 
