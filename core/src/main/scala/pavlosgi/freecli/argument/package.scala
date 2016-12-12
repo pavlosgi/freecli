@@ -4,7 +4,7 @@ import cats.syntax.all._
 import cats.data.{NonEmptyList, Validated}
 
 import pavlosgi.freecli.argument.dsl._
-import pavlosgi.freecli.argument.interpreters.help.{HelpState, argumentHelpInterpreter}
+import pavlosgi.freecli.argument.interpreters.help._
 import pavlosgi.freecli.argument.interpreters.parser._
 import pavlosgi.freecli.core._
 import pavlosgi.freecli.core.parsing.ParsingFailure
@@ -15,7 +15,7 @@ package object argument
 
   type ArgumentDsl[A] = dsl.ArgumentDsl[A]
 
-  def parseConfig[A](
+  def parseArguments[A](
     args: Seq[String])
    (dsl: ArgumentDsl[A]):
     Validated[ParsingFailure[ArgumentParsingError], A] = {
@@ -35,20 +35,18 @@ package object argument
   }
 
   def argumentsHelp[A](dsl: ArgumentDsl[A]): String = {
-    val result = dsl.analyze(argumentHelpInterpreter)
-    val argsOneLine = HelpState.oneline(result)
+    val arguments = dsl.analyze(ArgumentsHelpInterpreter)
 
     s"""${"Usage".bold.underline}
        |
-       |  Program $argsOneLine
+       |  Program ${arguments.oneline.display(0)}
        |
-       |${HelpState.display(4, result)}
-       |
+       |${arguments.result.display(4)}
        |""".stripMargin
   }
 
   def parseArgumentsOrHelp[A](args: Seq[String])(dsl: ArgumentDsl[A]): A = {
-    parsing.getOrReportAndExit(parseConfig(args)(dsl), argumentsHelp(dsl))
+    parsing.getOrReportAndExit(parseArguments(args)(dsl), argumentsHelp(dsl))
   }
 
 }

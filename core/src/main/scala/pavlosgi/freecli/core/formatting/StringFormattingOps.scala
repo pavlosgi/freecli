@@ -12,4 +12,12 @@ class StringFormattingOps(s: String) {
   def lengthExclANSI = {
     s.replaceAll("\u001B\\[[\\d;]*[^\\d;]", "").length
   }
+
+  def optConcatWith(o: Option[String], delimeter: String): String = {
+    s"$s${o.fold("")(v => s"$delimeter$v")}"
+  }
+
+  def indentLines(indentation: Int): String = {
+    s.split("\n").map(l => s"${" " * indentation}$l").mkString("\n")
+  }
 }

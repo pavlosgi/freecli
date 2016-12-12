@@ -6,7 +6,7 @@ import cats.syntax.all._
 import pavlosgi.freecli.core._
 import pavlosgi.freecli.core.parsing.ParsingFailure
 import pavlosgi.freecli.option.dsl._
-import pavlosgi.freecli.option.interpreters.help.{HelpState, optionHelpInterpreter}
+import pavlosgi.freecli.option.interpreters.help.OptionHelpInterpreter
 import pavlosgi.freecli.option.interpreters.parser._
 
 package object option
@@ -35,14 +35,13 @@ package object option
   }
 
   def optionsHelp[A](dsl: OptionDsl[A]): String = {
-    val result = dsl.analyze(optionHelpInterpreter)
+    val result = dsl.analyze(OptionHelpInterpreter)
 
     s"""${"Usage".bold.underline}
        |
        |  Program [options]
        |
-       |${HelpState.display(4, result)}
-       |
+       |${result.result.display(4)}
        |""".stripMargin
   }
 

@@ -10,7 +10,15 @@ import pavlosgi.freecli.testkit.Test
 class ConfigHelpTest extends Test {
   describe("Config help") {
     it("show config help") {
-      case class A(a1: Option[String], a2: Option[Int], a3: B, a4: Boolean, a5: String, a6: String)
+      case class A(
+        a1: Option[String],
+        a2: Option[Int],
+        a3: B,
+        a4: Boolean,
+        a5: String,
+        a6: String,
+        a7: String)
+
       case class B(b1: Option[String], b2: Option[Int], b3: Boolean, b4: String, b5: C)
       case class C(c1: Option[String], c2: Option[Int])
 
@@ -30,7 +38,8 @@ class ConfigHelpTest extends Test {
           } ::
           flag --"a4" ::
           string -~ name("a5") -~ des("a5_description") ::
-          string -~ des("a6_description")
+          string -~ des("a6_description") ::
+          string -~ des("a7_description")
         }
 
       val help = configHelp(dsl)
@@ -52,8 +61,11 @@ class ConfigHelpTest extends Test {
         FieldAbbreviation('e').show,
         FieldName("a4").show,
         ArgumentName("a5").show,
+        ArgumentName("arg2").show,
+        ArgumentName("arg3").show,
         Description("a5_description").show,
-        Description("a6_description").show).foreach { keyword =>
+        Description("a6_description").show,
+        Description("a7_description").show).foreach { keyword =>
           withClue(s"$keyword not found in $help") {
             help.contains(keyword) should be (true)
           }

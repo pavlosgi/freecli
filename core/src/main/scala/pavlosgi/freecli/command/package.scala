@@ -34,12 +34,11 @@ package object command
   }
 
   def commandHelp[A](dsl: CommandDsl[A]): String = {
-    val result = dsl.analyze(commandHelpInterpreter)
+    val commands = dsl.analyze(commandHelpInterpreter)
 
     s"""${"Usage".bold.underline}
        |
-       |${HelpState.display(2, result)}
-       |
+       |${commands.result.display(2)}
        |""".stripMargin
   }
 

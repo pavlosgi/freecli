@@ -36,13 +36,13 @@ class OptionParserTest extends Test {
       val dsl = string --"host" -'h' -~ req
       val res = parseOptions(Seq("-host", "localhost"))(dsl)
 
-      res.invalid.toList.collect {
+      res.invalid.errors.toList.collect {
         case c: AdditionalArgumentsFound => c.getClass.getName
       }.distinct.size should === (1)
 
       val res1 = parseOptions(Seq("host", "localhost"))(dsl)
 
-      res1.invalid.toList.collect {
+      res1.invalid.errors.toList.collect {
         case c: AdditionalArgumentsFound => c.getClass.getName
         case c: OptionFieldMissing => c.getClass.getName
       }.distinct.size should === (2)
@@ -52,14 +52,14 @@ class OptionParserTest extends Test {
       val dsl = string --"host" -'h' -~ req
       val res = parseOptions(Seq("--h", "localhost"))(dsl)
 
-      res.invalid.toList.collect {
+      res.invalid.errors.toList.collect {
         case c: AdditionalArgumentsFound => c.getClass.getName
         case c: OptionFieldMissing => c.getClass.getName
       }.distinct.size should === (2)
 
       val res1 = parseOptions(Seq("h", "localhost"))(dsl)
 
-      res1.invalid.toList.collect {
+      res1.invalid.errors.toList.collect {
         case c: AdditionalArgumentsFound => c.getClass.getName
         case c: OptionFieldMissing => c.getClass.getName
       }.distinct.size should === (2)
@@ -68,7 +68,7 @@ class OptionParserTest extends Test {
     it("fail to parse string option if value not provided") {
       val dsl = string --"host" -'h'
       val res = parseOptions(Seq("-h"))(dsl)
-      res.invalid.toList.collect {
+      res.invalid.errors.toList.collect {
         case c: AdditionalArgumentsFound => c.getClass.getName
         case c: OptionFieldValueMissing => c.getClass.getName
       }.distinct.size should === (2)
@@ -94,7 +94,7 @@ class OptionParserTest extends Test {
     it("fail to parse int option") {
       val res = parseOptions(Seq("-p", "8080s"))(int --"port" -'p' -~ or(5432))
 
-      res.invalid.toList.collect {
+      res.invalid.errors.toList.collect {
         case c: FailedToDecodeOption => c.getClass.getName
       }.distinct.size should === (1)
     }
@@ -121,12 +121,12 @@ class OptionParserTest extends Test {
 
     it("fail to parse required option") {
       val res = parseOptions(Seq("--debug", "value"))(int --"debug" -'d')
-      res.invalid.toList.collect {
+      res.invalid.errors.toList.collect {
         case c: FailedToDecodeOption => c.getClass.getName
       }.distinct.size should === (1)
 
       val res2 = parseOptions(Seq("--debug"))(int --"debug" -'d')
-      res2.invalid.toList.collect {
+      res2.invalid.errors.toList.collect {
         case c: AdditionalArgumentsFound => c.getClass.getName
         case c: OptionFieldValueMissing => c.getClass.getName
       }.distinct.size should === (2)

@@ -25,7 +25,7 @@ class CommandParserTest extends Test {
               runs(())
             })
 
-        res.invalid.toList.collect {
+        res.invalid.errors.toList.collect {
           case c: CommandNotFound => c.getClass.getName
         }.distinct.size should === (1)
       }
@@ -54,7 +54,7 @@ class CommandParserTest extends Test {
               runs[Config](c => conf = Some(c))
             })
 
-        res.invalid.toList.collect {
+        res.invalid.errors.toList.collect {
           case c: CommandNotFound => c.getClass.getName
         }.distinct.size should === (1)
       }
@@ -70,7 +70,7 @@ class CommandParserTest extends Test {
               runs[Config](c => conf = Some(c))
             })
 
-        res.invalid.toList.collect {
+        res.invalid.errors.toList.collect {
           case c: FailedToParseConfig => c.getClass.getName
         }.distinct.size should === (1)
       }
@@ -99,7 +99,7 @@ class CommandParserTest extends Test {
               }
             })
 
-        res.invalid.toList should contain theSameElementsAs
+        res.invalid.errors.toList should contain theSameElementsAs
           Seq(CommandNotFound(CommandField(CommandFieldName("subcommand"), None)))
       }
 
@@ -160,7 +160,7 @@ class CommandParserTest extends Test {
               }
             })
 
-        res.invalid.toList.collect {
+        res.invalid.errors.toList.collect {
           case c: FailedToParseConfig => c.getClass.getName
         }.distinct.size should === (1)
       }
@@ -177,7 +177,7 @@ class CommandParserTest extends Test {
               }
             })
 
-        res.invalid.toList should contain theSameElementsAs
+        res.invalid.errors.toList should contain theSameElementsAs
           Seq(CommandNotFound(CommandField(CommandFieldName("subcommand"), None)))
       }
 
@@ -238,7 +238,7 @@ class CommandParserTest extends Test {
               }
             })
 
-        res.invalid.toList.collect {
+        res.invalid.errors.toList.collect {
           case c: AdditionalArgumentsFound => c.getClass.getName
           case c: CommandNotFound => c.getClass.getName
         }.distinct.size should === (2)

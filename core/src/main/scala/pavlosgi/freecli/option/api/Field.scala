@@ -7,6 +7,7 @@ import cats.syntax.all._
 import pavlosgi.freecli.core._
 
 sealed trait Field {
+  def description: Option[Description]
   def shortDescription: String
   def fullDescription: String
   def matches(s: String): Boolean

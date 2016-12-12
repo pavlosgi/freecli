@@ -5,13 +5,12 @@ import cats.~>
 import pavlosgi.freecli.argument.api._
 
 package object help {
-  type Result[A] = HelpState
-
-  implicit object argumentHelpInterpreter extends (Algebra ~> Result) {
-    def apply[A](fa: Algebra[A]): HelpState = {
+  type Result[A] = ArgumentsHelp
+  object ArgumentsHelpInterpreter extends (Algebra ~> Result) {
+    def apply[A](fa: Algebra[A]): ArgumentsHelp = {
       fa match {
         case Arg(details, _, _) =>
-          HelpState(List(details))
+          ArgumentsHelp(List(details))
       }
     }
   }

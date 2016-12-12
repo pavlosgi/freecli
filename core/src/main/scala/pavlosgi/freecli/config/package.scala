@@ -3,7 +3,6 @@ package pavlosgi.freecli
 import cats.data.{NonEmptyList, Validated}
 import cats.syntax.all._
 
-import pavlosgi.freecli.argument.interpreters.{help => AI}
 import pavlosgi.freecli.config.dsl._
 import pavlosgi.freecli.config.interpreters.help._
 import pavlosgi.freecli.config.interpreters.parser._
@@ -36,15 +35,13 @@ package object config
   }
 
   def configHelp[A](dsl: ConfigDsl[A]): String = {
-    val result = dsl.analyze(configHelpInterpreter)
-    val argsOneLine = result.arguments.map(AI.HelpState.oneline)
+    val config = dsl.analyze(configHelpInterpreter)
 
     s"""${"Usage".bold.underline}
        |
-       |  Program [options] ${argsOneLine.getOrElse("")}
+       |  Program [options] ${config.oneline.display(0)}
        |
-       |${HelpState.display(4, result)}
-       |
+       |${config.result.display(4)}
        |""".stripMargin
   }
 
