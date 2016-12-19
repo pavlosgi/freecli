@@ -1,4 +1,4 @@
-package pavlosgi.freecli.free
+package pavlosgi.freecli.core.free
 
 import cats.~>
 import cats.instances.all._

@@ -6,8 +6,8 @@ import cats.data.{NonEmptyList, Validated}
 import pavlosgi.freecli.command.dsl._
 import pavlosgi.freecli.command.interpreters.help._
 import pavlosgi.freecli.command.interpreters.parser._
-import pavlosgi.freecli.core._
-import pavlosgi.freecli.core.parsing.ParsingFailure
+import pavlosgi.freecli.core.formatting._
+import pavlosgi.freecli.parser.{CliParser, ParsingFailure}
 
 package object command
   extends Ops
@@ -21,15 +21,15 @@ package object command
     Validated[ParsingFailure[CommandParsingError], A] = {
 
     val (outArgs, res) =
-      ResultT.run(CommandLineArguments.fromArgs(args))(
+      CliParser.run(args)(
         dsl.foldMap(commandParserInterpreter)(alternativeResultInstance))
 
-    outArgs.unmarked match {
+    outArgs.usable match {
       case Nil => res.toValidated.leftMap(ers => ParsingFailure(outArgs, ers))
       case u =>
         val ers = res.fold(_.toList, _ => List.empty)
-          Validated.invalid(
-            ParsingFailure(outArgs, NonEmptyList(AdditionalArgumentsFound(u), ers)))
+          Validated.invalid(ParsingFailure(
+            outArgs, NonEmptyList(AdditionalArgumentsFound(u.map(_.name)), ers)))
     }
   }
 
@@ -43,6 +43,6 @@ package object command
   }
 
   def parseCommandOrHelp[A](args: Seq[String])(dsl: CommandDsl[A]): A = {
-    parsing.getOrReportAndExit(parseCommand(args)(dsl), commandHelp(dsl))
+    parser.getOrReportAndExit(parseCommand(args)(dsl), commandHelp(dsl))
   }
 }

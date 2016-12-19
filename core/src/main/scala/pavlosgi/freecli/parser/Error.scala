@@ -1,4 +1,4 @@
-package pavlosgi.freecli.core.parsing
+package pavlosgi.freecli.parser
 
 trait Error[E] {
   def message(error: E): String

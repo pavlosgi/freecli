@@ -5,11 +5,11 @@ import cats.~>
 
 import pavlosgi.freecli.config.api._
 import pavlosgi.freecli.argument.interpreters.{parser => A}
-import pavlosgi.freecli.core.{CommandLineArguments, ResultT}
 import pavlosgi.freecli.option.interpreters.{parser => O}
+import pavlosgi.freecli.parser.CliParser
 
 package object parser {
-  type ParseResult[A] = ResultT[ConfigParsingError, CommandLineArguments, A]
+  type ParseResult[A] = CliParser[ConfigParsingError, A]
 
   implicit object configParserInterpreter extends (Algebra ~> ParseResult) {
     def apply[A](fa: Algebra[A]): ParseResult[A] = {
@@ -25,8 +25,7 @@ package object parser {
         case OptsAndArgs(opts, args, f) =>
           for {
             optsRes <- apply(Opts(opts))
-            cliArgs <- ResultT.get[ConfigParsingError, CommandLineArguments]
-            _ <- ResultT.set(cliArgs.markAllBeforeLastMarked)
+            _ <- CliParser.markUnusableBeforeLastUsed[ConfigParsingError]
             argsRes <- apply(Args(args))
           } yield f(optsRes, argsRes)
       }

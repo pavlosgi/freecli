@@ -1,8 +1,9 @@
 package pavlosgi.freecli.option.interpreters.parser
 
-import pavlosgi.freecli.core._
-import pavlosgi.freecli.core.parsing.Error
+import pavlosgi.freecli.core.StringDecoderError
+import pavlosgi.freecli.core.formatting._
 import pavlosgi.freecli.option.api.Field
+import pavlosgi.freecli.parser.Error
 
 sealed trait OptionParsingError {
   val message: String

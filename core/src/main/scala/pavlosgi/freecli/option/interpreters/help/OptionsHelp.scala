@@ -4,10 +4,9 @@ import cats.Monoid
 import cats.instances.all._
 import cats.syntax.all._
 
-import pavlosgi.freecli.core._
+import pavlosgi.freecli.core.formatting._
 import pavlosgi.freecli.option.api._
 import pavlosgi.freecli.printer.{Printer, PrinterParts}
-import pavlosgi.freecli.printer._
 
 sealed trait OptionHelp
 case class SingleOptionHelp(field: Field, default: Option[String], required: Boolean)

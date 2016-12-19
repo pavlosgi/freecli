@@ -1,9 +1,9 @@
-package pavlosgi.freecli.core.formatting
+package pavlosgi.freecli.core
 
 import cats.Show
 import cats.syntax.show._
 
-trait Formatting {
+package object formatting {
   @inline
   implicit def str2FormattingOps(s: String): StringFormattingOps = {
     new StringFormattingOps(s)

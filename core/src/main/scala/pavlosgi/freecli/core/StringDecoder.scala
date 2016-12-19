@@ -5,6 +5,7 @@ import java.io.File
 import cats.data.{Validated, ValidatedNel}
 
 trait StringDecoder[T] {
+  type Out = T
   def apply(value: String): ValidatedNel[StringDecoderError, T]
   def toString(v: T): String
 }

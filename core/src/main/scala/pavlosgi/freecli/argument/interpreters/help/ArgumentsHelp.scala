@@ -5,7 +5,7 @@ import cats.instances.all._
 import cats.syntax.all._
 
 import pavlosgi.freecli.argument.api._
-import pavlosgi.freecli.core._
+import pavlosgi.freecli.core.formatting._
 import pavlosgi.freecli.printer.{Printer, PrinterParts}
 
 case class ArgumentsHelp(list: List[ArgumentDetails]) {

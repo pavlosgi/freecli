@@ -1,4 +1,4 @@
-package pavlosgi.freecli.free
+package pavlosgi.freecli.core.free
 
 import cats.arrow.FunctionK
 import cats.data.Const

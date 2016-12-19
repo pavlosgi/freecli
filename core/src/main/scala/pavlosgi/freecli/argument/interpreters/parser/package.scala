@@ -3,19 +3,19 @@ package pavlosgi.freecli.argument.interpreters
 import cats.~>
 
 import pavlosgi.freecli.argument.api._
-import pavlosgi.freecli.core.{CommandLineArguments, ExtractSingle, ResultT, StringDecoder, StringDecoderError}
+import pavlosgi.freecli.core.StringDecoder
+import pavlosgi.freecli.parser.CliParser
 
 package object parser {
-  type ParseResult[A] = ResultT[ArgumentParsingError, CommandLineArguments, A]
+  type ParseResult[A] = CliParser[ArgumentParsingError, A]
 
   implicit object argumentParserInterpreter extends (Algebra ~> ParseResult) {
     def apply[A](fa: Algebra[A]): ParseResult[A] = {
       fa match {
         case Arg(details, f, g) =>
           for {
-            args   <- ResultT.get[ArgumentParsingError, CommandLineArguments]
-            value  <- extractArgumentValue(details, args)
-            res    <- parseArg(details, value, g)
+            nextArg <- CliParser.extractNext[ArgumentParsingError]
+            res     <- parseArg(details, nextArg, g)
           } yield f(res)
       }
     }
@@ -23,27 +23,18 @@ package object parser {
 
   def parseArg[T](
     details: ArgumentDetails,
-    value: String,
+    value: Option[String],
     g: StringDecoder[T]):
-    ParseResult[T] = {
+    CliParser[ArgumentParsingError, T] = {
 
-    ResultT.fromValidated[StringDecoderError, CommandLineArguments, T](
-      g.apply(value)).leftMapInner[ArgumentParsingError] { e =>
-        FailedToDecodeArgument(details, e)
-      }
-  }
+    value match {
+      case None =>
+        CliParser.failed(ArgumentValueMissing(details))
 
-  def extractArgumentValue(
-    details: ArgumentDetails,
-    args: CommandLineArguments):
-    ParseResult[String] = {
-
-    args.extractNext match {
-      case ExtractSingle(_, None) =>
-        ResultT.leftNE(ArgumentValueMissing(details))
-
-      case ExtractSingle(u, Some(v)) =>
-        ResultT.set(u).map(_ => v)
+      case Some(v) =>
+        CliParser.fromValidated(g.apply(v)).leftMapInner { e =>
+          FailedToDecodeArgument(details, e)
+        }
     }
   }
 }

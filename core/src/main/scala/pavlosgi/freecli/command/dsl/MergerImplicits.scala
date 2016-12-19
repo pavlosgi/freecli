@@ -6,7 +6,7 @@ import pavlosgi.freecli.command.api.{PartialCommand, RunCommand}
 import pavlosgi.freecli.config.dsl.ConfigDsl
 import pavlosgi.freecli.core.Merger
 import pavlosgi.freecli.core.Merger.CanMerge
-import pavlosgi.freecli.free.FreeAlternative
+import pavlosgi.freecli.core.free.FreeAlternative
 
 trait MergerImplicits {
   implicit def commandDslBuilder2Merger[H <: HList, O, A](

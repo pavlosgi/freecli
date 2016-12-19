@@ -5,7 +5,7 @@ import cats.{Monad, Monoid}
 import cats.instances.all._
 import cats.syntax.all._
 
-import pavlosgi.freecli.core._
+import pavlosgi.freecli.core.formatting._
 
 sealed trait PrinterPart
 case object Empty extends PrinterPart

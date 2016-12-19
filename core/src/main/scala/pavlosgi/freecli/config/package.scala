@@ -6,8 +6,8 @@ import cats.syntax.all._
 import pavlosgi.freecli.config.dsl._
 import pavlosgi.freecli.config.interpreters.help._
 import pavlosgi.freecli.config.interpreters.parser._
-import pavlosgi.freecli.core._
-import pavlosgi.freecli.core.parsing.ParsingFailure
+import pavlosgi.freecli.core.formatting._
+import pavlosgi.freecli.parser.{CliParser, ParsingFailure}
 
 package object config
   extends Ops
@@ -21,16 +21,15 @@ package object config
     Validated[ParsingFailure[ConfigParsingError], A] = {
 
     val (outArgs, res) =
-      ResultT.run(CommandLineArguments.fromArgs(args))(
-        dsl.foldMap(configParserInterpreter))
+      CliParser.run(args)(dsl.foldMap(configParserInterpreter))
 
-    outArgs.unmarked match {
+    outArgs.usable match {
       case Nil => res.toValidated.leftMap(ers => ParsingFailure(outArgs, ers))
       case u =>
         val ers = res.fold(_.toList, _ => List.empty)
           Validated.invalid(ParsingFailure(
             outArgs,
-            NonEmptyList(AdditionalArgumentsFound(u), ers)))
+            NonEmptyList(AdditionalArgumentsFound(u.map(_.name)), ers)))
     }
   }
 
@@ -46,6 +45,6 @@ package object config
   }
 
   def parseConfigOrHelp[A](args: Seq[String])(dsl: ConfigDsl[A]): A = {
-    parsing.getOrReportAndExit(parseConfig(args)(dsl), configHelp(dsl))
+    parser.getOrReportAndExit(parseConfig(args)(dsl), configHelp(dsl))
   }
 }

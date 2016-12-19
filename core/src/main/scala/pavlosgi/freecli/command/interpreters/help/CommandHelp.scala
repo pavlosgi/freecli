@@ -6,7 +6,7 @@ import cats.syntax.all._
 
 import pavlosgi.freecli.command.api.CommandField
 import pavlosgi.freecli.config.interpreters.{help => C}
-import pavlosgi.freecli.core._
+import pavlosgi.freecli.core.formatting._
 import pavlosgi.freecli.printer.{Printer, PrinterParts}
 
 sealed trait CommandHelp

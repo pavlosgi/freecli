@@ -3,7 +3,7 @@ package pavlosgi.freecli.command.api
 import cats.free.FreeApplicative
 
 import pavlosgi.freecli.config.api.{Algebra => ConfigAlgebra}
-import pavlosgi.freecli.free.FreeAlternative
+import pavlosgi.freecli.core.free.FreeAlternative
 
 sealed trait Algebra[A]
 

@@ -3,8 +3,8 @@ package pavlosgi.freecli.config.interpreters.parser
 import cats.data.NonEmptyList
 
 import pavlosgi.freecli.argument.interpreters.{parser => A}
-import pavlosgi.freecli.core.parsing.Error
 import pavlosgi.freecli.option.interpreters.{parser => O}
+import pavlosgi.freecli.parser.Error
 
 sealed trait ConfigParsingError {
   def message: String

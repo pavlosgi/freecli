@@ -6,7 +6,7 @@ import shapeless.ops.hlist.{Diff, Prepend}
 import pavlosgi.freecli.command.api._
 import pavlosgi.freecli.core.CanProduce
 import pavlosgi.freecli.config.{dsl => C}
-import pavlosgi.freecli.free.FreeAlternative
+import pavlosgi.freecli.core.free.FreeAlternative
 
 trait CommandDslBuilderImplicits {
   implicit def canProducePartialFromRun[H <: HList, Run](

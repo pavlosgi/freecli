@@ -3,11 +3,11 @@ package pavlosgi.freecli
 import cats.data.{NonEmptyList, Validated}
 import cats.syntax.all._
 
-import pavlosgi.freecli.core._
-import pavlosgi.freecli.core.parsing.ParsingFailure
+import pavlosgi.freecli.core.formatting._
 import pavlosgi.freecli.option.dsl._
 import pavlosgi.freecli.option.interpreters.help.OptionHelpInterpreter
 import pavlosgi.freecli.option.interpreters.parser._
+import pavlosgi.freecli.parser.{CliParser, ParsingFailure}
 
 package object option
   extends OptionDslImplicits
@@ -21,16 +21,16 @@ package object option
     Validated[ParsingFailure[OptionParsingError], A] = {
 
     val (outArgs, res) =
-      ResultT.run(CommandLineArguments.fromArgs(args))(
+      CliParser.run(args)(
         dsl.foldMap(optionParserInterpreter))
 
-    outArgs.unmarked match {
+    outArgs.usable match {
       case Nil => res.toValidated.leftMap(ers => ParsingFailure(outArgs, ers))
       case u =>
         val ers = res.fold(_.toList, _ => List.empty)
           Validated.invalid(ParsingFailure(
             outArgs,
-            NonEmptyList(AdditionalArgumentsFound(u), ers)))
+            NonEmptyList(AdditionalArgumentsFound(u.map(_.name)), ers)))
     }
   }
 
@@ -46,6 +46,6 @@ package object option
   }
 
   def parseOptionsOrHelp[A](args: Seq[String])(dsl: OptionDsl[A]): A = {
-    parsing.getOrReportAndExit(parseOptions(args)(dsl), optionsHelp(dsl))
+    parser.getOrReportAndExit(parseOptions(args)(dsl), optionsHelp(dsl))
   }
 }

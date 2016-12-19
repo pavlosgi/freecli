@@ -1,8 +1,10 @@
-package pavlosgi.freecli.core
+package pavlosgi.freecli
 
 import cats.data.Validated
 
-package object parsing {
+import pavlosgi.freecli.core.formatting._
+
+package object parser {
   def getOrReportAndExit[E, A](
     v: Validated[ParsingFailure[E], A],
     help: String)
@@ -19,10 +21,10 @@ package object parsing {
            |${indent(2, ers.toList.map(ev.message).mkString("\n"))}""".stripMargin
 
         val parsingDetails = args.args.map {
-          case ArgumentWithMarking(name, true) =>
+          case CliArgument(name, false) =>
             name.yellow
 
-          case a => a.value
+          case a => a.name
         }.mkString(" ")
 
         val parsingDetailDisplay =

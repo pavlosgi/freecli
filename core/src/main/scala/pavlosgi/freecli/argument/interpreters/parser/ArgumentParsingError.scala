@@ -1,8 +1,9 @@
 package pavlosgi.freecli.argument.interpreters.parser
 
 import pavlosgi.freecli.argument.api.ArgumentDetails
-import pavlosgi.freecli.core._
-import pavlosgi.freecli.core.parsing.Error
+import pavlosgi.freecli.core.StringDecoderError
+import pavlosgi.freecli.core.formatting._
+import pavlosgi.freecli.parser.Error
 
 sealed trait ArgumentParsingError {
   val message: String

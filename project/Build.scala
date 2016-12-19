@@ -30,25 +30,25 @@ object Build extends Build {
 
   val scalacSettings = Seq(
     scalacOptions ++= Seq(
-      "-feature",
+//      "-feature",
       "-unchecked",
       "-deprecation",
       "-language:higherKinds",
       "-language:implicitConversions",
-      "-language:postfixOps",
-      "-language:experimental.macros",
-      "-language:existentials",
+//      "-language:postfixOps",
+//      "-language:experimental.macros",
+//      "-language:existentials",
       "-Ywarn-unused-import",
 //      "-Ylog-classpath",
 //      "-Xprint:typer",
       "-Ypartial-unification",
 //      "-Yliteral-types",
       "-Xlint",
-      "-Yno-adapted-args",
+//      "-Yno-adapted-args",
       "-Ywarn-dead-code",
-      "-Ywarn-numeric-widen",
+//      "-Ywarn-numeric-widen",
       "-Ywarn-value-discard",
-      "-Xfuture",
+//      "-Xfuture",
       "-Xfatal-warnings")
   )
 

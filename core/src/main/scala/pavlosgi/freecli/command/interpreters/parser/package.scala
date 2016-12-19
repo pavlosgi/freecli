@@ -5,11 +5,11 @@ import cats.syntax.all._
 import cats.{Alternative, ~>}
 
 import pavlosgi.freecli.command.api._
-import pavlosgi.freecli.core.{CommandLineArguments, ExtractSingle, ResultT}
 import pavlosgi.freecli.config.interpreters.{parser => C}
+import pavlosgi.freecli.parser.CliParser
 
 package object parser {
-  type ParseResult[A] = ResultT[CommandParsingError, CommandLineArguments, A]
+  type ParseResult[A] = CliParser[CommandParsingError, A]
 
   implicit def commandParserInterpreter: Algebra ~> ParseResult = {
     new (Algebra ~> ParseResult) {
@@ -26,8 +26,8 @@ package object parser {
               conf <- config.foldMap(C.configParserInterpreter)
                 .leftMap[CommandParsingError](ers => NonEmptyList.of(FailedToParseConfig(ers)))
 
-              args <- ResultT.get[CommandParsingError, CommandLineArguments]
-              _ <- ResultT.set(args.markAllBeforeLastMarked)
+              args <- CliParser.getArgs[CommandParsingError]
+              _ <- CliParser.markUnusableBeforeLastUsed[CommandParsingError]
 
             } yield f(PartialCommand(p => Command(field, run(conf)(p))))
 
@@ -43,8 +43,8 @@ package object parser {
               conf <- config.foldMap(C.configParserInterpreter)
                 .leftMap[CommandParsingError](ers => NonEmptyList.of(FailedToParseConfig(ers)))
 
-              args <- ResultT.get[CommandParsingError, CommandLineArguments]
-              _ <- ResultT.set(args.markAllBeforeLastMarked)
+              args <- CliParser.getArgs[CommandParsingError]
+              _ <- CliParser.markUnusableBeforeLastUsed[CommandParsingError]
               partial <- subs.foldMap(commandParserInterpreter)
 
             } yield f(partial(conf))
@@ -54,14 +54,13 @@ package object parser {
 
   def findAndSetCommandArgs(field: CommandField): ParseResult[Unit] = {
     for {
-      cliArgs <- ResultT.get[CommandParsingError, CommandLineArguments]
-      _  <- cliArgs.extractNextIfMatches(field.matches) match {
-        case ExtractSingle(updated, Some(_)) =>
-          ResultT.set[CommandParsingError, CommandLineArguments](updated)
+      res <- CliParser.extractNextIfMatches[CommandParsingError](field.matches)
+      _   <- res match {
+        case Some(_) =>
+          CliParser.success[CommandParsingError, Unit](())
 
-        case ExtractSingle(_, None) =>
-          ResultT.leftNE[CommandParsingError, CommandLineArguments, Unit](
-            CommandNotFound(field))
+        case None =>
+          CliParser.failed[CommandParsingError, Unit](CommandNotFound(field))
       }
     } yield ()
   }
@@ -72,7 +71,7 @@ package object parser {
       y: ParseResult[A]):
       ParseResult[A] = {
 
-      ResultT.fromState(for {
+      CliParser.fromState(for {
         xS <- x.value.value
         yS <- y.value.value
       } yield {
@@ -86,18 +85,17 @@ package object parser {
       })
     }
 
-    override def pure[A](x: A): ParseResult[A] =
-      ResultT.pure(x)
+    override def pure[A](x: A): ParseResult[A] = CliParser.success(x)
 
     override def empty[A]: ParseResult[A] =
-      ResultT.leftNE(NoCommandWasMatched)
+      CliParser.failed(NoCommandWasMatched)
 
     override def ap[A, B](
       ff: ParseResult[A => B])
      (fa: ParseResult[A]):
       ParseResult[B] = {
 
-      ResultT.fromState(for {
+      CliParser.fromState(for {
         ff1 <- ff.value.value
         fa1 <- fa.value.value
       } yield {
