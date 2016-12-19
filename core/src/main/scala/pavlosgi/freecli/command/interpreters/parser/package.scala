@@ -26,7 +26,6 @@ package object parser {
               conf <- config.foldMap(C.configParserInterpreter)
                 .leftMap[CommandParsingError](ers => NonEmptyList.of(FailedToParseConfig(ers)))
 
-              args <- CliParser.getArgs[CommandParsingError]
               _ <- CliParser.markUnusableBeforeLastUsed[CommandParsingError]
 
             } yield f(PartialCommand(p => Command(field, run(conf)(p))))
@@ -43,7 +42,6 @@ package object parser {
               conf <- config.foldMap(C.configParserInterpreter)
                 .leftMap[CommandParsingError](ers => NonEmptyList.of(FailedToParseConfig(ers)))
 
-              args <- CliParser.getArgs[CommandParsingError]
               _ <- CliParser.markUnusableBeforeLastUsed[CommandParsingError]
               partial <- subs.foldMap(commandParserInterpreter)
 
