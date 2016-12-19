@@ -3,6 +3,8 @@ package pavlosgi.freecli.core
 import java.io.File
 
 import cats.data.{Validated, ValidatedNel}
+import cats.instances.all._
+import cats.syntax.all._
 
 trait StringDecoder[T] {
   type Out = T
@@ -132,6 +134,41 @@ object StringDecoder {
 
     def toString(v: File): String = v.getAbsolutePath
   }
+
+  implicit def seqDecoder[T](implicit ev: StringDecoder[List[T]]) = new StringDecoder[Seq[T]] {
+    def apply(value: String): ValidatedNel[StringDecoderError, Seq[T]] = {
+      ev.apply(value).map(_.toSeq)
+    }
+
+    def toString(v: Seq[T]): String = ev.toString(v.toList)
+  }
+
+  implicit def listDecoder[T](implicit ev: StringDecoder[T]) = new StringDecoder[List[T]] {
+    def apply(value: String): ValidatedNel[StringDecoderError, List[T]] = {
+      value.split(",").toList.traverseU(ev.apply)
+    }
+
+    def toString(v: List[T]): String = v.map(ev.toString).mkString(",")
+  }
+
+  implicit def mapDecoder[K, V](implicit ev: StringDecoder[K], ev2: StringDecoder[V]) =
+    new StringDecoder[Map[K, V]] {
+      def apply(value: String): ValidatedNel[StringDecoderError, Map[K, V]] = {
+        value.split(",").map(_.split("=", 2)).toList.traverseU {
+          case Array(k, v) =>
+            (ev(k) |@| ev2(v)).map(_ -> _)
+
+          case arr =>
+            Validated.invalidNel(
+              StringDecoderError(s"Invalid key value pair ${arr.mkString}"))
+
+        }.map(_.toMap)
+      }
+
+      def toString(v: Map[K, V]): String = v.toList.map {
+        case (k, v) => s"${ev.toString(k)}=${ev2.toString(v)}"
+      }.mkString(",")
+    }
 }
 
 case class StringDecoderError(message: String)

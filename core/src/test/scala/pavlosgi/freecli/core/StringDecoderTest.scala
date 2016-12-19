@@ -65,5 +65,38 @@ class StringDecoderTest extends Test {
       val filePath = getClass.getResource("/test.json").getFile
       implicitly[StringDecoder[NewFile]].apply(filePath).isInvalid should be (true)
     }
+
+    it("should parse string to seq of string") {
+      implicitly[StringDecoder[Seq[String]]].apply("s1,s2,s3").valid should
+        contain theSameElementsAs Seq("s1", "s2", "s3")
+    }
+
+    it("should parse string to list of string") {
+      implicitly[StringDecoder[List[String]]].apply("s1,s2,s3").valid should
+        contain theSameElementsAs List("s1", "s2", "s3")
+    }
+
+    it("should parse string to list of ints") {
+      implicitly[StringDecoder[List[Int]]].apply("1,2,3").valid should
+        contain theSameElementsAs List(1, 2, 3)
+    }
+
+    it("should fail to parse string to list of ints") {
+      implicitly[StringDecoder[List[Int]]].apply("1,s2").isInvalid should be (true)
+    }
+
+    it("should parse string to map of strings to ints") {
+      implicitly[StringDecoder[Map[String, Int]]].apply("x1=1,x2=2,x3=3").valid.toList should
+        contain theSameElementsAs Map("x1" -> 1, "x2" -> 2, "x3" -> 3).toList
+    }
+
+    it("should parse string to map of ints to ints") {
+      implicitly[StringDecoder[Map[Int, Int]]].apply("1=1,2=2,3=3").valid.toList should
+        contain theSameElementsAs Map(1 -> 1, 2 -> 2, 3 -> 3).toList
+    }
+
+    it("should fail to parse string to map of ints to ints") {
+      implicitly[StringDecoder[Map[Int, Int]]].apply("1=1,2=2,3=").isInvalid should be (true)
+    }
   }
 }
