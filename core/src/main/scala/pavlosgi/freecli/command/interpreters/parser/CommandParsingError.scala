@@ -25,10 +25,15 @@ case class AdditionalArgumentsFound(args: Seq[String])
   val message = s"Additional arguments found: ${args.mkString(", ")}"
 }
 
-case class FailedToParseConfig(configErrors: NonEmptyList[ConfigParsingError])
+case class FailedToParseConfig(
+  field: CommandField,
+  configErrors: NonEmptyList[ConfigParsingError])
   extends CommandParsingError  {
 
-  val message = s"Config errors, ${configErrors.map(_.message).toList.mkString(", ")}"
+  val message =
+    s"${field.shortDescription.yellow} command config errors, " +
+    s"${configErrors.map(_.message).toList.mkString(", ")}"
+
 }
 
 case class CommandNotFound(field: CommandField)

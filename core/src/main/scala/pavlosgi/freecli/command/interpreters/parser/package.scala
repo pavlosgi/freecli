@@ -24,7 +24,8 @@ package object parser {
             for {
               _    <- findAndSetCommandArgs(field)
               conf <- config.foldMap(C.configParserInterpreter)
-                .leftMap[CommandParsingError](ers => NonEmptyList.of(FailedToParseConfig(ers)))
+                .leftMap[CommandParsingError](ers => NonEmptyList.of(
+                FailedToParseConfig(field, ers)))
 
               _ <- CliParser.markUnusableBeforeLastUsed[CommandParsingError]
 
@@ -40,7 +41,8 @@ package object parser {
             for {
               _       <- findAndSetCommandArgs(field)
               conf <- config.foldMap(C.configParserInterpreter)
-                .leftMap[CommandParsingError](ers => NonEmptyList.of(FailedToParseConfig(ers)))
+                .leftMap[CommandParsingError](ers => NonEmptyList.of(
+                FailedToParseConfig(field, ers)))
 
               _ <- CliParser.markUnusableBeforeLastUsed[CommandParsingError]
               partial <- subs.foldMap(commandParserInterpreter)

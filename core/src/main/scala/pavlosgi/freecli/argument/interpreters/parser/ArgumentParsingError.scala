@@ -23,10 +23,21 @@ case class AdditionalArgumentsFound(args: Seq[String])
   val message = s"Additional arguments found: ${args.mkString(", ")}"
 }
 
-case class ArgumentValueMissing(details: ArgumentField)
+case class ArgumentValueMissing(field: ArgumentField)
   extends ArgumentParsingError  {
 
-  val message = s"Argument ${details.shortDescription.yellow}, missing"
+  val message = {
+    field match {
+      case ArgumentField(None, None) =>
+        s"Argument is missing"
+
+      case ArgumentField(Some(name), _) =>
+        s"Argument ${name.value.yellow} is missing"
+
+      case ArgumentField(None, Some(description)) =>
+        s"""Argument with description "${description.value}" is missing"""
+    }
+  }
 }
 
 case class FailedToDecodeArgument(details: ArgumentField, error: StringDecoderError)
