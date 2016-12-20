@@ -17,14 +17,14 @@ class CommandHelpTest extends Test {
       case class D(d1: A, d2: C)
 
       val dsl =
-        cmd("command1", "command1 description") {
+        cmd("command1", des("command1 description")) {
           takesG[A] {
             o.int  --"a1" -~ req -~ des("a1 description")  ::
             flag --"a2" ::
             string ::
             int
           } ::
-          cmd("subcommand1", "subcommand1 description") {
+          cmd("subcommand1", des("subcommand1 description")) {
             takesG[String](o.string --"subfield1" -~ req) ::
             cmd("subcommand2") {
               cmd("subcommand3") {

@@ -10,7 +10,7 @@ class CommandDslTest extends Test {
   describe("ConfigDsl tests") {
 
     it("compiles for command with run") {
-      cmd("command1", "some command") {
+      cmd("command1", des("some command")) {
         runs(())
       }: CommandDsl[Command]
     }

@@ -14,9 +14,9 @@ trait Ops {
     CommandDslBuilder[CommandFieldName :: HNil, Unit, Unit](
       CommandFieldName(name) :: HNil)
 
-  def cmd(name: String, description: String) =
+  def cmd(name: String, description: Description) =
     CommandDslBuilder[CommandFieldName :: Description :: HNil, Unit, Unit](
-      CommandFieldName(name) :: Description(description) :: HNil)
+      CommandFieldName(name) :: description :: HNil)
 
   def takes[T](c: ConfigDsl[T]): CommandDslBuilder[ConfigDsl[T] :: HNil, T, Unit] = {
     CommandDslBuilder(c :: HNil)
