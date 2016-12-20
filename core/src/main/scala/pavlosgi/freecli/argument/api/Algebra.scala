@@ -5,7 +5,7 @@ import pavlosgi.freecli.core.StringDecoder
 sealed trait Algebra[A]
 
 final case class Arg[T, A](
-  details: ArgumentDetails,
+  details: ArgumentField,
   f: T => A,
   g: StringDecoder[T])
   extends Algebra[A]

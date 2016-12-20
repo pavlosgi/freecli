@@ -9,7 +9,7 @@ import pavlosgi.freecli.option.api._
 import pavlosgi.freecli.printer.{Printer, PrinterParts}
 
 sealed trait OptionHelp
-case class SingleOptionHelp(field: Field, default: Option[String], required: Boolean)
+case class SingleOptionHelp(field: OptionField, default: Option[String], required: Boolean)
   extends OptionHelp
 
 case class SubOptionHelp(description: String, options: OptionsHelp)

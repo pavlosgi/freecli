@@ -8,13 +8,13 @@ import pavlosgi.freecli.argument.api._
 import pavlosgi.freecli.core.formatting._
 import pavlosgi.freecli.printer.{Printer, PrinterParts}
 
-case class ArgumentsHelp(list: List[ArgumentDetails]) {
+case class ArgumentsHelp(list: List[ArgumentField]) {
   def oneline: PrinterParts = {
     list.zipWithIndex.traverseU {
-      case (ArgumentDetails(Some(name), _), _) =>
+      case (ArgumentField(Some(name), _), _) =>
         Printer.appendWithSpace(s"<${name.value}>")
 
-      case (ArgumentDetails(None, _), idx) =>
+      case (ArgumentField(None, _), idx) =>
         Printer.appendWithSpace(s"<arg${idx + 1}>")
 
     }.run
@@ -22,7 +22,7 @@ case class ArgumentsHelp(list: List[ArgumentDetails]) {
 
   def result: PrinterParts = {
     list.zipWithIndex.traverseU {
-      case (ArgumentDetails(Some(name), description), _) =>
+      case (ArgumentField(Some(name), description), _) =>
         for {
           _ <- Printer.row
           _ <- Printer.col(name.value.yellow)
@@ -31,7 +31,7 @@ case class ArgumentsHelp(list: List[ArgumentDetails]) {
           _ <- Printer.endRow
         } yield ()
 
-      case (ArgumentDetails(None, description), idx) =>
+      case (ArgumentField(None, description), idx) =>
         for {
           _ <- Printer.row
           _ <- Printer.col(s"arg${idx + 1}".yellow)

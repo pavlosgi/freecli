@@ -12,17 +12,17 @@ case class OptDslBuilder[H <: HList, T](list: H) {
 
   def --(
     name: String)
-   (implicit ev: Prepend[H, FieldName :: HNil],
-    ev2: NotContainsConstraint[H, FieldName]) =
+   (implicit ev: Prepend[H, OptionFieldName :: HNil],
+    ev2: NotContainsConstraint[H, OptionFieldName]) =
 
-    new OptDslBuilder[ev.Out, T](list :+ FieldName(name))
+    new OptDslBuilder[ev.Out, T](list :+ OptionFieldName(name))
 
   def -(
     abbr: Char)
-   (implicit ev: Prepend[H, FieldAbbreviation :: HNil],
-    ev2: NotContainsConstraint[H, FieldAbbreviation]) =
+   (implicit ev: Prepend[H, OptionFieldAbbreviation :: HNil],
+    ev2: NotContainsConstraint[H, OptionFieldAbbreviation]) =
 
-    new OptDslBuilder[ev.Out, T](list :+ FieldAbbreviation(abbr))
+    new OptDslBuilder[ev.Out, T](list :+ OptionFieldAbbreviation(abbr))
 
   def -~(
     description: Description)
@@ -60,7 +60,7 @@ object OptDslBuilder {
     new OptDslBuilder[H, T](list)
 
   implicit def canProduceConfigDsl[H <: HList, T, Out <: HList](
-    implicit canProduceField: CanProduce.Aux[H, (Field, HNil)],
+    implicit canProduceField: CanProduce.Aux[H, (OptionField, HNil)],
     decoder: StringDecoder[T]):
     CanProduce.Aux[OptDslBuilder[H, T], OptionDsl[Option[T]]] = {
 
@@ -74,7 +74,7 @@ object OptDslBuilder {
   }
 
   implicit def canProduceConfigDslWithDefault[H <: HList, T, Out <: HList](
-    implicit canProduceField: CanProduce.Aux[H, (Field, Out)],
+    implicit canProduceField: CanProduce.Aux[H, (OptionField, Out)],
     canProduceDefault: CanProduce.Aux[Out, (DefaultValue[T], HNil)],
     decoder: StringDecoder[T]):
     CanProduce.Aux[OptDslBuilder[H, T], OptionDsl[T]] = {
@@ -91,7 +91,7 @@ object OptDslBuilder {
   }
 
   implicit def canProduceConfigDslWithDefaultWithRequired[H <: HList, T, Out <: HList](
-    implicit canProduceField: CanProduce.Aux[H, (Field, Out)],
+    implicit canProduceField: CanProduce.Aux[H, (OptionField, Out)],
     canProduceDefault: CanProduce.Aux[Out, (DefaultValue[T], Required :: HNil)],
     decoder: StringDecoder[T]):
     CanProduce.Aux[OptDslBuilder[H, T], OptionDsl[T]] = {
@@ -108,7 +108,7 @@ object OptDslBuilder {
   }
 
   implicit def canProduceConfigDslWithRequired[H <: HList, T](
-    implicit canProduceField: CanProduce.Aux[H, (Field, Required :: HNil)],
+    implicit canProduceField: CanProduce.Aux[H, (OptionField, Required :: HNil)],
     decoder: StringDecoder[T]):
     CanProduce.Aux[OptDslBuilder[H, T], OptionDsl[T]] = {
 

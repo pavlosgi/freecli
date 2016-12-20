@@ -6,8 +6,8 @@ import cats.syntax.show._
 import pavlosgi.freecli.core.Description
 import pavlosgi.freecli.core.formatting._
 
-case class ArgumentDetails(
-  name: Option[ArgumentName],
+case class ArgumentField(
+  name: Option[ArgumentFieldName],
   description: Option[Description]) {
 
   def shortDescription: String = {
@@ -19,9 +19,9 @@ case class ArgumentDetails(
   }
 }
 
-object ArgumentDetails {
-  implicit object showInstance extends Show[ArgumentDetails] {
-    override def show(f: ArgumentDetails): String = {
+object ArgumentField {
+  implicit object showInstance extends Show[ArgumentField] {
+    override def show(f: ArgumentField): String = {
       f.longDescription
     }
   }

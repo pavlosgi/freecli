@@ -5,7 +5,7 @@ import cats.syntax.show._
 import pavlosgi.freecli.command.api.CommandFieldName
 import pavlosgi.freecli.config._
 import pavlosgi.freecli.core.Description
-import pavlosgi.freecli.option.api.FieldName
+import pavlosgi.freecli.option.api.OptionFieldName
 import pavlosgi.freecli.testkit.Test
 
 class CommandHelpTest extends Test {
@@ -58,25 +58,25 @@ class CommandHelpTest extends Test {
 
       Seq(
         CommandFieldName("command1").show,
-        FieldName("a1").show,
+        OptionFieldName("a1").show,
         Description("a1 description").show,
-        FieldName("a2").show,
+        OptionFieldName("a2").show,
         "arg1",
         "arg2",
         CommandFieldName("subcommand1").show,
-        FieldName("subfield1").show,
+        OptionFieldName("subfield1").show,
         CommandFieldName("subcommand2").show,
         CommandFieldName("subcommand3").show,
-        FieldName("subfield3").show,
+        OptionFieldName("subfield3").show,
         CommandFieldName("subcommand4").show,
-        FieldName("subfield4").show,
+        OptionFieldName("subfield4").show,
         CommandFieldName("subcommand5").show,
         CommandFieldName("subcommand6").show,
-        FieldName("subfield6").show,
+        OptionFieldName("subfield6").show,
         CommandFieldName("subcommand7").show,
-        FieldName("subfield7").show,
+        OptionFieldName("subfield7").show,
         CommandFieldName("subcommand8").show,
-        FieldName("subfield8").show).foreach { keyword =>
+        OptionFieldName("subfield8").show).foreach { keyword =>
           withClue(s"$keyword not found in $help") {
             help.contains(keyword) should be (true)
           }

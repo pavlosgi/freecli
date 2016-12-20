@@ -22,7 +22,7 @@ package object parser {
   }
 
   def parseArg[T](
-    details: ArgumentDetails,
+    details: ArgumentField,
     value: Option[String],
     g: StringDecoder[T]):
     CliParser[ArgumentParsingError, T] = {

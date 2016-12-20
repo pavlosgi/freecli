@@ -22,10 +22,10 @@ class ArgumentHelpTest extends Test {
       print(help)
 
       Seq(
-        ArgumentName("a1").show,
-        ArgumentName("a2").show,
+        ArgumentFieldName("a1").show,
+        ArgumentFieldName("a2").show,
         Description("a2_description").show,
-        ArgumentName("a3").show).foreach { keyword =>
+        ArgumentFieldName("a3").show).foreach { keyword =>
           withClue(s"$keyword not found in $help") {
             help.contains(keyword) should be (true)
           }

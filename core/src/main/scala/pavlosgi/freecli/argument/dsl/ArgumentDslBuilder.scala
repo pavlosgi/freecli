@@ -16,9 +16,9 @@ case class ArgumentDslBuilder[H <: HList, T](list: H) {
     new ArgumentDslBuilder[ev.Out, T](list :+ description)
 
   def -~(
-    name: ArgumentName)
-   (implicit ev: Prepend[H, ArgumentName :: HNil],
-    ev2: NotContainsConstraint[H, ArgumentName]) =
+    name: ArgumentFieldName)
+   (implicit ev: Prepend[H, ArgumentFieldName :: HNil],
+    ev2: NotContainsConstraint[H, ArgumentFieldName]) =
 
     new ArgumentDslBuilder[ev.Out, T](list :+ name)
 }
@@ -31,7 +31,7 @@ object ArgumentDslBuilder {
     new ArgumentDslBuilder[H, T](list)
 
   implicit def canProduceArgDsl[H <: HList, T, Out <: HList](
-    implicit canProduceArgumentDetails: CanProduce.Aux[H, (ArgumentDetails, HNil)],
+    implicit canProduceArgumentDetails: CanProduce.Aux[H, (ArgumentField, HNil)],
     decoder: StringDecoder[T]):
     CanProduce.Aux[ArgumentDslBuilder[H, T], ArgumentDsl[T]] = {
 

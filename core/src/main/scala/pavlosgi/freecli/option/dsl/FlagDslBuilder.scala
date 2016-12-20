@@ -11,17 +11,17 @@ case class FlagDslBuilder[H <: HList](list: H) {
 
   def --(
     name: String)
-   (implicit ev: Prepend[H, FieldName :: HNil],
-    ev2: NotContainsConstraint[H, FieldName]) =
+   (implicit ev: Prepend[H, OptionFieldName :: HNil],
+    ev2: NotContainsConstraint[H, OptionFieldName]) =
 
-    new FlagDslBuilder(list :+ FieldName(name))
+    new FlagDslBuilder(list :+ OptionFieldName(name))
 
   def -(
     abbr: Char)
-   (implicit ev: Prepend[H, FieldAbbreviation :: HNil],
-    ev2: NotContainsConstraint[H, FieldAbbreviation]) =
+   (implicit ev: Prepend[H, OptionFieldAbbreviation :: HNil],
+    ev2: NotContainsConstraint[H, OptionFieldAbbreviation]) =
 
-    new FlagDslBuilder(list :+ FieldAbbreviation(abbr))
+    new FlagDslBuilder(list :+ OptionFieldAbbreviation(abbr))
 
   def -~(
     description: Description)
@@ -40,7 +40,7 @@ object FlagDslBuilder {
     new FlagDslBuilder[HNil](HNil)
 
   implicit def canProduceOptionDsl[H <: HList](
-    implicit canProduceField: CanProduce.Aux[H, (Field, HNil)],
+    implicit canProduceField: CanProduce.Aux[H, (OptionField, HNil)],
     decoder: StringDecoder[Boolean]):
     CanProduce.Aux[FlagDslBuilder[H], OptionDsl[Boolean]] = {
 

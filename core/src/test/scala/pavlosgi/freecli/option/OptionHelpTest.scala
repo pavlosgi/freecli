@@ -34,20 +34,20 @@ class OptionHelpTest extends Test {
       print(help)
 
       Seq(
-        FieldName("a1").show,
-        FieldAbbreviation('a').show,
+        OptionFieldName("a1").show,
+        OptionFieldAbbreviation('a').show,
         Description("a1_description").show,
-        FieldName("a2").show,
+        OptionFieldName("a2").show,
         Description("a2_description").show,
-        FieldName("b1").show,
-        FieldAbbreviation('b').show,
+        OptionFieldName("b1").show,
+        OptionFieldAbbreviation('b').show,
         Description("b1_description").show,
-        FieldName("b2").show,
-        FieldAbbreviation('c').show,
+        OptionFieldName("b2").show,
+        OptionFieldAbbreviation('c').show,
         Description("b2_description").show,
-        FieldAbbreviation('d').show,
-        FieldAbbreviation('e').show,
-        FieldName("a4").show).foreach { keyword =>
+        OptionFieldAbbreviation('d').show,
+        OptionFieldAbbreviation('e').show,
+        OptionFieldName("a4").show).foreach { keyword =>
           withClue(s"$keyword not found in $help") {
             help.contains(keyword) should be (true)
           }

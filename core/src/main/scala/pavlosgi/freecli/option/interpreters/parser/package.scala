@@ -44,13 +44,13 @@ package object parser {
     }
   }
 
-  def parseOpt[T](field: Field, value: Option[String], g: StringDecoder[T]): ParseResult[Option[T]] = {
+  def parseOpt[T](field: OptionField, value: Option[String], g: StringDecoder[T]): ParseResult[Option[T]] = {
     CliParser.fromValidated[StringDecoderError, Option[T]](
       value.traverseU(g.apply)).leftMapInner[OptionParsingError](
         e => FailedToDecodeOption(field, e))
   }
 
-  def extractOptionFieldIfExists(field: Field): ParseResult[Boolean] = {
+  def extractOptionFieldIfExists(field: OptionField): ParseResult[Boolean] = {
     for {
       cliArgs <- CliParser.getArgs[OptionParsingError]
       extractedRes <- CliParser.extract(field.matches)
@@ -76,7 +76,7 @@ package object parser {
     } yield res
   }
 
-  def extractOptionFieldAndValue(field: Field): ParseResult[Option[String]] = {
+  def extractOptionFieldAndValue(field: OptionField): ParseResult[Option[String]] = {
     for {
       cliArgs <- CliParser.getArgs[OptionParsingError]
       pair <- CliParser.extractPair[OptionParsingError](field.matches)
@@ -109,7 +109,7 @@ package object parser {
   }
 
   def splitAbbreviationsOnFirstMatch(
-    field: Field,
+    field: OptionField,
     cliArgs: CliArguments,
     f: (String, Char) => Boolean):
     CliArguments = {
@@ -132,11 +132,11 @@ package object parser {
     }
 
     field match {
-      case FieldNameOnly(_, _) => cliArgs
-      case FieldAbbreviationOnly(abbr, _) =>
+      case OptionFieldNameOnly(_, _) => cliArgs
+      case OptionFieldAbbreviationOnly(abbr, _) =>
         CliArguments(splitOnMatch(cliArgs.args, abbr.abbr))
 
-      case FieldNameAndAbbreviation(_, abbr, _) =>
+      case OptionFieldNameAndAbbreviation(_, abbr, _) =>
         CliArguments(splitOnMatch(cliArgs.args, abbr.abbr))
     }
   }

@@ -4,7 +4,7 @@ import pavlosgi.freecli.core.CanProduce
 
 trait OptionDslImplicits
   extends DefaultImplicits
-  with FieldImplicits
+  with OptionFieldImplicits
   with DescriptionImplicits
   with MergerImplicits {
 
