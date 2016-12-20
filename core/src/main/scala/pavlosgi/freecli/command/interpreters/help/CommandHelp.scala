@@ -56,6 +56,7 @@ case class CommandsHelp(list: List[CommandHelp]) {
           _ <- Printer.newLine
           _ <- Printer.indent(2)
           _ <- Printer.add(config.result)
+          _ <- Printer.indent(-2)
           _ <- Printer.ensureSingleLineSpace
         } yield ()
 
@@ -67,6 +68,7 @@ case class CommandsHelp(list: List[CommandHelp]) {
           _ <- Printer.indent(2)
           _ <- Printer.line("Commands")
           _ <- Printer.add(subs.result)
+          _ <- Printer.indent(-2)
           _ <- Printer.ensureSingleLineSpace
         } yield ()
 
@@ -81,6 +83,7 @@ case class CommandsHelp(list: List[CommandHelp]) {
           _ <- Printer.newLine
           _ <- Printer.line("Commands")
           _ <- Printer.add(subs.result)
+          _ <- Printer.indent(-2)
           _ <- Printer.ensureSingleLineSpace
         } yield ()
 
