@@ -7,6 +7,7 @@ import cats.syntax.all._
 
 case class CliArguments(args: Seq[CliArgument]) {
   def usable = args.filter(_.isUsable)
+  def unusable = args.filterNot(_.isUsable)
 }
 
 case class CliArgument(name: String, isUsable: Boolean)

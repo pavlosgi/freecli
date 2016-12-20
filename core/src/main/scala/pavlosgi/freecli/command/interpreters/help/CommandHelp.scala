@@ -25,6 +25,37 @@ case class ConfigSubHelpCommand(
   extends CommandHelp
 
 case class CommandsHelp(list: List[CommandHelp]) {
+  def helpForPath(commandPath: List[String]) = {
+
+    def helpForPathR(
+      commandPath: List[String],
+      commands: List[CommandHelp]):
+      CommandsHelp = {
+
+      commandPath match {
+        case (h :: t) =>
+          commands.collectFirst {
+            case s@SimpleHelpCommand(f) if f.name.name === h =>
+              CommandsHelp(List(s))
+
+            case c@ConfigHelpCommand(f, _) if f.name.name === h =>
+              CommandsHelp(List(c))
+
+            case SubHelpCommand(f, subs) if f.name.name === h =>
+              helpForPathR(t, subs.list)
+
+            case ConfigSubHelpCommand(f, _, subs) if f.name.name === h =>
+              helpForPathR(t, subs.list)
+
+          }.getOrElse(this)
+
+        case _ => this
+      }
+    }
+
+    helpForPathR(commandPath, list)
+  }
+
   def description(d: Option[Description]) = {
     d match {
       case None => Printer.empty

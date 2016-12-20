@@ -34,15 +34,26 @@ package object command
   }
 
   def commandHelp[A](dsl: CommandDsl[A]): String = {
+    commandHelpWithPath(dsl)(Seq.empty)
+  }
+
+  private def commandHelpWithPath[A](dsl: CommandDsl[A])(args: Seq[String]): String = {
     val commands = dsl.analyze(commandHelpInterpreter)
 
     s"""${"Usage".bold.underline}
        |
-       |${commands.result.display(2)}
+       |${commands.helpForPath(args.toList).result.display(2)}
        |""".stripMargin
   }
 
   def parseCommandOrHelp[A](args: Seq[String])(dsl: CommandDsl[A]): A = {
-    parser.getOrReportAndExit(parseCommand(args)(dsl), commandHelp(dsl))
+    parseCommand(args)(dsl) match {
+      case inv@Validated.Invalid(ParsingFailure(a, ers)) =>
+        parser.getOrReportAndExit(
+          inv,
+          commandHelpWithPath(dsl)(a.unusable.map(_.name)))
+
+      case v => parser.getOrReportAndExit(v, commandHelp(dsl))
+    }
   }
 }
