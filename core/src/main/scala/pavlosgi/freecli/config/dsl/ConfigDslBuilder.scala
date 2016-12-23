@@ -6,7 +6,7 @@ import shapeless.ops.hlist.LeftFolder
 
 import pavlosgi.freecli.argument.{dsl => A}
 import pavlosgi.freecli.config.api._
-import pavlosgi.freecli.core.{CanProduce, Merger, toHList}
+import pavlosgi.freecli.core.ops.{CanProduce, Merger, toHList}
 import pavlosgi.freecli.option.{dsl => O}
 
 case class ConfigDslBuilder[H <: HList, O, A](list: H)

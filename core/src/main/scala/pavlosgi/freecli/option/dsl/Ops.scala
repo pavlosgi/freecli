@@ -2,7 +2,8 @@ package pavlosgi.freecli.option.dsl
 
 import java.io.File
 
-import pavlosgi.freecli.core.{Description, ExistentFile, Grouping, NewFile, StringDecoder}
+import pavlosgi.freecli.core.ops.Grouping
+import pavlosgi.freecli.core.{Description, ExistentFile, NewFile, StringDecoder}
 import pavlosgi.freecli.option.dsl.OptDslBuilder.DefaultValue
 
 trait Ops extends Grouping {

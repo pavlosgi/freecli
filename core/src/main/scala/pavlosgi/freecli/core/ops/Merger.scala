@@ -1,4 +1,4 @@
-package pavlosgi.freecli.core
+package pavlosgi.freecli.core.ops
 
 case class Merger[F](f: F) {
   def ::[F2](merger: Merger[F2])(implicit ev: Merger.CanMerge[F2, F]): ev.Out = {

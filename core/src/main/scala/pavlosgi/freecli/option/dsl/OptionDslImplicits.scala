@@ -1,6 +1,6 @@
 package pavlosgi.freecli.option.dsl
 
-import pavlosgi.freecli.core.CanProduce
+import pavlosgi.freecli.core.ops.CanProduce
 
 trait OptionDslImplicits
   extends DefaultImplicits

@@ -3,7 +3,7 @@ package pavlosgi.freecli.option.dsl
 import shapeless._
 import shapeless.ops.hlist.{Diff, Intersection, LeftFolder}
 
-import pavlosgi.freecli.core.CanProduce
+import pavlosgi.freecli.core.ops.CanProduce
 import pavlosgi.freecli.option.dsl.OptDslBuilder.DefaultValue
 
 trait DefaultImplicits {

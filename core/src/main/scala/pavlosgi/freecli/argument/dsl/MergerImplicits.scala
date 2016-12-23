@@ -4,8 +4,8 @@ import cats.syntax.all._
 import shapeless._
 import shapeless.ops.hlist.LeftFolder
 
-import pavlosgi.freecli.core.Merger.CanMerge
-import pavlosgi.freecli.core.{CanProduce, Merger, toHList}
+import pavlosgi.freecli.core.ops.{CanProduce, Merger, toHList}
+import pavlosgi.freecli.core.ops.Merger.CanMerge
 
 trait MergerImplicits {
   implicit def arguments2Merger[B, O](
@@ -17,8 +17,8 @@ trait MergerImplicits {
   }
 
   implicit def canMergeArguments[A1, A2, A <: HList](
-    implicit folder: LeftFolder.Aux[A1 :: A2 :: HNil, HNil, toHList.type, A]) =
-//    CanMerge.Aux[ArgumentDsl[A1], ArgumentDsl[A2], ArgumentDsl[A]] = {
+    implicit folder: LeftFolder.Aux[A1 :: A2 :: HNil, HNil, toHList.type, A]):
+    CanMerge.Aux[ArgumentDsl[A1], ArgumentDsl[A2], ArgumentDsl[A]] = {
 
     new CanMerge[ArgumentDsl[A1], ArgumentDsl[A2]] {
       type Out = ArgumentDsl[A]
@@ -26,5 +26,5 @@ trait MergerImplicits {
         (f1 |@| f2).map((ff1, ff2) => folder(ff1 :: ff2 :: HNil, HNil))
       }
     }
-//  }
+  }
 }

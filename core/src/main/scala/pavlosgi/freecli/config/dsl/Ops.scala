@@ -1,7 +1,8 @@
 package pavlosgi.freecli.config.dsl
 
+import pavlosgi.freecli.core.ops.Grouping
 import pavlosgi.freecli.{argument => A}
-import pavlosgi.freecli.core.{Description, Grouping, StringDecoder}
+import pavlosgi.freecli.core.{Description, StringDecoder}
 import pavlosgi.freecli.{option => O}
 
 trait Ops extends Grouping {

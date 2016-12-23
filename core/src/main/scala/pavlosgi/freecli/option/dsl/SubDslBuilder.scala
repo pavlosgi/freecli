@@ -4,7 +4,8 @@ import cats.free.FreeApplicative
 import shapeless._
 import shapeless.ops.hlist.{LeftFolder, Prepend, Tupler}
 
-import pavlosgi.freecli.core.{CanProduce, Description, genericPoly}
+import pavlosgi.freecli.core.ops.{CanProduce, genericPoly}
+import pavlosgi.freecli.core.Description
 import pavlosgi.freecli.option.api.Sub
 
 case class SubDslBuilder[H <: HList, T](list: H)

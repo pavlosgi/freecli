@@ -5,7 +5,8 @@ import shapeless._
 import shapeless.ops.hlist.Prepend
 
 import pavlosgi.freecli.argument.api._
-import pavlosgi.freecli.core.{CanProduce, Description, StringDecoder}
+import pavlosgi.freecli.core.ops.CanProduce
+import pavlosgi.freecli.core.{Description, StringDecoder}
 
 case class ArgumentDslBuilder[H <: HList, T](list: H) {
   def -~(

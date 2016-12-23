@@ -4,8 +4,8 @@ import cats.syntax.all._
 import shapeless._
 import shapeless.ops.hlist.LeftFolder
 
-import pavlosgi.freecli.core.{CanProduce, Merger, toHList}
-import pavlosgi.freecli.core.Merger.CanMerge
+import pavlosgi.freecli.core.ops.{CanProduce, Merger, toHList}
+import pavlosgi.freecli.core.ops.Merger.CanMerge
 
 trait MergerImplicits {
   implicit def options2Merger[B, O](

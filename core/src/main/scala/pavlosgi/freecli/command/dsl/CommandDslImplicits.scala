@@ -1,6 +1,6 @@
 package pavlosgi.freecli.command.dsl
 
-import pavlosgi.freecli.core.CanProduce
+import pavlosgi.freecli.core.ops.CanProduce
 
 trait CommandDslImplicits
  extends CommandDslBuilderImplicits

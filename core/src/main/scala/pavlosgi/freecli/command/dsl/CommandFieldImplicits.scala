@@ -4,7 +4,8 @@ import shapeless._
 import shapeless.ops.hlist.{Diff, Intersection, LeftFolder}
 
 import pavlosgi.freecli.command.api.{CommandField, CommandFieldName}
-import pavlosgi.freecli.core.{CanProduce, Description}
+import pavlosgi.freecli.core.Description
+import pavlosgi.freecli.core.ops.CanProduce
 
 trait CommandFieldImplicits {
   type CommandFieldTypes = Description :: CommandFieldName :: HNil

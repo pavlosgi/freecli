@@ -3,8 +3,9 @@ package pavlosgi.freecli.option.dsl
 import shapeless._
 import shapeless.ops.hlist.{Diff, Intersection, LeftFolder}
 
-import pavlosgi.freecli.core.{CanProduce, Description}
 import pavlosgi.freecli.core.Description
+import pavlosgi.freecli.core.Description
+import pavlosgi.freecli.core.ops.CanProduce
 
 trait DescriptionImplicits {
   type DescriptionTypes = Description :: HNil

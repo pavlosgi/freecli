@@ -4,7 +4,7 @@ import cats.free.FreeApplicative
 
 import pavlosgi.freecli.argument.{dsl => A}
 import pavlosgi.freecli.config.api.{Args, Opts}
-import pavlosgi.freecli.core.CanProduce
+import pavlosgi.freecli.core.ops.CanProduce
 import pavlosgi.freecli.option.{dsl => O}
 
 trait ConfigDslImplicits
