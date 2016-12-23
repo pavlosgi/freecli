@@ -1,7 +1,5 @@
 package pavlosgi.freecli.argument
 
-import shapeless.{tupled => _}
-
 import pavlosgi.freecli.testkit.Test
 
 class ArgumentParserTest extends Test {

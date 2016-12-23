@@ -1,13 +1,12 @@
 package pavlosgi.freecli
 
-import cats.syntax.all._
-import cats.data.{NonEmptyList, Validated}
+import cats.data.Validated
 
 import pavlosgi.freecli.argument.dsl._
-import pavlosgi.freecli.argument.interpreters.help._
-import pavlosgi.freecli.argument.interpreters.parser._
-import pavlosgi.freecli.core.formatting._
-import pavlosgi.freecli.parser.{CliParser, ParsingFailure}
+import pavlosgi.freecli.argument.parser.ArgumentParserInterpreter
+import pavlosgi.freecli.argument.{help => H}
+import pavlosgi.freecli.argument.{parser => P}
+import pavlosgi.freecli.parser.{CliFailure, CliParser}
 
 package object argument
   extends Ops
@@ -18,34 +17,17 @@ package object argument
   def parseArguments[A](
     args: Seq[String])
    (dsl: ArgumentDsl[A]):
-    Validated[ParsingFailure[ArgumentParsingError], A] = {
+    Validated[CliFailure[P.ArgumentParsingError], A] = {
 
-    val (outArgs, res) =
-      CliParser.run(args)(dsl.foldMap(argumentParserInterpreter))
-
-    outArgs.usable match {
-      case Nil => res.toValidated.leftMap(ers => ParsingFailure(outArgs, ers))
-      case u =>
-        val ers = res.fold(_.toList, _ => List.empty)
-          Validated.invalid(ParsingFailure(
-            outArgs,
-            NonEmptyList(AdditionalArgumentsFound(u.map(_.name)), ers)))
-    }
+    P.parseArguments(args)(dsl)
   }
 
   def argumentsHelp[A](dsl: ArgumentDsl[A]): String = {
-    val arguments = dsl.analyze(ArgumentsHelpInterpreter)
-
-    s"""${"Usage".bold.underline}
-       |
-       |  Program ${arguments.oneline.display()}
-       |
-       |${arguments.result.display(4)}
-       |""".stripMargin
+    H.argumentsHelp(dsl)
   }
 
   def parseArgumentsOrHelp[A](args: Seq[String])(dsl: ArgumentDsl[A]): A = {
-    parser.getOrReportAndExit(parseArguments(args)(dsl), argumentsHelp(dsl))
+    CliParser.runOrFail(args, _ => argumentsHelp(dsl))(dsl.foldMap(ArgumentParserInterpreter))
   }
 
 }

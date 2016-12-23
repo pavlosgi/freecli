@@ -24,6 +24,11 @@ final case class Flag[A](
   f: Boolean => A)
   extends Algebra[A]
 
+final case class Help[A](
+  field: OptionField,
+  f: Unit => A)
+  extends Algebra[A]
+
 final case class Sub[A](
   description: Description,
   f: FreeApplicative[Algebra, A])

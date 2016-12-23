@@ -5,19 +5,9 @@ import cats.data._
 import cats.instances.all._
 import cats.syntax.all._
 
-case class CliArguments(args: Seq[CliArgument]) {
-  def usable = args.filter(_.isUsable)
-  def unusable = args.filterNot(_.isUsable)
-}
+import pavlosgi.freecli.core.formatting._
 
-case class CliArgument(name: String, isUsable: Boolean)
-
-case class ExtractSingle(res: Option[String])
-case class ExtractPair(
-  first: Option[String],
-  second: Option[String])
-
-case class CliParser[E, A](value: EitherT[State[CliArguments, ?], NonEmptyList[E], A]) {
+case class CliParser[E, A](value: EitherT[State[CliArguments, ?], CliFailure[E], A]) {
   def map[B](f: A => B): CliParser[E, B] = {
     CliParser(value.map(f))
   }
@@ -27,11 +17,17 @@ case class CliParser[E, A](value: EitherT[State[CliArguments, ?], NonEmptyList[E
   }
 
   def leftMapInner[B](f: E => B): CliParser[B, A] = {
-    CliParser(value.leftMap(_.map(f)))
+    CliParser(value.leftMap {
+      case CliFailure(Left(HelpRequested)) => CliFailure.help[B]
+      case CliFailure(Right(errors)) => CliFailure.errors(errors.map(f))
+    })
   }
 
   def leftMap[B](f: NonEmptyList[E] => NonEmptyList[B]): CliParser[B, A] = {
-    CliParser(value.leftMap(f))
+    CliParser(value.leftMap {
+      case CliFailure(Left(HelpRequested)) => CliFailure.help[B]
+      case CliFailure(Right(ers)) => CliFailure.errors(f(ers))
+    })
   }
 }
 
@@ -43,7 +39,7 @@ object CliParser {
 
     def tailRecM[A, B](a: A)(f: A => CliParser[E, Either[A, B]]): CliParser[E, B] = {
       CliParser(
-        implicitly[Monad[EitherT[State[CliArguments, ?], NonEmptyList[E], ?]]]
+        implicitly[Monad[EitherT[State[CliArguments, ?], CliFailure[E], ?]]]
           .tailRecM(a)(a => f(a).value))
     }
 
@@ -57,21 +53,21 @@ object CliParser {
     }
 
     override def product[A, B](fa: CliParser[E, A], fb: CliParser[E, B]): CliParser[E, (A, B)] = {
-      CliParser.fromState(
+      CliParser.fromEitherState(
         for {
           ei1 <- fa.value.value
           ei2 <- fb.value.value
         } yield {
 
           (ei1, ei2) match {
-            case (Left(ers1), Left(ers2)) =>
-              Left(ers1.combine(ers2))
+            case (Left(e1), Left(e2)) =>
+              Left(e1.combine(e2))
 
-            case (Left(ers1), _) =>
-              Left(ers1)
+            case (Left(e1), Right(_)) =>
+              Left(e1)
 
-            case (_, Left(ers2)) =>
-              Left(ers2)
+            case (Right(_), Left(e2)) =>
+              Left(e2)
 
             case (Right(r1), Right(r2)) =>
               Right(r1 -> r2)
@@ -83,26 +79,89 @@ object CliParser {
   def run[E, A](
     args: Seq[String])
    (cliParser: CliParser[E, A]):
-    (CliArguments, Either[NonEmptyList[E], A]) = {
+    (CliArguments, Either[CliFailure[E], A]) = {
 
-    cliParser.value.value.run(
-      CliArguments(args.map(a => CliArgument(a, isUsable = true)))).value
+    cliParser.value.value.run(CliArguments(
+      args.map(a => CliArgument(a, isUsable = true)))).value
+  }
+
+  def runOrFail[E, A](
+    args: Seq[String],
+    help: Seq[String] => String)
+   (cliParser: CliParser[E, A])
+   (implicit ev: Error[E]):
+    A = {
+
+    val (arguments, res) = run(args)(cliParser)
+    res match {
+      case Right(v)  => v
+      case Left(CliFailure(Left(HelpRequested))) =>
+        println(help(arguments.unusable.map(_.name)))
+        sys.exit(1)
+
+      case Left(CliFailure(Right(ers))) =>
+        val errorsDisplay =
+          s"""
+           |${"Errors:".underline.bold.red}
+           |
+           |${indent(2, ers.toList.map(ev.message).mkString("\n"))}""".stripMargin
+
+        val parsingDetails = arguments.args.map {
+          case CliArgument(name, false) =>
+            name.yellow
+
+          case a => a.name
+        }.mkString(" ")
+
+        val parsingDetailDisplay =
+          s"""${"Parsing details:".underline.bold.red + s" (${"used".yellow}, unused)"}
+             |
+             |$parsingDetails
+           """.stripMargin
+
+        println(
+          s"""$errorsDisplay
+             |
+             |$parsingDetailDisplay
+             |${help(arguments.unusable.map(_.name))}
+             |""".stripMargin)
+
+        sys.exit(1)
+    }
   }
 
   def fromState[E, A](
-    s: State[CliArguments, Either[NonEmptyList[E], A]]):
+    s: State[CliArguments, A]):
+    CliParser[E, A] = {
+
+    CliParser(EitherT(s.map(Either.right)))
+  }
+
+  def fromEitherState[E, A](
+    s: State[CliArguments, Either[CliFailure[E], A]]):
     CliParser[E, A] = {
 
     CliParser(EitherT(s))
   }
 
+  def get[E]: CliParser[E, CliArguments] = {
+    CliParser(EitherT(State.get[CliArguments].map(Either.right)))
+  }
+
+  def set[E](state: CliArguments): CliParser[E, Unit] = {
+    fromState(State.set(state))
+  }
+
+  def modify[E](f: CliArguments => CliArguments): CliParser[E, Unit] = {
+    fromState(State.modify[CliArguments](f))
+  }
+
   def setArgs[E](args: CliArguments): CliParser[E, Unit] = {
-    CliParser(EitherT(State.set[CliArguments](args).map(
-      v => Either.right[NonEmptyList[E], Unit](v))))
+    set(args)
   }
 
   def getArgs[E]: CliParser[E, CliArguments] = {
-    CliParser(EitherT(State.get[CliArguments].map(Either.right)))
+    get[E]
   }
 
   def success[E, A](v: A): CliParser[E, A] = {
@@ -110,11 +169,15 @@ object CliParser {
   }
 
   def failed[E, A](error: E): CliParser[E, A] = {
-    CliParser(EitherT.fromEither(Left(NonEmptyList.of(error))))
+    CliParser(EitherT.fromEither(Left(CliFailure.errors(NonEmptyList.of(error)))))
+  }
+
+  def fromEither[E, A](v: Either[NonEmptyList[E], A]): CliParser[E, A] = {
+    CliParser(EitherT.fromEither(v.leftMap(CliFailure.errors)))
   }
 
   def fromValidated[E, A](v: ValidatedNel[E, A]): CliParser[E, A] = {
-    CliParser(EitherT.fromEither(v.toEither))
+    CliParser(EitherT.fromEither(v.toEither.leftMap(CliFailure.errors)))
   }
 
   def extractNext[E]: CliParser[E, Option[String]] = {
@@ -209,5 +272,9 @@ object CliParser {
       _ <- setArgs(newArgs)
 
     } yield ()
+  }
+
+  def displayHelp[E]: CliParser[E, Unit] = {
+    CliParser(EitherT.fromEither(Left(CliFailure.help[E])))
   }
 }

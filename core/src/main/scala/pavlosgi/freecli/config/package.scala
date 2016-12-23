@@ -1,13 +1,12 @@
 package pavlosgi.freecli
 
-import cats.data.{NonEmptyList, Validated}
-import cats.syntax.all._
+import cats.data.Validated
 
 import pavlosgi.freecli.config.dsl._
-import pavlosgi.freecli.config.interpreters.help._
-import pavlosgi.freecli.config.interpreters.parser._
-import pavlosgi.freecli.core.formatting._
-import pavlosgi.freecli.parser.{CliParser, ParsingFailure}
+import pavlosgi.freecli.config.parser._
+import pavlosgi.freecli.config.{parser => P}
+import pavlosgi.freecli.config.{help => H}
+import pavlosgi.freecli.parser.{CliFailure, CliParser}
 
 package object config
   extends Ops
@@ -18,33 +17,16 @@ package object config
   def parseConfig[A](
     args: Seq[String])
    (dsl: ConfigDsl[A]):
-    Validated[ParsingFailure[ConfigParsingError], A] = {
+    Validated[CliFailure[ConfigParsingError], A] = {
 
-    val (outArgs, res) =
-      CliParser.run(args)(dsl.foldMap(configParserInterpreter))
-
-    outArgs.usable match {
-      case Nil => res.toValidated.leftMap(ers => ParsingFailure(outArgs, ers))
-      case u =>
-        val ers = res.fold(_.toList, _ => List.empty)
-          Validated.invalid(ParsingFailure(
-            outArgs,
-            NonEmptyList(AdditionalArgumentsFound(u.map(_.name)), ers)))
-    }
+    P.parseConfig(args)(dsl)
   }
 
   def configHelp[A](dsl: ConfigDsl[A]): String = {
-    val config = dsl.analyze(configHelpInterpreter)
-
-    s"""${"Usage".bold.underline}
-       |
-       |  Program [options] ${config.oneline.display(0)}
-       |
-       |${config.result.display(4)}
-       |""".stripMargin
+    H.configHelp(dsl)
   }
 
   def parseConfigOrHelp[A](args: Seq[String])(dsl: ConfigDsl[A]): A = {
-    parser.getOrReportAndExit(parseConfig(args)(dsl), configHelp(dsl))
+    CliParser.runOrFail(args, _ => configHelp(dsl))(dsl.foldMap(ConfigParserInterpreter))
   }
 }

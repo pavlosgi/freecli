@@ -2,8 +2,9 @@ package pavlosgi.freecli.command
 
 import pavlosgi.freecli.command.api._
 import pavlosgi.freecli.config._
-import pavlosgi.freecli.command.interpreters.parser.{AdditionalArgumentsFound, CommandNotFound, FailedToParseConfig}
+import pavlosgi.freecli.command.parser._
 import pavlosgi.freecli.testkit.Test
+import pavlosgi.freecli.Helpers._
 
 class CommandParserTest extends Test {
   describe("Command Parser") {
