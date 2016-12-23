@@ -3,6 +3,7 @@ package pavlosgi.freecli.option.parser
 import cats.instances.all._
 import cats.syntax.all._
 import cats.~>
+import shapeless.HNil
 
 import pavlosgi.freecli.core.{StringDecoder, StringDecoderError}
 import pavlosgi.freecli.option.api._
@@ -42,7 +43,7 @@ object OptionParserInterpreter extends (Algebra ~> ParseResult) {
           _ <- if (r) CliParser.displayHelp[OptionParsingError]
           else CliParser.success[OptionParsingError, Unit](())
 
-        } yield f(())
+        } yield f(HNil)
 
       case Sub(_, dsl) => dsl.foldMap(OptionParserInterpreter)
     }

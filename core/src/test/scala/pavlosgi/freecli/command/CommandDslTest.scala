@@ -36,7 +36,7 @@ class CommandDslTest extends Test {
 
       cmd("command1") {
         takesG[A](o.string --"field" -'f' -~ req) ::
-        runs[A](s => ())
+        runs[A](_ => ())
       }: CommandDsl[Command]
     }
 
@@ -48,6 +48,20 @@ class CommandDslTest extends Test {
           takesG[String](o.string --"field" -~ req)
         }: CommandDsl[Command]
       """)
+    }
+
+    it("compiles for command with config and help") {
+      cmd("command1") {
+        takesG[Option[String]](o.string -'o' :: o.help -'h') ::
+        runs[Option[String]](_ => ())
+      }
+    }
+
+    it("compiles for command with help") {
+      cmd("command1") {
+        takes(o.help -'h') ::
+        runs(())
+      }
     }
 
     it("compiles for command with subcommands") {

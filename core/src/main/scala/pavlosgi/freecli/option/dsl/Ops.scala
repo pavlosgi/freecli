@@ -16,6 +16,7 @@ trait Ops extends Grouping {
   def existentFile = opt[ExistentFile]
   def newFile = opt[NewFile]
   def flag(implicit ev: StringDecoder[Boolean]) = FlagDslBuilder.flag
+  def help_ = HelpDslBuilder.help
   def opt[T](implicit ev: StringDecoder[T]) = OptDslBuilder.opt[T]
   def sub[T](description: String) =
     SubDslBuilder.sub[T](Description(description))

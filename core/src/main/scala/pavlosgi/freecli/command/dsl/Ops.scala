@@ -37,8 +37,8 @@ trait Ops {
     RunCommand[T](f) :: HNil)
 
   def runs(f: => Unit) =
-    CommandDslBuilder[RunCommand[Unit] :: HNil, Unit, Unit](
-      RunCommand[Unit](_ => f) :: HNil)
+    CommandDslBuilder[RunCommand[HNil] :: HNil, Unit, HNil](
+      RunCommand[HNil](_ => f) :: HNil)
 }
 
 class Takes[T] {

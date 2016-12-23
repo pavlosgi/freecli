@@ -5,7 +5,8 @@ import shapeless.ops.hlist.Prepend
 
 object toHList extends Poly2 {
   implicit def fromHList[L <: HList, H <: HList]
-   (implicit ev: Prepend[L, H]) = {
+   (implicit ev: Prepend[L, H],
+    ev2: H =:!= HNil) = {
 
     at[L, H]((l, h) => l ++ h)
   }

@@ -10,6 +10,7 @@ object Git extends App {
   val commitCommand =
     cmd("commit") {
       takesG[CommitConfig] {
+        o.help --"help" ::
         flag --"all" -'a' -~ des("Add changes from all known files") ::
         o.string -'m' -~ req -~ des("Commit message")
       } ::
@@ -24,7 +25,8 @@ object Git extends App {
 
   val rmCommand =
     cmd("rm") {
-      takes {
+      takesG[File] {
+        o.help --"help" ::
         file -~ des("File to remove from git")
       } ::
       runs[File] { f =>
@@ -36,6 +38,7 @@ object Git extends App {
    cmd("remote") {
      cmd("add") {
        takesT {
+         o.help --"help" ::
          string -~ des("Remote name") ::
          string -~ des("Remote url")
        } ::
@@ -44,7 +47,8 @@ object Git extends App {
        }
      } ::
      cmd("rm") {
-       takes {
+       takesG[String] {
+         o.help --"help" ::
          string -~ des("Remote name")
        } ::
        runs[String] { s =>

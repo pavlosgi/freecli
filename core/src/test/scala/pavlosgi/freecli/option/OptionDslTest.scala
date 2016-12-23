@@ -46,6 +46,15 @@ class OptionDslTest extends Test {
       illTyped("""sub[A]("description"): OptionDsl[A]""")
     }
 
+    it("group with help") {
+      case class A(p: Option[String])
+      val dsl =
+        group[A] {
+          help_ -'h' --"help" ::
+          string -'p'
+        }
+    }
+
     it("allow merging options") {
       case class A(o: Option[String], o2: Option[Boolean], o3: Boolean)
 

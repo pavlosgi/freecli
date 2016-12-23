@@ -1,6 +1,7 @@
 package pavlosgi.freecli.option.api
 
 import cats.free.FreeApplicative
+import shapeless.HNil
 
 import pavlosgi.freecli.core.{Description, StringDecoder}
 
@@ -26,7 +27,7 @@ final case class Flag[A](
 
 final case class Help[A](
   field: OptionField,
-  f: Unit => A)
+  f: HNil => A)
   extends Algebra[A]
 
 final case class Sub[A](

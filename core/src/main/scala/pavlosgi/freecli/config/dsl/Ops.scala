@@ -37,5 +37,6 @@ trait Ops extends Grouping {
     def file = O.file
     def existentFile = O.existentFile
     def newFile = O.newFile
+    def help = O.help_
   }
 }

@@ -37,18 +37,14 @@ object HelpDslBuilder {
   def help: HelpDslBuilder[HNil] =
     new HelpDslBuilder[HNil](HNil)
 
-  def help[H <: HList](list: H): HelpDslBuilder[HNil] =
-    new HelpDslBuilder[HNil](HNil)
-
   implicit def canProduceOptionDsl[H <: HList](
     implicit canProduceField: CanProduce.Aux[H, (OptionField, HNil)]):
-    CanProduce.Aux[HelpDslBuilder[H], OptionDsl[Unit]] = {
-
+    CanProduce.Aux[HelpDslBuilder[H], OptionDsl[HNil]] = {
     new CanProduce[HelpDslBuilder[H]] {
-      type Out = OptionDsl[Unit]
+      type Out = OptionDsl[HNil]
       def apply(t: HelpDslBuilder[H]): Out = {
         val (field, _) = canProduceField.apply(t.list)
-        FreeApplicative.lift(Help[Unit](field, identity))
+        FreeApplicative.lift(Help[HNil](field, identity))
       }
     }
   }
