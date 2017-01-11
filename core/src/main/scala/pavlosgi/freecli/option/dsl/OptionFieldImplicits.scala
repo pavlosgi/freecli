@@ -3,9 +3,7 @@ package pavlosgi.freecli.option.dsl
 import shapeless._
 import shapeless.ops.hlist.{Diff, Intersection, LeftFolder}
 
-import pavlosgi.freecli.core.Description
-import pavlosgi.freecli.core.Description
-import pavlosgi.freecli.core.ops.CanProduce
+import pavlosgi.freecli.core.api.{CanProduce, Description}
 import pavlosgi.freecli.option.api._
 
 trait OptionFieldImplicits {

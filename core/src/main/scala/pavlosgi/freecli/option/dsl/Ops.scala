@@ -2,11 +2,10 @@ package pavlosgi.freecli.option.dsl
 
 import java.io.File
 
-import pavlosgi.freecli.core.ops.Grouping
-import pavlosgi.freecli.core.{Description, ExistentFile, NewFile, StringDecoder}
+import pavlosgi.freecli.core.api.{Description, ExistentFile, NewFile, StringDecoder}
 import pavlosgi.freecli.option.dsl.OptDslBuilder.DefaultValue
 
-trait Ops extends Grouping {
+trait Ops {
   def string = opt[String]
   def int = opt[Int]
   def long = opt[Long]
@@ -26,5 +25,4 @@ trait Ops extends Grouping {
 
   def req = OptDslBuilder.required
   def or[T](default: T): DefaultValue[T] = DefaultValue(default)
-  def des(description: String): Description = Description(description)
 }

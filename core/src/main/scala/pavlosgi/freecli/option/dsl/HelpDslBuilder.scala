@@ -4,8 +4,7 @@ import cats.free.FreeApplicative
 import shapeless._
 import shapeless.ops.hlist.Prepend
 
-import pavlosgi.freecli.core.Description
-import pavlosgi.freecli.core.ops.CanProduce
+import pavlosgi.freecli.core.api.{CanProduce, Description}
 import pavlosgi.freecli.option.api._
 
 case class HelpDslBuilder[H <: HList](list: H) {

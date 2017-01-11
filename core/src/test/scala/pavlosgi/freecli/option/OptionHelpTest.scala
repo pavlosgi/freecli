@@ -2,8 +2,10 @@ package pavlosgi.freecli.option
 
 import cats.syntax.show._
 
-import pavlosgi.freecli.core.Description
 import pavlosgi.freecli.option.api._
+import pavlosgi.freecli.core.all._
+import pavlosgi.freecli.core.api.Description
+import pavlosgi.freecli.option.all._
 import pavlosgi.freecli.testkit.Test
 
 class OptionHelpTest extends Test {

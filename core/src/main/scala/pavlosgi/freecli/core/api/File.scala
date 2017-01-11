@@ -1,4 +1,4 @@
-package pavlosgi.freecli.core
+package pavlosgi.freecli.core.api
 
 case class ExistentFile(file: java.io.File)
 object ExistentFile {

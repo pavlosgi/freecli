@@ -1,4 +1,4 @@
-package pavlosgi.freecli.core.ops
+package pavlosgi.freecli.core.poly
 
 import shapeless._
 import shapeless.ops.hlist.Prepend

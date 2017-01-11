@@ -4,8 +4,7 @@ import cats.free.FreeApplicative
 import shapeless._
 import shapeless.ops.hlist.Prepend
 
-import pavlosgi.freecli.core.ops.CanProduce
-import pavlosgi.freecli.core.{Description, StringDecoder}
+import pavlosgi.freecli.core.api.{CanProduce, Description, StringDecoder}
 import pavlosgi.freecli.option.api._
 import pavlosgi.freecli.option.dsl.OptDslBuilder.{DefaultValue, Required}
 

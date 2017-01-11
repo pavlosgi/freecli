@@ -1,4 +1,4 @@
-package pavlosgi.freecli.core.ops
+package pavlosgi.freecli.core.api
 
 import shapeless._
 

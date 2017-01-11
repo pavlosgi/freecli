@@ -2,6 +2,8 @@ package pavlosgi.freecli.config
 
 import shapeless._
 
+import pavlosgi.freecli.core.all._
+import pavlosgi.freecli.config.all._
 import pavlosgi.freecli.testkit.Test
 
 class ConfigParserTest extends Test {
@@ -29,22 +31,22 @@ class ConfigParserTest extends Test {
 
       val dsl =
         group[A] {
-          o.string --"a1" -~ req ::
+          O.string --"a1" -~ req ::
           flag     --"a2"        ::
-          o.int    --"a3" -~ req ::
+          O.int    --"a3" -~ req ::
           sub[B]("b") {
-            o.string --"b1" -~ req ::
+            O.string --"b1" -~ req ::
             flag     --"b2" ::
-            o.int    --"b3" ::
+            O.int    --"b3" ::
             sub[C]("c") {
-              o.string --"c1" -~ req ::
-              o.int    --"c2" -~ req
+              O.string --"c1" -~ req ::
+              O.int    --"c2" -~ req
             } ::
             sub[D]("d") {
               flag -- "d1"
             }
           } ::
-          o.string --"a5" -~ req ::
+          O.string --"a5" -~ req ::
           string ::
           int ::
           boolean

@@ -2,9 +2,11 @@ package pavlosgi.freecli.option
 
 import shapeless._
 
-import pavlosgi.freecli.option.parser._
+import pavlosgi.freecli.core.all._
+import pavlosgi.freecli.option.all._
 import pavlosgi.freecli.testkit.Test
 import pavlosgi.freecli.Helpers._
+import pavlosgi.freecli.option.parser._
 
 class OptionParserTest extends Test {
   describe("Options parser") {

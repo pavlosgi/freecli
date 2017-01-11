@@ -1,13 +1,8 @@
 package pavlosgi.freecli.option.dsl
 
-import pavlosgi.freecli.core.ops.CanProduce
+import pavlosgi.freecli.core.api.CanProduce
 
-trait OptionDslImplicits
-  extends DefaultImplicits
-  with OptionFieldImplicits
-  with DescriptionImplicits
-  with MergerImplicits {
-
+trait OptionDslImplicits {
   implicit def toOptionDsl[B, O](
     b: B)
    (implicit ev: CanProduce.Aux[B, OptionDsl[O]]):

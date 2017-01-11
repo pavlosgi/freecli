@@ -1,6 +1,6 @@
 package pavlosgi.freecli.option.parser
 
-import pavlosgi.freecli.core.StringDecoderError
+import pavlosgi.freecli.core.api.StringDecoderError
 import pavlosgi.freecli.core.formatting._
 import pavlosgi.freecli.option.api.OptionField
 import pavlosgi.freecli.parser.Error

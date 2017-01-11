@@ -3,7 +3,7 @@ package pavlosgi.freecli.argument.api
 import cats.Show
 import cats.syntax.show._
 
-import pavlosgi.freecli.core.Description
+import pavlosgi.freecli.core.api.Description
 import pavlosgi.freecli.core.formatting._
 
 case class ArgumentField(

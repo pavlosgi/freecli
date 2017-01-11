@@ -3,7 +3,9 @@ package pavlosgi.freecli.config
 import cats.syntax.show._
 
 import pavlosgi.freecli.argument.api._
-import pavlosgi.freecli.core.Description
+import pavlosgi.freecli.config.all._
+import pavlosgi.freecli.core.all._
+import pavlosgi.freecli.core.api.Description
 import pavlosgi.freecli.option.api._
 import pavlosgi.freecli.testkit.Test
 
@@ -24,16 +26,16 @@ class ConfigHelpTest extends Test {
 
       val dsl =
         group[A] {
-          o.string --"a1" -'a' -~ des("a1_description") ::
-          o.int    --"a2" -~ des("a2_description")      ::
+          O.string --"a1" -'a' -~ des("a1_description") ::
+          O.int    --"a2" -~ des("a2_description")      ::
           sub[B]("a3 options") {
-            o.string --"b1" -'b' -~ des("b1_description") ::
-            o.int    --"b2" -'c' -~ des("b2_description") ::
+            O.string --"b1" -'b' -~ des("b1_description") ::
+            O.int    --"b2" -'c' -~ des("b2_description") ::
             flag     -'d' ::
-            o.string -'e' -~ or("default") -~ des("e option") ::
+            O.string -'e' -~ or("default") -~ des("e option") ::
             sub[C]("b5 options") {
-              o.string --"c1" ::
-              o.int -'c'
+              O.string --"c1" ::
+              O.int -'c'
             }
           } ::
           flag --"a4" ::

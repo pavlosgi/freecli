@@ -2,9 +2,11 @@ package pavlosgi.freecli.command
 
 import cats.syntax.show._
 
+import pavlosgi.freecli.core.all._
 import pavlosgi.freecli.command.api.CommandFieldName
-import pavlosgi.freecli.config._
-import pavlosgi.freecli.core.Description
+import pavlosgi.freecli.command.all._
+import pavlosgi.freecli.config.all._
+import pavlosgi.freecli.core.api.Description
 import pavlosgi.freecli.option.api.OptionFieldName
 import pavlosgi.freecli.testkit.Test
 
@@ -19,36 +21,36 @@ class CommandHelpTest extends Test {
       val dsl =
         cmd("command1", des("command1 description")) {
           takesG[A] {
-            o.int  --"a1" -~ req -~ des("a1 description")  ::
+            O.int  --"a1" -~ req -~ des("a1 description")  ::
             flag --"a2" ::
             string ::
             int
           } ::
           cmd("subcommand1", des("subcommand1 description")) {
-            takesG[String](o.string --"subfield1" -~ req) ::
+            takesG[String](O.string --"subfield1" -~ req) ::
             cmd("subcommand2") {
               cmd("subcommand3") {
-                takesG[String](o.string --"subfield3" -~ req) ::
+                takesG[String](O.string --"subfield3" -~ req) ::
                 runs[B](s => ())
               }
             }
           } ::
           cmd("subcommand4") {
-            takesG[String](o.string -- "subfield4" -~ req) ::
+            takesG[String](O.string -- "subfield4" -~ req) ::
             cmd("subcommand5") {
               runs[(A, String)](s => ())
             } ::
             cmd("subcommand6") {
-              takesG[Int](o.int --"subfield6" -~ req) ::
+              takesG[Int](O.int --"subfield6" -~ req) ::
               runs[(A, String, Int)](s => ())
             }
           } ::
           cmd("subcommand7") {
-            takesT(o.string --"subfield7" -~ req :: int) ::
+            takesT(O.string --"subfield7" -~ req :: int) ::
             runs[(A, (String, Int))](s => ())
           } ::
           cmd("subcommand8") {
-            takesG[C](o.string --"subfield8" -~ req) ::
+            takesG[C](O.string --"subfield8" -~ req) ::
             runs[D](s => ())
           }
         }

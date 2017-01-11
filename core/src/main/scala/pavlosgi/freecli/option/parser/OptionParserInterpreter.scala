@@ -5,7 +5,7 @@ import cats.syntax.all._
 import cats.~>
 import shapeless.HNil
 
-import pavlosgi.freecli.core.{StringDecoder, StringDecoderError}
+import pavlosgi.freecli.core.api.{StringDecoder, StringDecoderError}
 import pavlosgi.freecli.option.api._
 import pavlosgi.freecli.parser.{CliArgument, CliArguments, CliParser, ExtractPair}
 

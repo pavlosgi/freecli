@@ -5,8 +5,8 @@ import shapeless._
 import shapeless.ops.hlist.LeftFolder
 
 import pavlosgi.freecli.argument.{dsl => A}
-import pavlosgi.freecli.core.ops.Merger.CanMerge
-import pavlosgi.freecli.core.ops.toHList
+import pavlosgi.freecli.core.api.CanMerge
+import pavlosgi.freecli.core.poly.toHList
 import pavlosgi.freecli.option.{dsl => O}
 
 trait MergerImplicits {

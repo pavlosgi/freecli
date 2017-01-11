@@ -1,8 +1,10 @@
-package pavlosgi.freecli.core.ops
+package pavlosgi.freecli.core.dsl
 
 import cats.free.FreeApplicative
 import shapeless.ops.hlist.LeftFolder
 import shapeless.{::, HNil}
+
+import pavlosgi.freecli.core.poly.genericPoly
 
 class Group[T] {
   def apply[Algebra[_], Conf](

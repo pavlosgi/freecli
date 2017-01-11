@@ -2,6 +2,8 @@ package pavlosgi.freecli.argument
 
 import shapeless._
 
+import pavlosgi.freecli.core.all._
+import pavlosgi.freecli.argument.all._
 import pavlosgi.freecli.testkit.Test
 
 class ArgumentDslTest extends Test {

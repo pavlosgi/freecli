@@ -3,6 +3,8 @@ package pavlosgi.freecli.option
 import shapeless._
 import shapeless.test.illTyped
 
+import pavlosgi.freecli.core.all._
+import pavlosgi.freecli.option.all._
 import pavlosgi.freecli.testkit.Test
 
 class OptionDslTest extends Test {

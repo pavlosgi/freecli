@@ -29,7 +29,7 @@ object CommandParserInterpreter extends (Algebra ~> ParseResult) {
       case PartialParentCmd(field, subs, f) =>
         for {
           _ <- findAndSetCommandArgs(field)
-          partial <- subs.foldMap(CommandParserInterpreter)(alternativeResultInstance)
+          partial <- subs.foldMap(CommandParserInterpreter)
         } yield f(partial)
 
       case PartialParentCmdWithConfig(field, config, subs, f) =>

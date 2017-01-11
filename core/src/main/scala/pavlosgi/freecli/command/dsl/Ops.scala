@@ -7,8 +7,8 @@ import shapeless.{::, HList, HNil}
 import pavlosgi.freecli.command.api.{CommandFieldName, RunCommand}
 import pavlosgi.freecli.config.{api => C}
 import pavlosgi.freecli.config.dsl._
-import pavlosgi.freecli.core._
-import pavlosgi.freecli.core.ops.genericPoly
+import pavlosgi.freecli.core.api.Description
+import pavlosgi.freecli.core.poly.genericPoly
 
 trait Ops {
   def cmd(name: String) =

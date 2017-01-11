@@ -1,8 +1,8 @@
 package pavlosgi.freecli.argument.dsl
 
-import pavlosgi.freecli.core.ops.CanProduce
+import pavlosgi.freecli.core.api.CanProduce
 
-trait ArgumentDslImplicits extends ArgumentFieldImplicits with MergerImplicits {
+trait ArgumentDslImplicits {
   implicit def toArgumentDsl[B, A](
     b: B)
    (implicit ev: CanProduce.Aux[B, ArgumentDsl[A]]):

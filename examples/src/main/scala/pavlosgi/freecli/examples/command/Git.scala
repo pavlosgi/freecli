@@ -2,17 +2,18 @@ package pavlosgi.freecli.examples.command
 
 import java.io.File
 
-import pavlosgi.freecli.config._
-import pavlosgi.freecli.command._
+import pavlosgi.freecli.core.all._
+import pavlosgi.freecli.config.all._
+import pavlosgi.freecli.command.all._
 
 object Git extends App {
   case class CommitConfig(all: Boolean, message: String)
   val commitCommand =
     cmd("commit") {
       takesG[CommitConfig] {
-        o.help --"help" ::
+        O.help --"help" ::
         flag --"all" -'a' -~ des("Add changes from all known files") ::
-        o.string -'m' -~ req -~ des("Commit message")
+        O.string -'m' -~ req -~ des("Commit message")
       } ::
       runs[CommitConfig] { config =>
         if (config.all) {
@@ -26,7 +27,7 @@ object Git extends App {
   val rmCommand =
     cmd("rm") {
       takesG[File] {
-        o.help --"help" ::
+        O.help --"help" ::
         file -~ des("File to remove from git")
       } ::
       runs[File] { f =>
@@ -38,7 +39,7 @@ object Git extends App {
    cmd("remote") {
      cmd("add") {
        takesT {
-         o.help --"help" ::
+         O.help --"help" ::
          string -~ des("Remote name") ::
          string -~ des("Remote url")
        } ::
@@ -48,7 +49,7 @@ object Git extends App {
      } ::
      cmd("rm") {
        takesG[String] {
-         o.help --"help" ::
+         O.help --"help" ::
          string -~ des("Remote name")
        } ::
        runs[String] { s =>

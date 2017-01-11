@@ -1,12 +1,8 @@
 package pavlosgi.freecli.command.dsl
 
-import pavlosgi.freecli.core.ops.CanProduce
+import pavlosgi.freecli.core.api.CanProduce
 
-trait CommandDslImplicits
- extends CommandDslBuilderImplicits
- with CommandFieldImplicits
- with MergerImplicits {
-
+trait CommandDslImplicits {
   implicit def toCommandDsl[B, T](
     b: B)
    (implicit ev: CanProduce.Aux[B, CommandDsl[T]]):

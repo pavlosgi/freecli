@@ -1,6 +1,6 @@
 package pavlosgi.freecli.argument.api
 
-import pavlosgi.freecli.core.StringDecoder
+import pavlosgi.freecli.core.api.StringDecoder
 
 sealed trait Algebra[A]
 

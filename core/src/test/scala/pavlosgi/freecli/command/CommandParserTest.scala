@@ -1,7 +1,8 @@
 package pavlosgi.freecli.command
 
+import pavlosgi.freecli.command.all._
+import pavlosgi.freecli.config.all._
 import pavlosgi.freecli.command.api._
-import pavlosgi.freecli.config._
 import pavlosgi.freecli.command.parser._
 import pavlosgi.freecli.testkit.Test
 import pavlosgi.freecli.Helpers._
@@ -37,7 +38,7 @@ class CommandParserTest extends Test {
 
         parseCommand(Seq("command", "--host", "localhost", "--port", "8080"))(
           cmd("command") {
-            takesG[Config](o.string --"host" -~ req :: o.int --"port" -~ req) ::
+            takesG[Config](O.string --"host" -~ req :: O.int --"port" -~ req) ::
             runs[Config](c => conf = Some(c))
           }).valid.run
 
@@ -51,7 +52,7 @@ class CommandParserTest extends Test {
         val res =
           parseCommand(Seq("command2", "--host", "localhost", "--port", "8080"))(
             cmd("command") {
-              takesG[Config](o.string --"host" -~ req :: o.int --"port" -~ req) ::
+              takesG[Config](O.string --"host" -~ req :: O.int --"port" -~ req) ::
               runs[Config](c => conf = Some(c))
             })
 
@@ -67,7 +68,7 @@ class CommandParserTest extends Test {
         val res =
           parseCommand(Seq("command", "--host", "localhost", "file1"))(
             cmd("command") {
-              takesG[Config](o.string --"host" -~ req :: o.int --"port" -~ req) ::
+              takesG[Config](O.string --"host" -~ req :: O.int --"port" -~ req) ::
               runs[Config](c => conf = Some(c))
             })
 
@@ -111,7 +112,7 @@ class CommandParserTest extends Test {
         parseCommand(Seq("command", "subcommand", "--host", "localhost", "--port", "8080"))(
           cmd("command") {
             cmd("subcommand") {
-              takesG[Config](o.string --"host" -~ req :: o.int --"port" -~ req) ::
+              takesG[Config](O.string --"host" -~ req :: O.int --"port" -~ req) ::
               runs[Config](c => conf = Some(c))
             }
           }).valid.run
@@ -141,7 +142,7 @@ class CommandParserTest extends Test {
         parseCommand(Seq("command", "subcommand", "--host", "localhost", "8080"))(
           cmd("command") {
             cmd("subcommand") {
-              takesG[Config](o.string --"host" -~ req :: int) ::
+              takesG[Config](O.string --"host" -~ req :: int) ::
               runs[Config](c => conf = Some(c))
             }
           }).valid.run
@@ -156,7 +157,7 @@ class CommandParserTest extends Test {
           parseCommand(Seq("command", "subcommand", "--host", "localhost"))(
             cmd("command") {
               cmd("subcommand") {
-                takesG[Config](o.string --"host" -~ req :: o.int --"port" -~ req) ::
+                takesG[Config](O.string --"host" -~ req :: O.int --"port" -~ req) ::
                 runs[Config](c => conf = Some(c))
               }
             })
@@ -173,7 +174,7 @@ class CommandParserTest extends Test {
           parseCommand(Seq("command"))(
             cmd("command") {
               cmd("subcommand") {
-                takesG[Config](o.string --"host" -~ req :: o.int --"port" -~ req) ::
+                takesG[Config](O.string --"host" -~ req :: O.int --"port" -~ req) ::
                 runs[Config](c => conf = Some(c))
               }
             })
@@ -202,9 +203,9 @@ class CommandParserTest extends Test {
           "5432"))(
 
           cmd("command") {
-            takesG[Config](o.string --"host" -~ req :: o.int --"port" -~ req) ::
+            takesG[Config](O.string --"host" -~ req :: O.int --"port" -~ req) ::
             cmd("subcommand") {
-              takesG[SubConfig](o.string --"dbName" -~ req :: o.int --"dbPort"-~ req) ::
+              takesG[SubConfig](O.string --"dbName" -~ req :: O.int --"dbPort"-~ req) ::
               runs[ParentSubConfig](c => conf = Some(c))
             }
           }).valid.run
@@ -232,9 +233,9 @@ class CommandParserTest extends Test {
             "8080"))(
 
             cmd("command") {
-              takesG[Config](o.string --"host" -~ req :: o.int --"port" -~ req) ::
+              takesG[Config](O.string --"host" -~ req :: O.int --"port" -~ req) ::
               cmd("subcommand") {
-                takesG[SubConfig](o.string --"dbName" -~ req :: o.int --"dbPort" -~ req) ::
+                takesG[SubConfig](O.string --"dbName" -~ req :: O.int --"dbPort" -~ req) ::
                 runs[ParentSubConfig](c => conf = Some(c))
               }
             })
@@ -250,9 +251,9 @@ class CommandParserTest extends Test {
 
         parseCommand(Seq("command", "--host", "localhost1", "subcommand", "--host", "localhost2"))(
           cmd("command") {
-            takesG[String](o.string --"host"-~ req) ::
+            takesG[String](O.string --"host"-~ req) ::
             cmd("subcommand") {
-              takesG[String](o.string --"host"-~ req) ::
+              takesG[String](O.string --"host"-~ req) ::
               runs[(String, String)](c => conf = Some(c))
             }
         }).valid.run
@@ -270,17 +271,17 @@ class CommandParserTest extends Test {
 
       val dsl =
         cmd("command") {
-          takesG[Config](o.string --"host" -~ req :: o.int --"port" -~ req) ::
+          takesG[Config](O.string --"host" -~ req :: O.int --"port" -~ req) ::
           cmd("subcommand1") {
-            takesG[SubConfig](o.string --"dbName1" -~ req :: o.int --"dbPort1"-~ req) ::
+            takesG[SubConfig](O.string --"dbName1" -~ req :: O.int --"dbPort1"-~ req) ::
             runs[ParentSubConfig](c => conf = Some(c))
           } ::
           cmd("subcommand2") {
-            takesG[SubConfig](o.string --"dbName2" -~ req :: o.int --"dbPort2"-~ req) ::
+            takesG[SubConfig](O.string --"dbName2" -~ req :: O.int --"dbPort2"-~ req) ::
             runs[ParentSubConfig](c => conf = Some(c))
           } ::
           cmd("subcommand3") {
-            takesG[SubConfig](o.string --"dbName3" -~ req :: o.int --"dbPort3"-~ req) ::
+            takesG[SubConfig](O.string --"dbName3" -~ req :: O.int --"dbPort3"-~ req) ::
             runs[ParentSubConfig](c => conf = Some(c))
           }
         }
@@ -377,19 +378,19 @@ class CommandParserTest extends Test {
         conf = Option.empty[ParentSubConfig]
         val dsl =
           cmd("command") {
-            takesG[Config](o.string --"host" -~ req :: o.int --"port" -~ req) ::
+            takesG[Config](O.string --"host" -~ req :: O.int --"port" -~ req) ::
             cmd("subcommand1") {
               cmd("subcommand2") {
-                takesG[SubConfig](o.string --"dbName1" -~ req :: o.int --"dbPort1"-~ req) ::
+                takesG[SubConfig](O.string --"dbName1" -~ req :: O.int --"dbPort1"-~ req) ::
                 runs[ParentSubConfig](c => conf = Some(c))
               }
             } ::
             cmd("subcommand2") {
-              takesG[SubConfig](o.string --"dbName2" -~ req :: o.int --"dbPort2"-~ req) ::
+              takesG[SubConfig](O.string --"dbName2" -~ req :: O.int --"dbPort2"-~ req) ::
               runs[ParentSubConfig](c => conf = Some(c))
             } ::
             cmd("subcommand3") {
-              takesG[SubConfig](o.string --"dbName3" -~ req :: o.int --"dbPort3"-~ req) ::
+              takesG[SubConfig](O.string --"dbName3" -~ req :: O.int --"dbPort3"-~ req) ::
               runs[ParentSubConfig](c => conf = Some(c))
             }
           }
@@ -415,19 +416,19 @@ class CommandParserTest extends Test {
         conf = Option.empty[ParentSubConfig]
         val dsl =
           cmd("command") {
-            takesG[Config](o.string --"host" -~ req :: o.int --"port" -~ req) ::
+            takesG[Config](O.string --"host" -~ req :: O.int --"port" -~ req) ::
             cmd("subcommand2") {
-              takesG[SubConfig](o.string --"dbName2" -~ req :: o.int --"dbPort2"-~ req) ::
+              takesG[SubConfig](O.string --"dbName2" -~ req :: O.int --"dbPort2"-~ req) ::
               runs[ParentSubConfig](c => conf = Some(c))
             } ::
             cmd("subcommand1") {
               cmd("subcommand2") {
-                takesG[SubConfig](o.string --"dbName1" -~ req :: o.int --"dbPort1"-~ req) ::
+                takesG[SubConfig](O.string --"dbName1" -~ req :: O.int --"dbPort1"-~ req) ::
                 runs[ParentSubConfig](c => conf = Some(c))
               }
             } ::
             cmd("subcommand3") {
-              takesG[SubConfig](o.string --"dbName3" -~ req :: o.int --"dbPort3"-~ req) ::
+              takesG[SubConfig](O.string --"dbName3" -~ req :: O.int --"dbPort3"-~ req) ::
               runs[ParentSubConfig](c => conf = Some(c))
             }
           }

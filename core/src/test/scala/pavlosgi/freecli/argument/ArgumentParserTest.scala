@@ -1,5 +1,7 @@
 package pavlosgi.freecli.argument
 
+import pavlosgi.freecli.core.all._
+import pavlosgi.freecli.argument.all._
 import pavlosgi.freecli.testkit.Test
 
 class ArgumentParserTest extends Test {

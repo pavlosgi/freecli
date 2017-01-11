@@ -3,7 +3,7 @@ package pavlosgi.freecli.command.dsl
 import shapeless._
 import shapeless.ops.hlist.Prepend
 
-import pavlosgi.freecli.core.ops.CanProduce
+import pavlosgi.freecli.core.api.CanProduce
 
 case class CommandDslBuilder[H <: HList, Conf, Run](list: H) {
   def apply[H2 <: HList, Conf2, Run2, HH2 <: HList, Out](

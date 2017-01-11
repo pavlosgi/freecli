@@ -1,10 +1,12 @@
-package pavlosgi.freecli.core.ops
+package pavlosgi.freecli.core.dsl
 
 import cats.free.FreeApplicative
 import shapeless.HList
 import shapeless.ops.hlist.Tupler
 
-trait Grouping {
+import pavlosgi.freecli.core.api.Description
+
+trait Ops {
   def group[T] = new Group[T]
   def groupT[Algebra[_], T <: HList, Tup](
     c: FreeApplicative[Algebra, T])
@@ -13,4 +15,6 @@ trait Grouping {
 
     c.map(ev.apply)
   }
+
+  def des(description: String): Description = Description(description)
 }

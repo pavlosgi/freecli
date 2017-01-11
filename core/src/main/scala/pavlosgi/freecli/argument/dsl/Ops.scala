@@ -3,10 +3,9 @@ package pavlosgi.freecli.argument.dsl
 import java.io.File
 
 import pavlosgi.freecli.argument.api.ArgumentFieldName
-import pavlosgi.freecli.core.ops.Grouping
-import pavlosgi.freecli.core.{Description, ExistentFile, NewFile, StringDecoder}
+import pavlosgi.freecli.core.api.{ExistentFile, NewFile, StringDecoder}
 
-trait Ops extends Grouping {
+trait Ops {
   def arg[T](implicit ev: StringDecoder[T]) = ArgumentDslBuilder.arg[T]
 
   def string = arg[String]
@@ -18,5 +17,4 @@ trait Ops extends Grouping {
   def existentFile = arg[ExistentFile]
   def newFile = arg[NewFile]
   def name(name: String): ArgumentFieldName = ArgumentFieldName(name)
-  def des(description: String): Description = Description(description)
 }

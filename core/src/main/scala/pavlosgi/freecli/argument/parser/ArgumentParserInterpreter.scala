@@ -3,7 +3,7 @@ package pavlosgi.freecli.argument.parser
 import cats.~>
 
 import pavlosgi.freecli.argument.api._
-import pavlosgi.freecli.core.StringDecoder
+import pavlosgi.freecli.core.api.StringDecoder
 import pavlosgi.freecli.parser.CliParser
 
 object ArgumentParserInterpreter extends (Algebra ~> ParseResult) {

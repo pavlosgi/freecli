@@ -8,7 +8,7 @@ import cats.data.{NonEmptyList, Validated, ValidatedNel}
 import io.circe.{Decoder, Json}
 import io.circe.parser.parse
 
-import pavlosgi.freecli.core.{StringDecoder, StringDecoderError}
+import pavlosgi.freecli.core.api.{StringDecoder, StringDecoderError}
 
 trait Instances {
   implicit def jsonDecodedStringDecoder[T](

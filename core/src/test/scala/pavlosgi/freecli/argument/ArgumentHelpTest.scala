@@ -3,7 +3,9 @@ package pavlosgi.freecli.argument
 import cats.syntax.show._
 
 import pavlosgi.freecli.argument.api._
-import pavlosgi.freecli.core.Description
+import pavlosgi.freecli.argument.all._
+import pavlosgi.freecli.core.all._
+import pavlosgi.freecli.core.api.Description
 import pavlosgi.freecli.testkit.Test
 
 class ArgumentHelpTest extends Test {

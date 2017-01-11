@@ -3,7 +3,7 @@ package pavlosgi.freecli.option.api
 import cats.free.FreeApplicative
 import shapeless.HNil
 
-import pavlosgi.freecli.core.{Description, StringDecoder}
+import pavlosgi.freecli.core.api.{Description, StringDecoder}
 
 sealed trait Algebra[A]
 

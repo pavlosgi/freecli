@@ -1,6 +1,7 @@
 package pavlosgi.freecli.examples.arguments
 
-import pavlosgi.freecli.argument._
+import pavlosgi.freecli.core.all._
+import pavlosgi.freecli.argument.all._
 
 object DatabaseConfig extends App {
   case class DatabaseConfig(

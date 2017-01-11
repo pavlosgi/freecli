@@ -1,7 +1,7 @@
 package pavlosgi.freecli.argument.parser
 
 import pavlosgi.freecli.argument.api.ArgumentField
-import pavlosgi.freecli.core.StringDecoderError
+import pavlosgi.freecli.core.api.StringDecoderError
 import pavlosgi.freecli.core.formatting._
 import pavlosgi.freecli.parser.Error
 

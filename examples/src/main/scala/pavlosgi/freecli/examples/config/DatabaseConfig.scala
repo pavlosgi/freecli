@@ -1,6 +1,7 @@
 package pavlosgi.freecli.examples.config
 
-import pavlosgi.freecli.config._
+import pavlosgi.freecli.core.all._
+import pavlosgi.freecli.config.all._
 
 object DatabaseConfig extends App {
   case class DatabaseConfig(
@@ -14,7 +15,7 @@ object DatabaseConfig extends App {
 
   val databaseConfig =
     group[DatabaseConfig] {
-      o.int --"port" -'p' -~ or(5432) -~ des("Database port") ::
+      O.int --"port" -'p' -~ or(5432) -~ des("Database port") ::
       flag -'d' -~ des("Debug mode")                          ::
       flag -'v' -~ des("Verbose mode")                        ::
       string -~ name("host")     -~ des("Database host")      ::
