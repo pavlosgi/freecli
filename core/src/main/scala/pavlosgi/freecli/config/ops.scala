@@ -37,7 +37,7 @@ trait AllOps extends parser.Ops with help.Ops {
     def file = Op.file
     def existentFile = Op.existentFile
     def newFile = Op.newFile
-    def help = Op.help_
+    def help = Op.help
   }
 
   def parseConfigOrHelp[A](args: Seq[String])(dsl: ConfigDsl[A]): A = {

@@ -52,7 +52,7 @@ class OptionDslTest extends Test {
       case class A(p: Option[String])
       val dsl =
         group[A] {
-          help_ -'h' --"help" ::
+          ops.help -'h' --"help" ::
           string -'p'
         }
     }
