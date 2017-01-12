@@ -36,7 +36,7 @@ class OptionDslTest extends Test {
     it("allow sub with case class") {
       case class A(value: Option[String], value2: Option[String], value3: Option[String])
 
-      sub[A]("description") {
+      sub[A](des("description")) {
         string --"one" ::
         string --"two" ::
         opt[String] --"three"
@@ -45,7 +45,7 @@ class OptionDslTest extends Test {
 
     it("sub does not compile without subconfiguration") {
       case class A(v: String)
-      illTyped("""sub[A]("description"): OptionDsl[A]""")
+      illTyped("""sub[A](des("description")): OptionDsl[A]""")
     }
 
     it("group with help") {
@@ -63,7 +63,7 @@ class OptionDslTest extends Test {
       string --"name1" ::
       string --"name2" -~ des("name2") ::
       int -'n' ::
-      sub[A]("sub") {
+      sub[A](des("sub")) {
         string -'f' -~ des("f") ::
         boolean -'b' ::
         flag -'g'
@@ -86,7 +86,7 @@ class OptionDslTest extends Test {
         string --"name1" ::
         string --"name2" -~ des("name2") ::
         int -'n' ::
-        sub[B]("sub") {
+        sub[B](des("sub")) {
           string -'f' -~ des("f") ::
           boolean -'b' ::
           flag -'g'
@@ -99,7 +99,7 @@ class OptionDslTest extends Test {
         string --"name1" ::
         string --"name2" -~ des("name2") ::
         int -'n' ::
-        subT("sub") {
+        subT(des("sub")) {
           string -'f' -~ des("f") ::
           boolean -'b' ::
           flag -'g'

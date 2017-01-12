@@ -81,15 +81,15 @@ class ConfigDslTest extends Test {
         O.string --"a1" -'a' -~ des("a1") -~ or("a1") ::
         flag     --"a2" ::
         O.int    --"a3" ::
-        sub[ConfigB]("a4") {
+        sub[ConfigB](des("a4")) {
           O.string --"b1" ::
           flag     --"b2" ::
           opt[Int] --"b3" ::
-          sub[ConfigC]("b4") {
+          sub[ConfigC](des("b4")) {
             O.string --"c1" ::
             O.int    --"c2" -~ or(2)
           } ::
-          sub[ConfigD]("c3") {
+          sub[ConfigD](des("c3")) {
             flag -- "d1"
           }
         } ::

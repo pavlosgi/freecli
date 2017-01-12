@@ -19,12 +19,12 @@ class OptionHelpTest extends Test {
         group[A] {
           string --"a1" -'a' -~ des("a1_description") ::
           int    --"a2" -~ des("a2_description")      ::
-          sub[B]("a3 options") {
+          sub[B](des("a3 options")) {
             string --"b1" -'b' -~ des("b1_description") ::
             int    --"b2" -'c' -~ des("b2_description") ::
             flag     -'d' ::
             string -'e' -~ or("default") -~ des("e option") ::
-            sub[C]("b5 options") {
+            sub[C](des("b5 options")) {
               string --"c1" ::
               int -'c'
             }

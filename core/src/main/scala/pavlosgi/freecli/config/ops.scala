@@ -2,7 +2,7 @@ package pavlosgi.freecli.config
 
 import pavlosgi.freecli.argument.{ops => A}
 import pavlosgi.freecli.config.{parser => P}
-import pavlosgi.freecli.core.api.StringDecoder
+import pavlosgi.freecli.core.api.{Description, StringDecoder}
 import pavlosgi.freecli.option.{ops => Op}
 import pavlosgi.freecli.parser.CliParser
 
@@ -22,8 +22,8 @@ trait AllOps extends parser.Ops with help.Ops {
 
   def flag(implicit ev: StringDecoder[Boolean]) = Op.flag(ev)
   def opt[T](implicit ev: StringDecoder[T]) = Op.opt(ev)
-  def sub[T](description: String) = Op.sub[T](description)
-  def subT(description: String) = Op.subT(description)
+  def sub[T](description: Description) = Op.sub[T](description)
+  def subT(description: Description) = Op.subT(description)
 
   def req = Op.req
   def or[T](default: T) = Op.or(default)

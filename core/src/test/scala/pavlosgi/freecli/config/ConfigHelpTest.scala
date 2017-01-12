@@ -28,12 +28,12 @@ class ConfigHelpTest extends Test {
         group[A] {
           O.string --"a1" -'a' -~ des("a1_description") ::
           O.int    --"a2" -~ des("a2_description")      ::
-          sub[B]("a3 options") {
+          sub[B](des("a3 options")) {
             O.string --"b1" -'b' -~ des("b1_description") ::
             O.int    --"b2" -'c' -~ des("b2_description") ::
             flag     -'d' ::
             O.string -'e' -~ or("default") -~ des("e option") ::
-            sub[C]("b5 options") {
+            sub[C](des("b5 options")) {
               O.string --"c1" ::
               O.int -'c'
             }

@@ -17,11 +17,11 @@ trait Ops {
   def flag(implicit ev: StringDecoder[Boolean]) = FlagDslBuilder.flag
   def help_ = HelpDslBuilder.help
   def opt[T](implicit ev: StringDecoder[T]) = OptDslBuilder.opt[T]
-  def sub[T](description: String) =
-    SubDslBuilder.sub[T](Description(description))
+  def sub[T](description: Description) =
+    SubDslBuilder.sub[T](description)
 
-  def subT(description: String) =
-    SubDslBuilder.subT(Description(description))
+  def subT(description: Description) =
+    SubDslBuilder.subT(description)
 
   def req = OptDslBuilder.required
   def or[T](default: T): DefaultValue[T] = DefaultValue(default)

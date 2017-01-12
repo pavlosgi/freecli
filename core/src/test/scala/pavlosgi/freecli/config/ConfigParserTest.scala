@@ -34,15 +34,15 @@ class ConfigParserTest extends Test {
           O.string --"a1" -~ req ::
           flag     --"a2"        ::
           O.int    --"a3" -~ req ::
-          sub[B]("b") {
+          sub[B](des("b")) {
             O.string --"b1" -~ req ::
             flag     --"b2" ::
             O.int    --"b3" ::
-            sub[C]("c") {
+            sub[C](des("c")) {
               O.string --"c1" -~ req ::
               O.int    --"c2" -~ req
             } ::
-            sub[D]("d") {
+            sub[D](des("d")) {
               flag -- "d1"
             }
           } ::

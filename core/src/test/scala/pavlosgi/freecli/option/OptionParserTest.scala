@@ -172,7 +172,7 @@ class OptionParserTest extends Test {
           string --"host" -~ req ::
           int   --"port" -~ req ::
           flag   --"debug" ::
-          sub[DbConfig]("Database configuration") {
+          sub[DbConfig](des("Database configuration")) {
             string --"dbhost" -~ req ::
             int    --"dbport" -~ req
           }
