@@ -6,14 +6,6 @@ FreeCLI is another command line argument parsing library build using Free Applic
 
 The library uses Cats and Shapeless at it's core. 
 
-### Set up
-
-To get started with SBT, simply add the following to your `build.sbt` file:
-
-```
-libraryDependencies += "pavlosgi" %% "freecli" % "0.1.0"
-```
-
 Here is a list of all of FreeCLI's modules:
 
  * `freecli-circe`: provides bindings for Circe
@@ -84,7 +76,7 @@ Allows defining named options
 * `existentFile` option of type ExistentFile 
 * `newFile` option of type NewFile
 * `flag` flag option
-* `help_` adds help option that prints help
+* `help` adds help option that prints help
 * `opt[T]` option of type T
 * `sub[T]` subset of options
 * `subT(description: Description)` subset of options with description 
