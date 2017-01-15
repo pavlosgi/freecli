@@ -1,0 +1,17 @@
+language: scala
+scala:
+   - 2.11.8
+   - 2.12.0
+
+jdk:
+- oraclejdk8
+
+cache:
+  directories:
+    - $HOME/.ivy2/cache
+    - $HOME/.sbt
+
+sudo: false
+
+script:
+ - sbt clean test

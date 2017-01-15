@@ -1,5 +1,7 @@
 # FreeCLI
 
+[![Build Status](https://api.travis-ci.org/pavlosgi/freecli.png?branch=master)](https://travis-ci.org/pavlosgi/freecli)
+
 ### Overview
 
 FreeCLI is another command line argument parsing library build using Free Applicative hence the name.
