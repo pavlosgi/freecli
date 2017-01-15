@@ -1,29 +1,45 @@
 import sbt._
 import Keys._
+import ReleaseTransformations._
 
-val shapeless = Seq("com.chuusai" % "shapeless_2.12" % "2.3.2")
+lazy val root = Project("freecli-root", file("."))
+  .settings(projectSettings:_*)
+  .settings(noPublishSettings:_*)
+  .aggregate(freecli_circe)
+  .aggregate(freecli_core)
+  .aggregate(freecli_examples)
+  .aggregate(freecli_testkit)
 
-val scalatest = Seq(
-  "org.scalactic" %% "scalactic" % "3.0.0",
-  "org.scalatest" %% "scalatest" % "3.0.0"
-)
+lazy val freecli_circe = Project("freecli-circe", file("circe"))
+  .settings(projectSettings:_*)
+  .settings(publishSettings:_*)
+  .settings(libraryDependencies ++= circe)
+  .dependsOn(freecli_core)
+  .dependsOn(freecli_testkit % Test)
 
-val catsVersion = "0.8.1"
-val cats = Seq("org.typelevel" %% "cats" % catsVersion)
+lazy val freecli_core = Project("freecli-core", file("core"))
+  .settings(projectSettings:_*)
+  .settings(publishSettings:_*)
+  .settings(libraryDependencies ++=
+    cats ++
+    shapeless)
 
-val circeVersion = "0.6.0"
+  .dependsOn(freecli_testkit % Test)
 
-val circe = Seq(
-  "io.circe" %% "circe-core",
-  "io.circe" %% "circe-generic",
-  "io.circe" %% "circe-parser"
-).map(_ % circeVersion)
+lazy val freecli_examples = Project("freecli-examples", file("examples"))
+  .settings(projectSettings:_*)
+  .settings(noPublishSettings:_*)
+  .dependsOn(freecli_core)
 
-val appVersion = "0.1.0-SNAPSHOT"
+lazy val freecli_testkit = Project("freecli-testkit", file("testkit"))
+  .settings(projectSettings:_*)
+  .settings(noPublishSettings:_*)
+  .settings(libraryDependencies ++= cats ++ scalatest)
 
-val commonSettings = Seq(
-  organization := "pavlosgi",
-  version := appVersion,
+lazy val projectSettings = commonSettings ++ scalacSettings
+
+lazy val commonSettings = Seq(
+  organization := "com.pavlosgi",
   scalaOrganization := "org.typelevel",
   scalaVersion := "2.12.0",
   offline := true,
@@ -40,58 +56,109 @@ val commonSettings = Seq(
   scalacOptions in (Test, console) := Seq.empty,
   initialCommands in console := """""")
 
-val scalacSettings = Seq(
+lazy val scalacSettings = Seq(
   scalacOptions ++= Seq(
-//      "-feature",
     "-unchecked",
     "-deprecation",
     "-language:higherKinds",
     "-language:implicitConversions",
-//      "-language:postfixOps",
-//      "-language:experimental.macros",
-//      "-language:existentials",
+    "-language:postfixOps",
+    "-language:experimental.macros",
+    "-language:existentials",
     "-Ywarn-unused-import",
-//      "-Ylog-classpath",
-//      "-Xprint:typer",
     "-Ypartial-unification",
-//      "-Yliteral-types",
+    "-Yliteral-types",
     "-Xlint",
-//      "-Yno-adapted-args",
+    "-Yno-adapted-args",
     "-Ywarn-dead-code",
-//      "-Ywarn-numeric-widen",
+    "-Ywarn-numeric-widen",
     "-Ywarn-value-discard",
-//      "-Xfuture",
-    "-Xfatal-warnings")
+    "-Xfuture",
+    "-Xfatal-warnings"))
+
+lazy val publishSettings = Seq(
+  releasePublishArtifactsAction := PgpKeys.publishSigned.value,
+  homepage := Some(url("https://github.com/pavlosgi/freecli")),
+  licenses := Seq("Apache 2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+  publishMavenStyle := true,
+  publishArtifact in Test := false,
+  pomIncludeRepository := Function.const(false),
+  publishTo := {
+    val nexus = "https://oss.sonatype.org/"
+    if (isSnapshot.value)
+      Some("snapshots" at nexus + "content/repositories/snapshots")
+    else
+      Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+  },
+  scmInfo := Some(
+    ScmInfo(
+      url("https://github.com/pavlosgi/freecli"),
+      "scm:git:git@github.com:pavlosgi/freecli.git"
+    )
+  ),
+  developers := List(
+    Developer("pavlosgi", "Pavlos Georgiou", "pavlos.georgiou.p@gmail.com",
+      url("https://twitter.com/pavlosgi"))
+  ),
+  pomExtra :=
+    <developers>
+      <developer>
+        <id>pavlosgi</id>
+        <name>Pavlos Georgiou</name>
+        <url>https://github.com/pavlosgi/</url>
+      </developer>
+    </developers>
 )
 
-val allSettings = commonSettings ++ scalacSettings
 
-lazy val root = Project("freecli-root", file("."))
-  .settings(allSettings:_*)
-  .aggregate(freecli_circe)
-  .aggregate(freecli_core)
-  .aggregate(freecli_examples)
-  .aggregate(freecli_testkit)
+lazy val tagName = Def.setting{
+  s"freecli-${if (releaseUseGlobalVersion.value) (version in ThisBuild).value else version.value}"
+}
 
-lazy val freecli_circe = Project("freecli-circe", file("circe"))
-  .settings(allSettings:_*)
-  .settings(libraryDependencies ++= circe)
-  .dependsOn(freecli_core)
-  .dependsOn(freecli_testkit % Test)
+lazy val releaseSettings = Seq(
+  releasePublishArtifactsAction := PgpKeys.publishSigned.value,
+  releaseTagName := tagName.value,
+  releaseProcess := Seq[ReleaseStep](
+    checkSnapshotDependencies,
+    inquireVersions,
+    runClean,
+    runTest,
+    setReleaseVersion,
+    commitReleaseVersion,
+    tagRelease,
+    publishArtifacts,
+    setNextVersion,
+    commitNextVersion,
+    ReleaseStep(action = Command.process("sonatypeReleaseAll", _)),
+    pushChanges
+  )
+)
 
-lazy val freecli_core = Project("freecli-core", file("core"))
-  .settings(allSettings:_*)
-  .settings(libraryDependencies ++=
-    cats ++
-    shapeless)
+credentials in ThisBuild ++= (for {
+  username <- Option(System.getenv().get("SONATYPE_USERNAME"))
+  password <- Option(System.getenv().get("SONATYPE_PASSWORD"))
+} yield Credentials("Sonatype Nexus Repository Manager", "oss.sonatype.org", username, password)).toSeq
 
-  .dependsOn(freecli_testkit % Test)
+lazy val noPublishSettings = Seq(
+  publish := (),
+  publishLocal := (),
+  publishArtifact := false
+)
 
-lazy val freecli_examples = Project("freecli-examples", file("examples"))
-  .settings(allSettings:_*)
-  .dependsOn(freecli_core)
+lazy val shapeless = Seq("com.chuusai" % "shapeless_2.12" % "2.3.2")
 
-lazy val freecli_testkit = Project("freecli-testkit", file("testkit"))
-  .settings(allSettings:_*)
-  .settings(libraryDependencies ++= cats ++ scalatest)
+lazy val scalatest = Seq(
+  "org.scalactic" %% "scalactic" % "3.0.0",
+  "org.scalatest" %% "scalatest" % "3.0.0"
+)
 
+lazy val catsVersion = "0.8.1"
+lazy val cats = Seq("org.typelevel" %% "cats" % catsVersion)
+
+lazy val circeVersion = "0.6.0"
+
+lazy val circe = Seq(
+  "io.circe" %% "circe-core",
+  "io.circe" %% "circe-generic",
+  "io.circe" %% "circe-parser"
+).map(_ % circeVersion)
