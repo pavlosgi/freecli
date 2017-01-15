@@ -53,6 +53,7 @@ object CommandFieldName {
     new CommandFieldName(name)
   }
 
-  implicit def showInstance: Show[CommandFieldName] =
-    (f: CommandFieldName) => s"${f.name}"
+  implicit def showInstance: Show[CommandFieldName] = new Show[CommandFieldName] {
+    def show(f: CommandFieldName): String = f.name
+  }
 }

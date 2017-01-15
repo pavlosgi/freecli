@@ -42,6 +42,7 @@ lazy val commonSettings = Seq(
   organization := "com.pavlosgi",
   scalaOrganization := "org.typelevel",
   scalaVersion := "2.12.0",
+  crossScalaVersions := Seq("2.11.8", "2.12.0"),
   offline := true,
   excludeFilter in unmanagedResources := NothingFilter,
   resolvers := Seq(
@@ -54,7 +55,13 @@ lazy val commonSettings = Seq(
   addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
   scalacOptions in (Compile, console) := Seq.empty,
   scalacOptions in (Test, console) := Seq.empty,
-  initialCommands in console := """""")
+  initialCommands in console := """""",
+  unmanagedSourceDirectories in Compile += {
+    (sourceDirectory in Compile).value / ("scala_" + scalaBinaryVersion.value)
+  },
+  unmanagedSourceDirectories in Test += {
+    (sourceDirectory in Test).value / ("scala_" + scalaBinaryVersion.value)
+  })
 
 lazy val scalacSettings = Seq(
   scalacOptions ++= Seq(
@@ -116,6 +123,7 @@ lazy val tagName = Def.setting{
 }
 
 lazy val releaseSettings = Seq(
+  releaseCrossBuild := true,
   releasePublishArtifactsAction := PgpKeys.publishSigned.value,
   releaseTagName := tagName.value,
   releaseProcess := Seq[ReleaseStep](
@@ -145,7 +153,7 @@ lazy val noPublishSettings = Seq(
   publishArtifact := false
 )
 
-lazy val shapeless = Seq("com.chuusai" % "shapeless_2.12" % "2.3.2")
+lazy val shapeless = Seq("com.chuusai" %% "shapeless" % "2.3.2")
 
 lazy val scalatest = Seq(
   "org.scalactic" %% "scalactic" % "3.0.0",

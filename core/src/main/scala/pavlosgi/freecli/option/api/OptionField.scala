@@ -15,16 +15,18 @@ sealed trait OptionField {
 }
 
 object OptionField {
-  implicit def showInstance: Show[OptionField] = {
-    case OptionFieldNameOnly(name, description) =>
-      name.show + description.fold("")(d => s" ${d.show}")
+  implicit def showInstance: Show[OptionField] = new Show[OptionField] {
+    def show(f: OptionField): String = f match {
+      case OptionFieldNameOnly(name, description) =>
+        name.show + description.fold("")(d => s" ${d.show}")
 
-    case OptionFieldAbbreviationOnly(abbr, description) =>
-      abbr.show + description.fold("")(d => s" ${d.show}")
+      case OptionFieldAbbreviationOnly(abbr, description) =>
+        abbr.show + description.fold("")(d => s" ${d.show}")
 
-    case OptionFieldNameAndAbbreviation(name, abbr, description) =>
-      name.show + ", " + abbr.show +
-        description.fold("")(d => s" ${d.show}")
+      case OptionFieldNameAndAbbreviation(name, abbr, description) =>
+        name.show + ", " + abbr.show +
+          description.fold("")(d => s" ${d.show}")
+    }
   }
 
   def withFieldName(field: OptionField, name: OptionFieldName): OptionField = {
@@ -121,8 +123,9 @@ object OptionFieldAbbreviation {
     new OptionFieldAbbreviation(abbr)
   }
 
-  implicit def showInstance: Show[OptionFieldAbbreviation] =
-    (f: OptionFieldAbbreviation) => s"-${f.abbr}"
+  implicit def showInstance: Show[OptionFieldAbbreviation] = new Show[OptionFieldAbbreviation] {
+    def show(f: OptionFieldAbbreviation): String = s"-${f.abbr}"
+  }
 }
 
 class OptionFieldName private(val name: String) {
@@ -143,5 +146,7 @@ object OptionFieldName {
     new OptionFieldName(name)
   }
 
-  implicit def showInstance: Show[OptionFieldName] = (f: OptionFieldName) => s"--${f.name}"
+  implicit def showInstance: Show[OptionFieldName] = new Show[OptionFieldName] {
+    def show(f: OptionFieldName): String = s"--${f.name}"
+  }
 }
