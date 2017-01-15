@@ -13,31 +13,31 @@ import pavlosgi.freecli.option.{dsl => O}
 case class ConfigDslBuilder[H <: HList, O, A](list: H)
 object ConfigDslBuilder {
   def arguments[A](a: A.ArgumentDsl[A]) = {
-    ConfigDslBuilder[A.ArgumentDsl[A] :: HNil, Unit, A](a :: HNil)
+    ConfigDslBuilder[A.ArgumentDsl[A] :: HNil, HNil, A](a :: HNil)
   }
 
   def options[O](o: O.OptionDsl[O]) = {
-    ConfigDslBuilder[O.OptionDsl[O] :: HNil, O, Unit](o :: HNil)
+    ConfigDslBuilder[O.OptionDsl[O] :: HNil, O, HNil](o :: HNil)
   }
 
   implicit def canProduceConfigDslFromOptions[O]:
-    CanProduce.Aux[ConfigDslBuilder[O.OptionDsl[O] :: HNil, O, Unit], ConfigDsl[O]] = {
+    CanProduce.Aux[ConfigDslBuilder[O.OptionDsl[O] :: HNil, O, HNil], ConfigDsl[O]] = {
 
-    new CanProduce[ConfigDslBuilder[O.OptionDsl[O] :: HNil, O, Unit]] {
+    new CanProduce[ConfigDslBuilder[O.OptionDsl[O] :: HNil, O, HNil]] {
       type Out = ConfigDsl[O]
-      def apply(v: ConfigDslBuilder[O.OptionDsl[O] :: HNil, O, Unit]): Out = {
+      def apply(v: ConfigDslBuilder[O.OptionDsl[O] :: HNil, O, HNil]): Out = {
         FreeApplicative.lift(Opts[O](v.list.head))
       }
     }
   }
 
   implicit def canProduceConfigDslFromArguments[A]:
-    CanProduce.Aux[ConfigDslBuilder[A.ArgumentDsl[A] :: HNil, Unit, A], ConfigDsl[A]] = {
+    CanProduce.Aux[ConfigDslBuilder[A.ArgumentDsl[A] :: HNil, HNil, A], ConfigDsl[A]] = {
 
-    new CanProduce[ConfigDslBuilder[A.ArgumentDsl[A] :: HNil, Unit, A]] {
+    new CanProduce[ConfigDslBuilder[A.ArgumentDsl[A] :: HNil, HNil, A]] {
       type Out = ConfigDsl[A]
       def apply(
-        v: ConfigDslBuilder[A.ArgumentDsl[A] :: HNil, Unit, A]):
+        v: ConfigDslBuilder[A.ArgumentDsl[A] :: HNil, HNil, A]):
         Out = {
 
         FreeApplicative.lift(Args[A](v.list.head))
@@ -78,7 +78,7 @@ object ConfigDslBuilder {
   implicit def argumentsDsl2ConfigDslBuilder[B, A](
     a: B)(
     implicit ev: CanProduce.Aux[B, A.ArgumentDsl[A]]):
-    ConfigDslBuilder[A.ArgumentDsl[A] :: HNil, Unit, A] = {
+    ConfigDslBuilder[A.ArgumentDsl[A] :: HNil, HNil, A] = {
 
     new ConfigDslBuilder(ev(a) :: HNil)
   }
@@ -86,7 +86,7 @@ object ConfigDslBuilder {
   implicit def optionsDsl2ConfigDslBuilder[B, O](
     o: B)(
     implicit ev: CanProduce.Aux[B, O.OptionDsl[O]]):
-    ConfigDslBuilder[O.OptionDsl[O] :: HNil, O, Unit] = {
+    ConfigDslBuilder[O.OptionDsl[O] :: HNil, O, HNil] = {
 
     new ConfigDslBuilder(ev(o) :: HNil)
   }

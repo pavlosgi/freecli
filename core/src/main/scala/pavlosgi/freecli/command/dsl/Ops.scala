@@ -12,14 +12,14 @@ import pavlosgi.freecli.core.poly.genericPoly
 
 trait Ops {
   def cmd(name: String) =
-    CommandDslBuilder[CommandFieldName :: HNil, Unit, Unit](
+    CommandDslBuilder[CommandFieldName :: HNil, HNil, HNil](
       CommandFieldName(name) :: HNil)
 
   def cmd(name: String, description: Description) =
-    CommandDslBuilder[CommandFieldName :: Description :: HNil, Unit, Unit](
+    CommandDslBuilder[CommandFieldName :: Description :: HNil, HNil, HNil](
       CommandFieldName(name) :: description :: HNil)
 
-  def takes[T](c: ConfigDsl[T]): CommandDslBuilder[ConfigDsl[T] :: HNil, T, Unit] = {
+  def takes[T](c: ConfigDsl[T]): CommandDslBuilder[ConfigDsl[T] :: HNil, T, HNil] = {
     CommandDslBuilder(c :: HNil)
   }
 
@@ -27,17 +27,17 @@ trait Ops {
   def takesT[Algebra[_], T <: HList, Tup](
     c: ConfigDsl[T])
    (implicit ev: Tupler.Aux[T, Tup]):
-    CommandDslBuilder[ConfigDsl[Tup] :: HNil, Tup, Unit] = {
+    CommandDslBuilder[ConfigDsl[Tup] :: HNil, Tup, HNil] = {
 
     CommandDslBuilder(c.map(ev.apply) :: HNil)
   }
 
   def runs[T](f: T => Unit) =
-   CommandDslBuilder[RunCommand[T] :: HNil, Unit, T](
+   CommandDslBuilder[RunCommand[T] :: HNil, HNil, T](
     RunCommand[T](f) :: HNil)
 
   def runs(f: => Unit) =
-    CommandDslBuilder[RunCommand[HNil] :: HNil, Unit, HNil](
+    CommandDslBuilder[RunCommand[HNil] :: HNil, HNil, HNil](
       RunCommand[HNil](_ => f) :: HNil)
 }
 
@@ -45,7 +45,7 @@ class Takes[T] {
   def apply[Algebra[_], Conf](
     f: FreeApplicative[C.Algebra, Conf])
    (implicit folder: LeftFolder.Aux[Conf :: HNil, Option[T], genericPoly.type, T]):
-    CommandDslBuilder[ConfigDsl[T] :: HNil, T, Unit] = {
+    CommandDslBuilder[ConfigDsl[T] :: HNil, T, HNil] = {
 
     CommandDslBuilder(f.map(c => folder(c :: HNil, Option.empty[T])) :: HNil)
   }

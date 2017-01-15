@@ -12,14 +12,14 @@ trait CommandDslBuilderImplicits {
   implicit def canProducePartialFromRun[H <: HList, Run](
     implicit ev: CanProduce.Aux[H, (CommandField, RunCommand[Run] :: HNil)]):
     CanProduce.Aux[
-      CommandDslBuilder[H, Unit, Run],
-      CommandDslBuilder[CommandDsl[PartialCommand[Run]] :: HNil, Unit, Run]] = {
+      CommandDslBuilder[H, HNil, Run],
+      CommandDslBuilder[CommandDsl[PartialCommand[Run]] :: HNil, HNil, Run]] = {
 
-    new CanProduce[CommandDslBuilder[H, Unit, Run]] {
-      type Out = CommandDslBuilder[CommandDsl[PartialCommand[Run]] :: HNil, Unit, Run]
+    new CanProduce[CommandDslBuilder[H, HNil, Run]] {
+      type Out = CommandDslBuilder[CommandDsl[PartialCommand[Run]] :: HNil, HNil, Run]
 
       def apply(
-        t: CommandDslBuilder[H, Unit, Run]):
+        t: CommandDslBuilder[H, HNil, Run]):
         Out = {
 
         val (field, rem) = ev(t.list)
@@ -37,10 +37,10 @@ trait CommandDslBuilderImplicits {
     prepend: Prepend.Aux[OutRun, Conf :: HNil, RunH]):
     CanProduce.Aux[
       CommandDslBuilder[H, Conf, Run],
-      CommandDslBuilder[CommandDsl[PartialCommand[OutRun]] :: HNil, Unit, OutRun]] = {
+      CommandDslBuilder[CommandDsl[PartialCommand[OutRun]] :: HNil, HNil, OutRun]] = {
 
     new CanProduce[CommandDslBuilder[H, Conf, Run]] {
-      type Out = CommandDslBuilder[CommandDsl[PartialCommand[OutRun]] :: HNil, Unit, OutRun]
+      type Out = CommandDslBuilder[CommandDsl[PartialCommand[OutRun]] :: HNil, HNil, OutRun]
 
       def apply(
         t: CommandDslBuilder[H, Conf, Run]):
@@ -67,10 +67,10 @@ trait CommandDslBuilderImplicits {
     equal: Conf =:= Run):
     CanProduce.Aux[
       CommandDslBuilder[H, Conf, Run],
-      CommandDslBuilder[CommandDsl[PartialCommand[HNil]] :: HNil, Unit, HNil]] = {
+      CommandDslBuilder[CommandDsl[PartialCommand[HNil]] :: HNil, HNil, HNil]] = {
 
     new CanProduce[CommandDslBuilder[H, Conf, Run]] {
-      type Out = CommandDslBuilder[CommandDsl[PartialCommand[HNil]] :: HNil, Unit, HNil]
+      type Out = CommandDslBuilder[CommandDsl[PartialCommand[HNil]] :: HNil, HNil, HNil]
 
       def apply(
         t: CommandDslBuilder[H, Conf, Run]):
@@ -92,7 +92,6 @@ trait CommandDslBuilderImplicits {
     }
   }
 
-
   implicit def canProducePartialFromConfigAndPartial[H <: HList, Conf, Run, RunH <: HList, OutRun <: HList](
     implicit ev: CanProduce.Aux[H, (CommandField, C.ConfigDsl[Conf] :: CommandDsl[PartialCommand[Run]] :: HNil)],
     runToFrom: ToFromHList[Run, RunH],
@@ -100,10 +99,10 @@ trait CommandDslBuilderImplicits {
     prepend: Prepend.Aux[OutRun, Conf :: HNil, RunH]):
     CanProduce.Aux[
       CommandDslBuilder[H, Conf, Run],
-      CommandDslBuilder[CommandDsl[PartialCommand[OutRun]] :: HNil, Unit, OutRun]] = {
+      CommandDslBuilder[CommandDsl[PartialCommand[OutRun]] :: HNil, HNil, OutRun]] = {
 
     new CanProduce[CommandDslBuilder[H, Conf, Run]] {
-      type Out = CommandDslBuilder[CommandDsl[PartialCommand[OutRun]] :: HNil, Unit, OutRun]
+      type Out = CommandDslBuilder[CommandDsl[PartialCommand[OutRun]] :: HNil, HNil, OutRun]
 
       def apply(
         t: CommandDslBuilder[H, Conf, Run]):
@@ -129,14 +128,14 @@ trait CommandDslBuilderImplicits {
   implicit def canProducePartialFromPartial[H <: HList, Run](
     implicit ev: CanProduce.Aux[H, (CommandField, CommandDsl[PartialCommand[Run]] :: HNil)]):
     CanProduce.Aux[
-      CommandDslBuilder[H, Unit, Run],
-      CommandDslBuilder[CommandDsl[PartialCommand[Run]] :: HNil, Unit, Run]] = {
+      CommandDslBuilder[H, HNil, Run],
+      CommandDslBuilder[CommandDsl[PartialCommand[Run]] :: HNil, HNil, Run]] = {
 
-    new CanProduce[CommandDslBuilder[H, Unit, Run]] {
-      type Out = CommandDslBuilder[CommandDsl[PartialCommand[Run]] :: HNil, Unit, Run]
+    new CanProduce[CommandDslBuilder[H, HNil, Run]] {
+      type Out = CommandDslBuilder[CommandDsl[PartialCommand[Run]] :: HNil, HNil, Run]
 
       def apply(
-        t: CommandDslBuilder[H, Unit, Run]):
+        t: CommandDslBuilder[H, HNil, Run]):
         Out = {
 
         val (field, rem) = ev(t.list)
@@ -148,7 +147,7 @@ trait CommandDslBuilderImplicits {
   }
 
   implicit def flattenBuilderCommandDsl[P, F](
-    b: CommandDslBuilder[CommandDsl[PartialCommand[P]] :: HNil, Unit, P])(
+    b: CommandDslBuilder[CommandDsl[PartialCommand[P]] :: HNil, HNil, P])(
     implicit ev: FlattenPartialCommand[P]):
     FreeAlternative[Algebra, Command] = {
 

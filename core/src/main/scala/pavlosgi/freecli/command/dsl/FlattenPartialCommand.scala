@@ -12,8 +12,4 @@ object FlattenPartialCommand {
   implicit def flattenCommandHNil = new FlattenPartialCommand[HNil] {
     def apply(p: PartialCommand[HNil]): Command = p.f(HNil)
   }
-
-  implicit def flattenCommandUnit = new FlattenPartialCommand[Unit] {
-    def apply(p: PartialCommand[Unit]): Command = p.f(())
-  }
 }

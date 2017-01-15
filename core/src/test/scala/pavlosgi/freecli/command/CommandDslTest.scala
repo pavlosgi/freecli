@@ -75,19 +75,6 @@ class CommandDslTest extends Test {
       }: CommandDsl[Command]
     }
 
-    it("does not compile for command with config subcommands if parent has no config") {
-      case class A(parentString: String, subString: String)
-      illTyped("""
-        cmd("command1") {
-          subcommands[String] { parent =>
-            cmd("subcommand1") {
-              takesG[String](parent :: O.string -- "second" -~ req) ::
-              runs[A](s => ())
-            }
-          }
-        }: CommandDsl[Command]""")
-    }
-
     it("compiles for command with multiple subcommands") {
       cmd("command1") {
         cmd("subcommand1") {

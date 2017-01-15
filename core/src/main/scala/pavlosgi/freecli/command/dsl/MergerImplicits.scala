@@ -65,19 +65,19 @@ trait MergerImplicits {
     implicit ev: ToFromHList[R1, RH],
     ev2: ToFromHList[R2, RH]):
     CanMerge.Aux[
-      CommandDslBuilder[CommandDsl[PartialCommand[R1]] :: HNil, Unit, R1],
-      CommandDslBuilder[CommandDsl[PartialCommand[R2]] :: HNil, Unit, R2],
-      CommandDslBuilder[CommandDsl[PartialCommand[RH]] :: HNil, Unit, RH]] = {
+      CommandDslBuilder[CommandDsl[PartialCommand[R1]] :: HNil, HNil, R1],
+      CommandDslBuilder[CommandDsl[PartialCommand[R2]] :: HNil, HNil, R2],
+      CommandDslBuilder[CommandDsl[PartialCommand[RH]] :: HNil, HNil, RH]] = {
 
     new CanMerge[
-      CommandDslBuilder[CommandDsl[PartialCommand[R1]] :: HNil, Unit, R1],
-      CommandDslBuilder[CommandDsl[PartialCommand[R2]] :: HNil, Unit, R2]] {
+      CommandDslBuilder[CommandDsl[PartialCommand[R1]] :: HNil, HNil, R1],
+      CommandDslBuilder[CommandDsl[PartialCommand[R2]] :: HNil, HNil, R2]] {
 
-      type Out = CommandDslBuilder[CommandDsl[PartialCommand[RH]] :: HNil, Unit, RH]
+      type Out = CommandDslBuilder[CommandDsl[PartialCommand[RH]] :: HNil, HNil, RH]
 
       def apply(
-        h1: CommandDslBuilder[CommandDsl[PartialCommand[R1]] :: HNil, Unit, R1],
-        h2: CommandDslBuilder[CommandDsl[PartialCommand[R2]] :: HNil, Unit, R2]):
+        h1: CommandDslBuilder[CommandDsl[PartialCommand[R1]] :: HNil, HNil, R1],
+        h2: CommandDslBuilder[CommandDsl[PartialCommand[R2]] :: HNil, HNil, R2]):
         Out = {
 
         val dsl =
