@@ -1,8 +1,7 @@
-package pavlosgi.freecli.core
+package pavlosgi.freecli.core.api
 
 import java.io.File
 
-import pavlosgi.freecli.core.api.{ExistentFile, NewFile, StringDecoder}
 import pavlosgi.freecli.testkit.Test
 
 class StringDecoderTest extends Test {

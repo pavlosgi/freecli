@@ -3,7 +3,8 @@ package pavlosgi.freecli.config.help
 import pavlosgi.freecli.config.dsl.ConfigDsl
 import pavlosgi.freecli.core.formatting._
 
-trait Ops {
+object ops extends HelpOps
+trait HelpOps {
   def configHelp[A](dsl: ConfigDsl[A]): String = {
     val config = dsl.analyze(ConfigHelpInterpreter)
 

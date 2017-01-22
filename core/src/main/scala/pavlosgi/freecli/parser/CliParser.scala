@@ -7,52 +7,87 @@ import cats.syntax.all._
 
 import pavlosgi.freecli.core.formatting._
 
-case class CliParser[E, A](value: EitherT[State[CliArguments, ?], CliFailure[E], A]) {
-  def map[B](f: A => B): CliParser[E, B] = {
+case class CliParser[A, E, T](value: EitherT[State[CliArguments, ?], EarlyTermination[A, E], T]) {
+  def map[B](f: T => B): CliParser[A, E, B] = {
     CliParser(value.map(f))
   }
 
-  def flatMap[B](f: A => CliParser[E, B]): CliParser[E, B] = {
+  def flatMap[B](f: T => CliParser[A, E, B]): CliParser[A, E, B] = {
     CliParser(value.flatMap(f(_).value))
   }
 
-  def leftMapInner[B](f: E => B): CliParser[B, A] = {
+  def mapError[B](f: E => B): CliParser[A, B, T] = {
     CliParser(value.leftMap {
-      case CliFailure(Left(HelpRequested)) => CliFailure.help[B]
-      case CliFailure(Right(errors)) => CliFailure.errors(errors.map(f))
+      case ErrorTermination(errors) => ErrorTermination(errors.map(f))
+      case ActionTermination(a) => ActionTermination(a)
     })
   }
 
-  def leftMap[B](f: NonEmptyList[E] => NonEmptyList[B]): CliParser[B, A] = {
+  def mapErrors[B](f: NonEmptyList[E] => NonEmptyList[B]): CliParser[A, B, T] = {
     CliParser(value.leftMap {
-      case CliFailure(Left(HelpRequested)) => CliFailure.help[B]
-      case CliFailure(Right(ers)) => CliFailure.errors(f(ers))
+      case ErrorTermination(ers) => ErrorTermination(f(ers))
+      case ActionTermination(a) => ActionTermination(a)
     })
+  }
+
+  def mapAction[Ac2](f: A => Ac2): CliParser[Ac2, E, T] = {
+    CliParser(value.leftMap {
+      case ActionTermination(a) => ActionTermination(f(a))
+      case ErrorTermination(ers) => ErrorTermination(ers)
+    })
+  }
+
+  def failIfNotAllArgumentsUsed(e: CliArguments => E): CliParser[A, E, T] = {
+    val st = for {
+      res <- value.value
+      args <- value.value.get
+    } yield {
+      res match {
+        case Left(ErrorTermination(ers)) if args.usable.nonEmpty =>
+          Left[ErrorTermination[A, E], T](ErrorTermination(ers ++ List(e(args))))
+
+        case _ if args.usable.nonEmpty =>
+          Left[ErrorTermination[A, E], T](ErrorTermination(NonEmptyList.of(e(args))))
+
+        case r => r
+      }
+    }
+
+    CliParser(EitherT[State[CliArguments, ?], EarlyTermination[A, E], T](st))
+  }
+
+  def run(args: Seq[String]): Result[A, E, T] = {
+    val (_, res) = CliParser.run[A, E, T](args)(this)
+    res match {
+      case Right(v) => Success[A, E, T](v)
+      case Left(ActionTermination(a)) => Action[A, E, T](a)
+      case Left(ErrorTermination(e)) => Failure[A, E, T](e)
+    }
   }
 }
 
 object CliParser {
-  implicit def monadInstance[E, S] = new Monad[CliParser[E, ?]] {
-    def flatMap[A, B](fa: CliParser[E, A])(f: A => CliParser[E, B]): CliParser[E, B] = {
+  implicit def monadInstance[A, E, S] = new Monad[CliParser[A, E, ?]] {
+    def flatMap[T, B](fa: CliParser[A, E, T])(f: T => CliParser[A, E, B]): CliParser[A, E, B] = {
       CliParser(fa.value.flatMap(f(_).value))
     }
 
-    def tailRecM[A, B](a: A)(f: A => CliParser[E, Either[A, B]]): CliParser[E, B] = {
+    def tailRecM[T, B](a: T)(f: T => CliParser[A, E, Either[T, B]]): CliParser[A, E, B] = {
       CliParser(
-        implicitly[Monad[EitherT[State[CliArguments, ?], CliFailure[E], ?]]]
+        implicitly[Monad[EitherT[State[CliArguments, ?], EarlyTermination[A, E], ?]]]
           .tailRecM(a)(a => f(a).value))
     }
 
-    def pure[A](x: A): CliParser[E, A] = CliParser(EitherT.pure(x))
+    def pure[T](x: T): CliParser[A, E, T] = CliParser(EitherT.pure(x))
 
-    override def ap[A, B](ff: CliParser[E, A => B])(fa: CliParser[E, A]): CliParser[E, B] = {
+    override def ap[T, B](ff: CliParser[A, E, T => B])(fa: CliParser[A, E, T]): CliParser[A, E, B] = {
       CliParser(EitherT(
         fa.value.value.flatMap { ei =>
           ff.value.withValidated(f => Validated.fromEither(ei).ap(f)).value
         }))
     }
 
-    override def product[A, B](fa: CliParser[E, A], fb: CliParser[E, B]): CliParser[E, (A, B)] = {
+    override def product[T, B](fa: CliParser[A, E, T], fb: CliParser[A, E, B]): CliParser[A, E, (T, B)] = {
       CliParser.fromEitherState(
         for {
           ei1 <- fa.value.value
@@ -76,30 +111,31 @@ object CliParser {
     }
   }
 
-  def run[E, A](
+  def run[A, E, T](
     args: Seq[String])
-   (cliParser: CliParser[E, A]):
-    (CliArguments, Either[CliFailure[E], A]) = {
+   (cliParser: CliParser[A, E, T]):
+    (CliArguments, Either[EarlyTermination[A, E], T]) = {
 
     cliParser.value.value.run(CliArguments(
       args.map(a => CliArgument(a, isUsable = true)))).value
   }
 
-  def runOrFail[E, A](
+  def runOrFail[A, E, T](
     args: Seq[String],
-    help: Seq[String] => String)
-   (cliParser: CliParser[E, A])
+    help: String,
+    action: A => Unit)
+   (cliParser: CliParser[A, E, T])
    (implicit ev: Error[E]):
-    A = {
+    T = {
 
     val (arguments, res) = run(args)(cliParser)
     res match {
       case Right(v)  => v
-      case Left(CliFailure(Left(HelpRequested))) =>
-        println(help(arguments.unusable.map(_.name)))
+      case Left(ActionTermination(a)) =>
+        action(a)
         sys.exit(1)
 
-      case Left(CliFailure(Right(ers))) =>
+      case Left(ErrorTermination(ers)) =>
         val errorsDisplay =
           s"""
            |${"Errors:".underline.bold.red}
@@ -123,79 +159,87 @@ object CliParser {
           s"""$errorsDisplay
              |
              |$parsingDetailDisplay
-             |${help(arguments.unusable.map(_.name))}
+             |$help
              |""".stripMargin)
 
         sys.exit(1)
     }
   }
 
-  def fromState[E, A](
-    s: State[CliArguments, A]):
-    CliParser[E, A] = {
+  def fromState[A, E, T](
+    s: State[CliArguments, T]):
+    CliParser[A, E, T] = {
 
     CliParser(EitherT(s.map(Either.right)))
   }
 
-  def fromEitherState[E, A](
-    s: State[CliArguments, Either[CliFailure[E], A]]):
-    CliParser[E, A] = {
+  def fromEitherState[A, E, T](
+    s: State[CliArguments, Either[EarlyTermination[A, E], T]]):
+    CliParser[A, E, T] = {
 
     CliParser(EitherT(s))
   }
 
-  def get[E]: CliParser[E, CliArguments] = {
-    CliParser(EitherT(State.get[CliArguments].map(Either.right)))
+  def get[A, E]: CliParser[A, E, CliArguments] = {
+    CliParser[A, E, CliArguments](EitherT(State.get[CliArguments].map(Either.right)))
   }
 
-  def set[E](state: CliArguments): CliParser[E, Unit] = {
+  def set[A, E](state: CliArguments): CliParser[A, E, Unit] = {
     fromState(State.set(state))
   }
 
-  def modify[E](f: CliArguments => CliArguments): CliParser[E, Unit] = {
+  def modify[A, E](f: CliArguments => CliArguments): CliParser[A, E, Unit] = {
     fromState(State.modify[CliArguments](f))
   }
 
-  def setArgs[E](args: CliArguments): CliParser[E, Unit] = {
+  def setArgs[A, E](args: CliArguments): CliParser[A, E, Unit] = {
     set(args)
   }
 
-  def getArgs[E]: CliParser[E, CliArguments] = {
-    get[E]
+  def getArgs[A, E]: CliParser[A, E, CliArguments] = {
+    get[A, E]
   }
 
-  def success[E, A](v: A): CliParser[E, A] = {
+  def success[A, E, T](v: T): CliParser[A, E, T] = {
     CliParser(EitherT.fromEither(Right(v)))
   }
 
-  def failed[E, A](error: E): CliParser[E, A] = {
-    CliParser(EitherT.fromEither(Left(CliFailure.errors(NonEmptyList.of(error)))))
+  def error[A, E, T](error: E): CliParser[A, E, T] = {
+    errors(NonEmptyList.of(error))
   }
 
-  def fromEither[E, A](v: Either[NonEmptyList[E], A]): CliParser[E, A] = {
-    CliParser(EitherT.fromEither(v.leftMap(CliFailure.errors)))
+  def errors[A, E, T](errors: NonEmptyList[E]): CliParser[A, E, T] = {
+    CliParser(EitherT.fromEither(Left(ErrorTermination(errors))))
   }
 
-  def fromValidated[E, A](v: ValidatedNel[E, A]): CliParser[E, A] = {
-    CliParser(EitherT.fromEither(v.toEither.leftMap(CliFailure.errors)))
+  def action[A, E, T](action: A): CliParser[A, E, T] = {
+    CliParser(EitherT.fromEither(Left(ActionTermination(action))))
   }
 
-  def extractNext[E]: CliParser[E, Option[String]] = {
+  def fromEither[A, E, T](v: Either[NonEmptyList[E], T]): CliParser[A, E, T] = {
+    CliParser(EitherT.fromEither(v.leftMap(e => ErrorTermination[A, E](e))))
+  }
+
+  def fromValidated[A, E, T](v: ValidatedNel[E, T]): CliParser[A, E, T] = {
+    CliParser(EitherT.fromEither(v.toEither.leftMap(e => ErrorTermination[A, E](e))))
+  }
+
+  def extractNext[A, E]: CliParser[A, E, Option[String]] = {
     for {
-      args <- getArgs[E]
+      args <- getArgs[A, E]
       res  = args.args.zipWithIndex.collectFirst {
         case (CliArgument(value, true), idx) =>
           Some(idx) -> Some(value)
 
       }.getOrElse(None -> None)
 
-      _    <- res._1.traverseU(idx => markUnusable[E](idx))
+      _    <- res._1.traverseU(idx => markUnusable[A, E](idx))
     } yield res._2
   }
 
-  def extractNextIfMatches[E](f: String => Boolean): CliParser[E, Option[String]] = {
+  def extractNextIf[A, E](f: String => Boolean): CliParser[A, E, Option[String]] = {
     for {
-      args <- getArgs[E]
+      args <- getArgs[A, E]
       res  = args.args.zipWithIndex.find(a => a._1.isUsable) match {
         case Some((a, idx)) if f(a.name) =>
           Some(idx) -> Some(a.name)
@@ -204,28 +248,28 @@ object CliParser {
           None -> None
       }
 
-      _    <- res._1.traverseU(idx => markUnusable[E](idx))
+      _    <- res._1.traverseU(idx => markUnusable[A, E](idx))
     } yield res._2
   }
 
-  def extract[E](f: String => Boolean): CliParser[E, Option[String]] = {
+  def extract[A, E](f: String => Boolean): CliParser[A, E, Option[String]] = {
     for {
-      args <- getArgs[E]
+      args <- getArgs[A, E]
       res = args.args.zipWithIndex.collectFirst {
         case (CliArgument(value, true), idx) if f(value) =>
           Option(idx) -> Some(value)
 
       }.getOrElse(None -> None)
 
-      _    <- res._1.traverseU(idx => markUnusable[E](idx))
+      _    <- res._1.traverseU(idx => markUnusable[A, E](idx))
     } yield res._2
   }
 
-  def extractPair[E](f: String => Boolean): CliParser[E, ExtractPair] = {
+  def extractPair[A, E](f: String => Boolean): CliParser[A, E, ExtractPair] = {
     case class Extraction(markUnused: List[Int], extractPair: ExtractPair)
 
     for {
-      args <- getArgs[E]
+      args <- getArgs[A, E]
       res  = args.args.zipWithIndex.sliding(2).collectFirst {
         case List((arg1, idx1), (arg2, idx2)) if arg1.isUsable && arg2.isUsable && f(arg1.name) =>
           Extraction(List(idx1, idx2), ExtractPair(Some(arg1.name), Some(arg2.name)))
@@ -235,14 +279,14 @@ object CliParser {
 
       }.getOrElse(Extraction(List.empty, ExtractPair(None, None)))
 
-      _    <- res.markUnused.traverseU(idx => markUnusable[E](idx))
+      _    <- res.markUnused.traverseU(idx => markUnusable[A, E](idx))
 
     } yield res.extractPair
   }
 
-  def markUnusable[E](idx: Int): CliParser[E, Unit] = {
+  def markUnusable[A, E](idx: Int): CliParser[A, E, Unit] = {
     for {
-      args    <- getArgs[E]
+      args    <- getArgs[A, E]
       newArgs = args.args.zipWithIndex.map {
         case (CliArgument(v, _), index) if index === idx =>
           CliArgument(v, isUsable = false)
@@ -253,28 +297,5 @@ object CliParser {
       _ <- setArgs(CliArguments(newArgs))
 
     } yield ()
-  }
-
-  def markUnusableBeforeLastUsed[E]: CliParser[E, Unit] = {
-    for {
-      args <- getArgs[E]
-      lastUsed = args.args.filter(_.isUsable).zipWithIndex.map(_._2)
-        .lastOption.getOrElse(0)
-
-      newArgs = CliArguments(
-        args.args.zipWithIndex.map {
-          case (CliArgument(v, _), idx) if idx < lastUsed =>
-            CliArgument(v, isUsable = false)
-
-          case (a, _) => a
-        })
-
-      _ <- setArgs(newArgs)
-
-    } yield ()
-  }
-
-  def displayHelp[E]: CliParser[E, Unit] = {
-    CliParser(EitherT.fromEither(Left(CliFailure.help[E])))
   }
 }

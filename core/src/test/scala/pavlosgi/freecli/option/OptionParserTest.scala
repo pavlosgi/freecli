@@ -3,49 +3,50 @@ package pavlosgi.freecli.option
 import shapeless._
 
 import pavlosgi.freecli.core.all._
+import pavlosgi.freecli.option.api.{HelpAction, VersionAction}
 import pavlosgi.freecli.option.all._
 import pavlosgi.freecli.testkit.Test
-import pavlosgi.freecli.Helpers._
 import pavlosgi.freecli.option.parser._
+import pavlosgi.freecli.Helpers._
 
 class OptionParserTest extends Test {
   describe("Options parser") {
     it("parse string option with name") {
-      val res = parseOptions(Seq("--host", "localhost"))(string --"host")
-      res.valid should === (Some("localhost"))
+      val res = parseOption(string --"host").run(Seq("--host", "localhost"))
+      res.success should === (Some("localhost"))
     }
 
     it("parse option if missing") {
-      val res = parseOptions(Seq())(string --"debug" -'d')
-      res.valid should === (None)
+      val res = parseOption(string --"debug" -'d').run(Seq())
+      res.success should === (None)
     }
 
     it("parse string option with abbreviation") {
-      val res = parseOptions(Seq("-h", "localhost"))(string -'h')
-      res.valid should === (Some("localhost"))
+      val res = parseOption(string -'h').run(Seq("-h", "localhost"))
+      res.success should === (Some("localhost"))
     }
 
     it("parse string option with both name and abbreviation using abbreviation") {
-      val res = parseOptions(Seq("-h", "localhost"))(string --"host" -'h')
-      res.valid should === (Some("localhost"))
+      val res = parseOption(string --"host" -'h').run(Seq("-h", "localhost"))
+      res.success should === (Some("localhost"))
     }
 
     it("parse string option with both name and abbreviation using name") {
-      val res = parseOptions(Seq("--host", "localhost"))(string --"host" -'h')
-      res.valid should === (Some("localhost"))
+      val res = parseOption(string --"host" -'h').run(Seq("--host", "localhost"))
+      res.success should === (Some("localhost"))
     }
 
     it("fail to parse string option using the wrong field name format") {
       val dsl = string --"host" -'h' -~ req
-      val res = parseOptions(Seq("-host", "localhost"))(dsl)
+      val res = parseOption(dsl).run(Seq("-host", "localhost"))
 
-      res.invalid.errors.toList.collect {
+      res.failure.toList.collect {
         case c: AdditionalArgumentsFound => c.getClass.getName
       }.distinct.size should === (1)
 
-      val res1 = parseOptions(Seq("host", "localhost"))(dsl)
+      val res1 = parseOption(dsl).run(Seq("host", "localhost"))
 
-      res1.invalid.errors.toList.collect {
+      res1.failure.toList.collect {
         case c: AdditionalArgumentsFound => c.getClass.getName
         case c: OptionFieldMissing => c.getClass.getName
       }.distinct.size should === (2)
@@ -53,16 +54,16 @@ class OptionParserTest extends Test {
 
     it("fail to parse string option using the wrong field abbreviation format") {
       val dsl = string --"host" -'h' -~ req
-      val res = parseOptions(Seq("--h", "localhost"))(dsl)
+      val res = parseOption(dsl).run(Seq("--h", "localhost"))
 
-      res.invalid.errors.toList.collect {
+      res.failure.toList.collect {
         case c: AdditionalArgumentsFound => c.getClass.getName
         case c: OptionFieldMissing => c.getClass.getName
       }.distinct.size should === (2)
 
-      val res1 = parseOptions(Seq("h", "localhost"))(dsl)
+      val res1 = parseOption(dsl).run(Seq("h", "localhost"))
 
-      res1.invalid.errors.toList.collect {
+      res1.failure.toList.collect {
         case c: AdditionalArgumentsFound => c.getClass.getName
         case c: OptionFieldMissing => c.getClass.getName
       }.distinct.size should === (2)
@@ -70,83 +71,83 @@ class OptionParserTest extends Test {
 
     it("fail to parse string option if value not provided") {
       val dsl = string --"host" -'h'
-      val res = parseOptions(Seq("-h"))(dsl)
-      res.invalid.errors.toList.collect {
+      val res = parseOption(dsl).run(Seq("-h"))
+      res.failure.toList.collect {
         case c: AdditionalArgumentsFound => c.getClass.getName
         case c: OptionFieldValueMissing => c.getClass.getName
       }.distinct.size should === (2)
     }
 
     it("parse string option with default") {
-      val res = parseOptions(Seq())(string --"host" -'h'-~ or("myhost"))
-      res.valid should === ("myhost")
+      val res = parseOption(string --"host" -'h'-~ or("myhost")).run(Seq())
+      res.success should === ("myhost")
     }
 
     it("parse string option with default and override") {
-      val res = parseOptions(Seq("--host", "localhost"))(
-                  string --"host" -'h' -~ or("myhost"))
+      val res = parseOption(string --"host" -'h' -~ or("myhost"))
+        .run(Seq("--host", "localhost"))
 
-      res.valid should === ("localhost")
+      res.success should === ("localhost")
     }
 
     it("parse int option with default") {
-      val res = parseOptions(Seq("-p", "8080"))(int --"port" -'p' -~ or(5432))
-      res.valid should === (8080)
+      val res = parseOption(int --"port" -'p' -~ or(5432)).run(Seq("-p", "8080"))
+      res.success should === (8080)
     }
 
     it("fail to parse int option") {
-      val res = parseOptions(Seq("-p", "8080s"))(int --"port" -'p' -~ or(5432))
+      val res = parseOption(int --"port" -'p' -~ or(5432)).run(Seq("-p", "8080s"))
 
-      res.invalid.errors.toList.collect {
+      res.failure.toList.collect {
         case c: FailedToDecodeOption => c.getClass.getName
       }.distinct.size should === (1)
     }
 
     it("parse flag option") {
-      val res = parseOptions(Seq("--debug"))(flag --"debug" -'d')
-      res.valid should === (true)
+      val res = parseOption(flag --"debug" -'d').run(Seq("--debug"))
+      res.success should === (true)
     }
 
     it("parse flag option if flag is missing") {
-      val res = parseOptions(Seq())(flag --"debug" -'d')
-      res.valid should === (false)
+      val res = parseOption(flag --"debug" -'d').run(Seq())
+      res.success should === (false)
     }
 
     it("parse required option") {
-      val res = parseOptions(Seq("--debug", "true"))(string --"debug" -'d' -~ req)
-      res.valid should === ("true")
+      val res = parseOption(string --"debug" -'d' -~ req).run(Seq("--debug", "true"))
+      res.success should === ("true")
     }
 
     it("parse required option missing") {
-      val res = parseOptions(Seq())(string --"debug" -'d')
-      res.valid should === (None)
+      val res = parseOption(string --"debug" -'d').run(Seq())
+      res.success should === (None)
     }
 
     it("fail to parse required option") {
-      val res = parseOptions(Seq("--debug", "value"))(int --"debug" -'d')
-      res.invalid.errors.toList.collect {
+      val res = parseOption(int --"debug" -'d').run(Seq("--debug", "value"))
+      res.failure.toList.collect {
         case c: FailedToDecodeOption => c.getClass.getName
       }.distinct.size should === (1)
 
-      val res2 = parseOptions(Seq("--debug"))(int --"debug" -'d')
-      res2.invalid.errors.toList.collect {
+      val res2 = parseOption(int --"debug" -'d').run(Seq("--debug"))
+      res2.failure.toList.collect {
         case c: AdditionalArgumentsFound => c.getClass.getName
         case c: OptionFieldValueMissing => c.getClass.getName
       }.distinct.size should === (2)
     }
 
     it("parse tuple string int with name") {
-      val res = parseOptions(Seq("--host", "localhost", "--port", "8080"))(
-        groupT(string --"host" :: int --"port"))
+      val res = parseOption(groupT(string --"host" :: int --"port"))
+        .run(Seq("--host", "localhost", "--port", "8080"))
 
-      res.valid should === (Some("localhost") -> Some(8080))
+      res.success should === (Some("localhost") -> Some(8080))
     }
 
     it("parse hlist string int with name") {
-      val res = parseOptions(Seq("--host", "localhost", "--port", "8080"))(
-        string --"host" :: int --"port")
+      val res = parseOption(string --"host" :: int --"port")
+        .run(Seq("--host", "localhost", "--port", "8080"))
 
-      res.valid should === (Some("localhost") :: Some(8080) :: HNil)
+      res.success should === (Some("localhost") :: Some(8080) :: HNil)
     }
 
     it("parse options to build type") {
@@ -159,8 +160,9 @@ class OptionParserTest extends Test {
           flag   --"debug1"
         }
 
-      val res = parseOptions(Seq("--host", "localhost", "--port", "8080", "--debug1"))(dsl)
-      res.valid should === (ServerConfig(Some("localhost"), Some(8080), true))
+      val res = parseOption(dsl)
+        .run(Seq("--host", "localhost", "--port", "8080", "--debug1"))
+      res.success should === (ServerConfig(Some("localhost"), Some(8080), true))
     }
 
     it("parse options to build type with subconfiguration") {
@@ -178,19 +180,19 @@ class OptionParserTest extends Test {
           }
         }
 
-      val res = parseOptions(
-                  Seq(
-                    "--host",
-                    "localhost",
-                    "--port",
-                    "8080",
-                    "--debug",
-                    "--dbhost",
-                    "postgresql",
-                    "--dbport",
-                    "5432"))(dsl)
+      val res = parseOption(dsl)
+        .run(Seq(
+          "--host",
+          "localhost",
+          "--port",
+          "8080",
+          "--debug",
+          "--dbhost",
+          "postgresql",
+          "--dbport",
+          "5432"))
 
-      res.valid should === (ServerConfig(
+      res.success should === (ServerConfig(
                               "localhost",
                               8080,
                               true,
@@ -208,7 +210,7 @@ class OptionParserTest extends Test {
           flag   - 't'
         }
 
-      parseOptions(Seq("-pnst"))(dsl).valid should === (
+      parseOption(dsl).run(Seq("-pnst")).success should === (
         Flags(first = true, second = true, third = true, fourth = true))
 
       case class Flags2(first: Boolean, second: Boolean, third: Option[String])
@@ -220,9 +222,8 @@ class OptionParserTest extends Test {
           string - 's'
         }
 
-      parseOptions(Seq("-pn", "-s", "string"))(dsl2).valid should === (
+      parseOption(dsl2).run(Seq("-pn", "-s", "string")).success should === (
         Flags2(true, true, Some("string")))
-
     }
 
     it("should escape multiple field abbreviation split") {
@@ -233,7 +234,39 @@ class OptionParserTest extends Test {
           string -'p' -~ req
         }
 
-      parseOptions(Seq("-p", "-host"))(dsl).valid should === (A("-host"))
+      parseOption(dsl).run(Seq("-p", "-host")).success should === (A("-host"))
+    }
+
+    it("parse options and display help") {
+      case class A(first: String)
+
+      val dsl =
+        group[A] {
+          string   -'p' -~ req ::
+          ops.help --"help"
+        }
+
+      val action = parseOption(dsl).run(Seq("--help")).action
+
+      Option(action).collect {
+        case _: HelpAction.type => true
+      }.exists(identity) should === (true)
+    }
+
+    it("parse options and display version") {
+      case class A(first: String)
+
+      val dsl =
+        group[A] {
+          string   -'p' -~ req ::
+          ops.version --"version" -~ ops.value("1.0")
+        }
+
+      val action = parseOption(dsl).run(Seq("--version")).action
+
+      Option(action).collect {
+        case _: VersionAction => true
+      }.exists(identity) should === (true)
     }
 
     it("should throw a runtime exception for bad field names") {

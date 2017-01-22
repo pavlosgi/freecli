@@ -1,34 +1,31 @@
 package pavlosgi.freecli.option.parser
 
-import cats.data.{NonEmptyList, Validated}
-import cats.syntax.all._
-
+import pavlosgi.freecli.option.api.Action
 import pavlosgi.freecli.option.dsl.OptionDsl
-import pavlosgi.freecli.parser.CliFailure
-import pavlosgi.freecli.{parser => P}
+import pavlosgi.freecli.parser.CliParser
 
-trait Ops {
-  def parseOptions[A](
-    args: Seq[String])
-   (dsl: OptionDsl[A]):
-    Validated[CliFailure[OptionParsingError], A] = {
+object ops extends ParserOps
+trait ParserOps {
+  private[freecli] def parseOptionNonStrict[T](
+    dsl: OptionDsl[T]):
+    CliParser[Action, OptionParsingError, T] = {
 
-    val (arguments, res) =
-      P.CliParser.run(args)(dsl.foldMap(OptionParserInterpreter))
+    for {
+      r <- dsl.foldMap(OptionParserInterpreter)
+      args <- CliParser.getArgs
+      _ <- args.unusedOutOfOrder match {
+        case Nil => CliParser.success[Action, OptionParsingError, Unit](())
+        case l   => CliParser.error[Action, OptionParsingError, Unit](
+          ArgumentsDidNotMatchAnyOptions(l.map(_.name)))
+      }
+    } yield r
+  }
 
-    arguments.usable match {
-      case Nil => res.toValidated
-      case u =>
-        val error = CliFailure.errors[OptionParsingError](
-          NonEmptyList.of(AdditionalArgumentsFound(u.map(_.name))))
+  def parseOption[T](
+    dsl: OptionDsl[T]):
+    CliParser[Action, OptionParsingError, T] = {
 
-        res match {
-          case Left(failure) =>
-            Validated.invalid(failure.combine(error))
-
-          case Right(_) =>
-            Validated.invalid(error)
-        }
-    }
+    parseOptionNonStrict(dsl).failIfNotAllArgumentsUsed(
+      args => AdditionalArgumentsFound(args.args.map(_.name)))
   }
 }

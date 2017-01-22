@@ -66,6 +66,16 @@ class CommandDslTest extends Test {
       }
     }
 
+    it("compiles for command with help and subcommand") {
+      cmd("command1") {
+        takes(O.help -'h') ::
+        cmd("command2") {
+          takes(O.int -'i') ::
+          runs[Option[Int]](_ => ())
+        }
+      }
+    }
+
     it("compiles for command with subcommands") {
       cmd("command1") {
         cmd("subcommand1") {

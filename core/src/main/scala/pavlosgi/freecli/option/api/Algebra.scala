@@ -30,6 +30,12 @@ final case class Help[A](
   f: HNil => A)
   extends Algebra[A]
 
+final case class Version[A](
+  field: OptionField,
+  value: StringValue,
+  f: HNil => A)
+  extends Algebra[A]
+
 final case class Sub[A](
   description: Description,
   f: FreeApplicative[Algebra, A])

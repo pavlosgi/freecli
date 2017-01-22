@@ -6,23 +6,23 @@ import cats.~>
 import pavlosgi.freecli.config.api._
 import pavlosgi.freecli.argument.{parser => A}
 import pavlosgi.freecli.option.{parser => O}
-import pavlosgi.freecli.parser.CliParser
 
 object ConfigParserInterpreter extends (Algebra ~> ParseResult) {
   def apply[A](fa: Algebra[A]): ParseResult[A] = {
     fa match {
       case Args(args) =>
-        args.foldMap(A.ArgumentParserInterpreter)
-          .leftMap(ers => NonEmptyList.of(ArgumentErrors(ers)))
+        A.ops.parseArgumentNonStrict(args)
+          .mapErrors[ConfigParsingError](ers => NonEmptyList.of(ArgumentErrors(ers)))
+          .mapAction[Action] { a => ArgumentAction(a) }
 
       case Opts(opts) =>
-        opts.foldMap(O.OptionParserInterpreter)
-          .leftMap(ers => NonEmptyList.of(OptionErrors(ers)))
+        O.ops.parseOptionNonStrict(opts)
+          .mapErrors[ConfigParsingError](ers => NonEmptyList.of(OptionErrors(ers)))
+          .mapAction[Action] { o => OptionAction(o) }
 
       case OptsAndArgs(opts, args, f) =>
         for {
           optsRes <- apply(Opts(opts))
-          _ <- CliParser.markUnusableBeforeLastUsed[ConfigParsingError]
           argsRes <- apply(Args(args))
         } yield f(optsRes, argsRes)
     }

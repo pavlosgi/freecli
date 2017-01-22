@@ -1,34 +1,23 @@
 package pavlosgi.freecli.argument.parser
 
-import cats.data.{NonEmptyList, Validated}
-import cats.syntax.all._
-
+import pavlosgi.freecli.argument.api.Action
 import pavlosgi.freecli.argument.dsl.ArgumentDsl
-import pavlosgi.freecli.parser.{CliFailure, CliParser}
+import pavlosgi.freecli.parser.CliParser
 
-trait Ops {
-  def parseArguments[A](
-    args: Seq[String])
-   (dsl: ArgumentDsl[A]):
-    Validated[CliFailure[ArgumentParsingError], A] = {
+object ops extends ParserOps
+trait ParserOps {
+  private[freecli] def parseArgumentNonStrict[T](
+    dsl: ArgumentDsl[T]):
+    CliParser[Action, ArgumentParsingError, T] = {
 
-    val (arguments, res) =
-      CliParser.run(args)(dsl.foldMap(ArgumentParserInterpreter))
-
-    arguments.usable match {
-      case Nil => res.toValidated
-      case u =>
-        val error = CliFailure.errors[ArgumentParsingError](
-          NonEmptyList.of(AdditionalArgumentsFound(u.map(_.name))))
-
-        res match {
-          case Left(failure) =>
-            Validated.invalid(failure.combine(error))
-
-          case Right(_) =>
-            Validated.invalid(error)
-        }
-    }
+    dsl.foldMap(ArgumentParserInterpreter)
   }
 
+  def parseArgument[T](
+    dsl: ArgumentDsl[T]):
+    CliParser[Action, ArgumentParsingError, T] = {
+
+    parseArgumentNonStrict(dsl).failIfNotAllArgumentsUsed(
+      args => AdditionalArgumentsFound(args.args.map(_.name)))
+  }
 }

@@ -20,6 +20,6 @@ object DatabaseConfig extends App {
       string -~ name("database") -~ des("Database name")
     }
 
-  val res = parseArgumentsOrHelp(args)(databaseConfig)
+  val res = parseArgumentOrFail(args)(databaseConfig)
   println(res)
 }

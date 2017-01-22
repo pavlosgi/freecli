@@ -19,7 +19,7 @@ object OptionParserInterpreter extends (Algebra ~> ParseResult) {
               CliParser.success(f(s))
 
             case None =>
-              CliParser.failed(OptionFieldMissing(field))
+              CliParser.error(OptionFieldMissing(field))
           }
         }
 
@@ -39,9 +39,18 @@ object OptionParserInterpreter extends (Algebra ~> ParseResult) {
 
       case Help(field, f) =>
         for {
-          r <- extractOptionFieldIfExists(field)
-          _ <- if (r) CliParser.displayHelp[OptionParsingError]
-          else CliParser.success[OptionParsingError, Unit](())
+          r <- extractOnlyOption(field)
+          _ <- if (r) CliParser.action[Action, OptionParsingError, Unit](HelpAction)
+          else CliParser.success[Action, OptionParsingError, Unit](())
+
+        } yield f(HNil)
+
+      case Version(field, value, f) =>
+        for {
+          r <- extractOnlyOption(field)
+          _ <- if (r)
+            CliParser.action[Action, OptionParsingError, Unit](VersionAction(value))
+          else CliParser.success[Action, OptionParsingError, Unit](())
 
         } yield f(HNil)
 
@@ -50,18 +59,18 @@ object OptionParserInterpreter extends (Algebra ~> ParseResult) {
   }
 
   def parseOpt[T](field: OptionField, value: Option[String], g: StringDecoder[T]): ParseResult[Option[T]] = {
-    CliParser.fromValidated[StringDecoderError, Option[T]](
-      value.traverseU(g.apply)).leftMapInner[OptionParsingError](
-        e => FailedToDecodeOption(field, e))
+    CliParser.fromValidated[Action, StringDecoderError, Option[T]](
+      value.traverseU(g.apply)).mapError[OptionParsingError](e =>
+        FailedToDecodeOption(field, e))
   }
 
   def extractOptionFieldIfExists(field: OptionField): ParseResult[Boolean] = {
     for {
-      cliArgs <- CliParser.getArgs[OptionParsingError]
+      cliArgs <- CliParser.getArgs[Action, OptionParsingError]
       extractedRes <- CliParser.extract(field.matches)
       res <- extractedRes match {
         case Some(_) =>
-          CliParser.success[OptionParsingError, Boolean](true)
+          CliParser.success[Action, OptionParsingError, Boolean](true)
 
         case None =>
           val expandedArgs =
@@ -76,21 +85,39 @@ object OptionParserInterpreter extends (Algebra ~> ParseResult) {
               res <- extractOptionFieldIfExists(field)
             } yield res
 
-          } else CliParser.success[OptionParsingError, Boolean](false)
+          } else CliParser.success[Action, OptionParsingError, Boolean](false)
+      }
+    } yield res
+  }
+
+  def extractOnlyOption(field: OptionField): ParseResult[Boolean] = {
+    for {
+      extractedRes <- CliParser.extractNextIf(field.matches)
+      args <- CliParser.getArgs
+      res <- (extractedRes, args.usable) match {
+        case (Some(_), Nil) =>
+          CliParser.success[Action, OptionParsingError, Boolean](true)
+
+        case (Some(_), a) =>
+        CliParser.error[Action, OptionParsingError, Boolean](
+          OptionWasFollowedByMoreArguments(field, a.map(_.name)))
+
+        case (_, _) =>
+          CliParser.success[Action, OptionParsingError, Boolean](false)
       }
     } yield res
   }
 
   def extractOptionFieldAndValue(field: OptionField): ParseResult[Option[String]] = {
     for {
-      cliArgs <- CliParser.getArgs[OptionParsingError]
-      pair <- CliParser.extractPair[OptionParsingError](field.matches)
+      cliArgs <- CliParser.getArgs[Action, OptionParsingError]
+      pair <- CliParser.extractPair[Action, OptionParsingError](field.matches)
       res <- pair match {
         case ExtractPair(Some(_), Some(v)) =>
-          CliParser.success[OptionParsingError, Option[String]](Some(v))
+          CliParser.success[Action, OptionParsingError, Option[String]](Some(v))
 
         case ExtractPair(Some(_), None) =>
-          CliParser.failed[OptionParsingError, Option[String]](
+          CliParser.error[Action, OptionParsingError, Option[String]](
             OptionFieldValueMissing(field))
 
         case ExtractPair(None, _) =>
@@ -107,7 +134,7 @@ object OptionParserInterpreter extends (Algebra ~> ParseResult) {
             } yield res
 
           } else {
-            CliParser.success[OptionParsingError, Option[String]](None)
+            CliParser.success[Action, OptionParsingError, Option[String]](None)
           }
       }
     } yield res

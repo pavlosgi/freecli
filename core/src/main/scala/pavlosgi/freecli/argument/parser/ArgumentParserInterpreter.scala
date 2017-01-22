@@ -11,7 +11,7 @@ object ArgumentParserInterpreter extends (Algebra ~> ParseResult) {
     fa match {
       case Arg(details, f, g) =>
         for {
-          nextArg <- CliParser.extractNext[ArgumentParsingError]
+          nextArg <- CliParser.extractNext[Action, ArgumentParsingError]
           res     <- parseArg(details, nextArg, g)
         } yield f(res)
     }
@@ -21,14 +21,14 @@ object ArgumentParserInterpreter extends (Algebra ~> ParseResult) {
     details: ArgumentField,
     value: Option[String],
     g: StringDecoder[T]):
-    CliParser[ArgumentParsingError, T] = {
+    CliParser[Action, ArgumentParsingError, T] = {
 
     value match {
       case None =>
-        CliParser.failed(ArgumentValueMissing(details))
+        CliParser.error(ArgumentValueMissing(details))
 
       case Some(v) =>
-        CliParser.fromValidated(g.apply(v)).leftMapInner { e =>
+        CliParser.fromValidated(g.apply(v)).mapError { e =>
           FailedToDecodeArgument(details, e)
         }
     }

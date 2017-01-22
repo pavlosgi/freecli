@@ -5,6 +5,7 @@ import shapeless._
 import pavlosgi.freecli.core.all._
 import pavlosgi.freecli.config.all._
 import pavlosgi.freecli.testkit.Test
+import pavlosgi.freecli.Helpers._
 
 class ConfigParserTest extends Test {
   describe("Config parser") {
@@ -74,7 +75,7 @@ class ConfigParserTest extends Test {
         "7",
         "true")
 
-     parseConfig(args)(dsl).valid should === (
+     parseConfig(dsl).run(args).success should === (
         A(
           "a1",
           true,

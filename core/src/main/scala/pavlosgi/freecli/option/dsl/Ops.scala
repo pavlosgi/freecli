@@ -3,6 +3,7 @@ package pavlosgi.freecli.option.dsl
 import java.io.File
 
 import pavlosgi.freecli.core.api.{Description, ExistentFile, NewFile, StringDecoder}
+import pavlosgi.freecli.option.api.StringValue
 import pavlosgi.freecli.option.dsl.OptDslBuilder.DefaultValue
 
 trait Ops {
@@ -16,6 +17,8 @@ trait Ops {
   def newFile = opt[NewFile]
   def flag(implicit ev: StringDecoder[Boolean]) = FlagDslBuilder.flag
   def help = HelpDslBuilder.help
+  def version = VersionDslBuilder.version
+  def value(v: String) = StringValue(v)
   def opt[T](implicit ev: StringDecoder[T]) = OptDslBuilder.opt[T]
   def sub[T](description: Description) =
     SubDslBuilder.sub[T](description)

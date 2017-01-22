@@ -62,6 +62,8 @@ lazy val commonSettings = Seq(
   unmanagedSourceDirectories in Test += {
     (sourceDirectory in Test).value / ("scala_" + scalaBinaryVersion.value)
   })
+//  excludeFilter in Compile := "config" || "command" || "argument",
+//  excludeFilter in Test := "config" || "command" || "argument")
 
 lazy val scalacSettings = Seq(
   scalacOptions ++= Seq(
@@ -153,20 +155,20 @@ lazy val noPublishSettings = Seq(
   publishArtifact := false
 )
 
-lazy val shapeless = Seq("com.chuusai" %% "shapeless" % "2.3.2")
+lazy val catsV = "0.8.1"
+lazy val circeV = "0.6.0"
+lazy val shapelessV = "2.3.2"
+lazy val scalatestV = "3.0.0"
 
-lazy val scalatest = Seq(
-  "org.scalactic" %% "scalactic" % "3.0.0",
-  "org.scalatest" %% "scalatest" % "3.0.0"
-)
-
-lazy val catsVersion = "0.8.1"
-lazy val cats = Seq("org.typelevel" %% "cats" % catsVersion)
-
-lazy val circeVersion = "0.6.0"
-
+lazy val cats = Seq("org.typelevel" %% "cats" % catsV)
 lazy val circe = Seq(
   "io.circe" %% "circe-core",
   "io.circe" %% "circe-generic",
   "io.circe" %% "circe-parser"
-).map(_ % circeVersion)
+).map(_ % circeV)
+
+lazy val shapeless = Seq("com.chuusai" %% "shapeless" % shapelessV)
+lazy val scalatest = Seq(
+"org.scalactic" %% "scalactic" % scalatestV,
+"org.scalatest" %% "scalatest" % scalatestV
+)

@@ -19,6 +19,9 @@ object OptionHelpInterpreter extends (Algebra ~> HelpResult) {
       case Help(field, _) =>
         OptionsHelp.single(SingleOptionHelp(field, None, false))
 
+      case Version(field, _, _) =>
+        OptionsHelp.single(SingleOptionHelp(field, None, false))
+
       case Sub(description, dsl) =>
         OptionsHelp.single(SubOptionHelp(description.value, dsl.analyze(OptionHelpInterpreter)))
     }

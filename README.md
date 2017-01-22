@@ -46,6 +46,10 @@ Allows defining positional arguments
 * `name` construct argument name
 * `-~` modifier for optional configuration of the arguments
 
+##### Parsing
+* `parseArgument`
+* `parseArgumentOrFail`
+
 ##### Examples
 ```scala
 import pavlosgi.freecli.core.all._
@@ -55,8 +59,8 @@ string
 string -~ name("arg1")
 string -~ name("arg1") -~ des("argument description")
  
-case class Config(arg1: String, arg2: Int)
-group[Config] {
+case class Arguments(arg1: String, arg2: Int)
+group[Arguments] {
   string :: 
   int
 }
@@ -78,7 +82,9 @@ Allows defining named options
 * `existentFile` option of type ExistentFile 
 * `newFile` option of type NewFile
 * `flag` flag option
-* `help` adds help option that prints help
+* `help` adds help option that prints help (does not appear in parsed type)
+* `version` adds version option that prints the version (does not appear in parsed type)
+* `value` adds the string value to display for version
 * `opt[T]` option of type T
 * `sub[T]` subset of options
 * `subT(description: Description)` subset of options with description 
@@ -87,6 +93,10 @@ Allows defining named options
 * `--"name"` sets the name of the option 
 * `-'a'` sets the name abbreviation of the option
 * `-~` modifier for optional configuration of the options
+
+##### Parsing
+* `parseOption`
+* `parseOptionOrFail`
 
 ##### Examples
 ```scala
@@ -100,17 +110,19 @@ string -'o' -~ des("option description")
 string --"opt1" -'o'
 string --"opt1" -'o' -~ des("option description")
  
-case class Config(
+case class Options(
   opt1: Option[String], 
   opt2: Int, 
   opt3: Int, 
   opt4: Boolean)
-
-group[Config] {
-  string --"opt1"          ::
-  int    --"opt2" -~ req   ::
-  int    --"opt3" -~ or(1) ::
-  flag   --"opt4"
+ 
+group[Options] {
+  string  --"opt1"          ::
+  int     --"opt2" -~ req   ::
+  int     --"opt3" -~ or(1) ::
+  flag    --"opt4" ::
+  help    --"help" ::
+  version --"version" -~ value("v1.0")
 }
 ```  
 
@@ -131,6 +143,10 @@ The syntax for config re-exports Argument syntax and Option syntax and resolves 
 * `O.file`
 * `O.existentFile`
 * `O.newFile`
+
+##### Parsing
+* `parseConfig`
+* `parseConfigOrFail`
 
 ##### Examples
 ```scala
@@ -177,6 +193,10 @@ the product of the parent configuration and the nested command configuration.
 * `takesT` add a config as a tuple
 * `runs` specify parameterless function that executes when running the command
 * `runs[T]` specify function that takes T and executes when running the command
+
+##### Parsing
+* `parseCommand`
+* `parseCommandOrFail`
 
 ##### Examples
 ```scala

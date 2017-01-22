@@ -7,5 +7,6 @@ trait AllImplicits
   extends OptionDslImplicits
   with DefaultImplicits
   with OptionFieldImplicits
+  with StringValueImplicits
   with DescriptionImplicits
   with MergerImplicits

@@ -57,6 +57,16 @@ class OptionDslTest extends Test {
         }
     }
 
+    it("group with help and version") {
+      case class A(p: Option[String])
+      val dsl =
+        group[A] {
+          ops.help -'h' --"help" ::
+          ops.version -'v' --"version" -~ ops.value("1.0") ::
+          string -'p'
+        }
+    }
+
     it("allow merging options") {
       case class A(o: Option[String], o2: Option[Boolean], o3: Boolean)
 

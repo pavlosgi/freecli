@@ -29,10 +29,11 @@ class OptionHelpTest extends Test {
               int -'c'
             }
           } ::
+          version --"version" -~ ops.value("v1") ::
           flag --"a4"
         }
 
-      val help = optionsHelp(dsl)
+      val help = optionHelp(dsl)
       print(help)
 
       Seq(
@@ -49,6 +50,10 @@ class OptionHelpTest extends Test {
         Description("b2_description").show,
         OptionFieldAbbreviation('d').show,
         OptionFieldAbbreviation('e').show,
+        Description("b5 options").show,
+        OptionFieldName("c1").show,
+        OptionFieldAbbreviation('c').show,
+        OptionFieldName("version").show,
         OptionFieldName("a4").show).foreach { keyword =>
           withClue(s"$keyword not found in $help") {
             help.contains(keyword) should be (true)

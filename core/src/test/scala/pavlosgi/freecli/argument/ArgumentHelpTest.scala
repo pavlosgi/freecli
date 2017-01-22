@@ -20,7 +20,7 @@ class ArgumentHelpTest extends Test {
           string -~ des("a3_description")
         }
 
-      val help = argumentsHelp(dsl)
+      val help = argumentHelp(dsl)
       print(help)
 
       Seq(

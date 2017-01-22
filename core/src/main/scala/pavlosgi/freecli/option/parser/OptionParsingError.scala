@@ -29,10 +29,22 @@ case class OptionFieldMissing(field: OptionField)
   val message = s"""Field ${field.shortDescription.yellow}, is missing"""
 }
 
+case class ArgumentsDidNotMatchAnyOptions(args: Seq[String])
+  extends OptionParsingError  {
+
+  val message = s"""Arguments ${args.mkString(", ")} did not match any options"""
+}
+
 case class OptionFieldValueMissing(field: OptionField)
   extends OptionParsingError  {
 
   val message = s"Field value for ${field.shortDescription.yellow}, is missing"
+}
+
+case class OptionWasFollowedByMoreArguments(field: OptionField, args: Seq[String])
+  extends OptionParsingError  {
+
+  val message = s"Option ${field.shortDescription.yellow}, was followed by more arguments ${args.mkString(", ")}"
 }
 
 case class FailedToDecodeOption(field: OptionField, error: StringDecoderError)

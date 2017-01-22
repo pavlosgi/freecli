@@ -4,7 +4,9 @@ import cats.data._
 import cats.~>
 
 import pavlosgi.freecli.command.api._
+import pavlosgi.freecli.command.{help => H}
 import pavlosgi.freecli.config.{parser => C}
+import pavlosgi.freecli.core.free.FreeAlternative
 import pavlosgi.freecli.parser.CliParser
 
 object CommandParserInterpreter extends (Algebra ~> ParseResult) {
@@ -12,49 +14,54 @@ object CommandParserInterpreter extends (Algebra ~> ParseResult) {
     fa match {
       case PartialCmd(field, run, f) =>
         for {
-          _ <- findAndSetCommandArgs(field)
+          _ <- extractCommandField(field)
         } yield f(PartialCommand(p => Command(field, run(p))))
 
-      case PartialCmdWithConfig(field, config, run, f) =>
+      case p@PartialCmdWithConfig(field, config, run, f) =>
         for {
-          _    <- findAndSetCommandArgs(field)
-          conf <- config.foldMap(C.ConfigParserInterpreter)
-            .leftMap[CommandParsingError](ers => NonEmptyList.of(
-            FailedToParseConfig(field, ers)))
+          _    <- extractCommandField(field)
+          conf <- C.ops.parseConfigNonStrict(config)
+            .mapErrors[CommandParsingError](ers =>
+              NonEmptyList.of(FailedToParseConfig(field, ers)))
 
-          _ <- CliParser.markUnusableBeforeLastUsed[CommandParsingError]
+            .mapAction[Action] { c =>
+              ConfigAction[A](FreeAlternative.lift(p), H.ops.commandHelp, c)
+            }
 
         } yield f(PartialCommand(p => Command(field, run(conf)(p))))
 
       case PartialParentCmd(field, subs, f) =>
         for {
-          _ <- findAndSetCommandArgs(field)
+          _ <- extractCommandField(field)
           partial <- subs.foldMap(CommandParserInterpreter)
         } yield f(partial)
 
-      case PartialParentCmdWithConfig(field, config, subs, f) =>
+      case p@PartialParentCmdWithConfig(field, config, subs, f) =>
         for {
-          _       <- findAndSetCommandArgs(field)
-          conf <- config.foldMap(C.ConfigParserInterpreter)
-            .leftMap[CommandParsingError](ers => NonEmptyList.of(
-            FailedToParseConfig(field, ers)))
+          _       <- extractCommandField(field)
+          conf <- C.ops.parseConfigNonStrict(config)
+            .mapErrors[CommandParsingError](ers =>
+              NonEmptyList.of(FailedToParseConfig(field, ers)))
 
-          _ <- CliParser.markUnusableBeforeLastUsed[CommandParsingError]
+            .mapAction[Action] { c =>
+              ConfigAction[A](FreeAlternative.lift(p), H.ops.commandHelp, c)
+            }
+
           partial <- subs.foldMap(CommandParserInterpreter)
 
         } yield f(partial(conf))
     }
   }
 
-  def findAndSetCommandArgs(field: CommandField): ParseResult[Unit] = {
+  def extractCommandField(field: CommandField): ParseResult[Unit] = {
     for {
-      res <- CliParser.extractNextIfMatches[CommandParsingError](field.matches)
+      res <- CliParser.extractNextIf[Action, CommandParsingError](field.matches)
       _   <- res match {
         case Some(_) =>
-          CliParser.success[CommandParsingError, Unit](())
+          CliParser.success[Action, CommandParsingError, Unit](())
 
         case None =>
-          CliParser.failed[CommandParsingError, Unit](CommandNotFound(field))
+          CliParser.error[Action, CommandParsingError, Unit](CommandNotFound(field))
       }
     } yield ()
   }

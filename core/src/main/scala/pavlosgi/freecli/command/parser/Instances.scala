@@ -4,7 +4,7 @@ import cats.Alternative
 import cats.data.NonEmptyList
 import cats.syntax.all._
 
-import pavlosgi.freecli.parser.{CliFailure, CliParser}
+import pavlosgi.freecli.parser.{CliParser, ErrorTermination}
 
 trait Instances {
   implicit object alternativeResultInstance extends Alternative[ParseResult] {
@@ -22,7 +22,7 @@ trait Instances {
           case (Left(_), Right(c2)) => Right(c2)
           case (Left(c1), Left(c2)) => Left(c1.combine(c2))
           case (Right(_), Right(_)) =>
-            Left(CliFailure.errors(NonEmptyList.of(MultipleCommandsMatched)))
+            Left(ErrorTermination(NonEmptyList.of(MultipleCommandsMatched)))
         }
       })
     }
@@ -30,7 +30,7 @@ trait Instances {
     override def pure[A](x: A): ParseResult[A] = CliParser.success(x)
 
     override def empty[A]: ParseResult[A] =
-      CliParser.failed(NoCommandWasMatched)
+      CliParser.error(NoCommandWasMatched)
 
     override def ap[A, B](
       ff: ParseResult[A => B])
