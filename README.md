@@ -15,6 +15,11 @@ Here is a list of all of FreeCLI's modules:
  * `freecli-examples`: a few examples on how to use the library
  * `freecli-testkit`: testing helpers for testing the library
 
+### Preview
+Before diving in, this is what your CLI configuration will produce:
+
+![preview](preview.png)
+
 ### Getting Started
 
 ```scala
@@ -66,7 +71,31 @@ group[Arguments] {
 }
 ```  
 
-More examples can be found in [Argument tests](./core/src/test/scala/pavlosgi/freecli/argument/ArgumentDslTest.scala) and the [Argument example](./examples/src/main/scala/pavlosgi/freecli/examples/arguments/DatabaseConfig.scala)
+More examples can be found in [Argument tests](./core/src/test/scala/pavlosgi/freecli/argument/ArgumentDslTest.scala) and the [Argument example](./examples/src/main/scala/pavlosgi/freecli/examples/arguments/DatabaseConfig.scala) that can be run as follows:
+
+```
+$ sbt
+[info] Set current project to freecli-root (in build file:/Users/pavlos/Workspace/freecli/)
+ 
+> project freecli-examples
+[info] Set current project to freecli-examples (in build file:/Users/pavlos/Workspace/freecli/)
+ 
+> run 8080 host username password database
+[warn] Multiple main classes detected.  Run 'show discoveredMainClasses' to see the list
+ 
+Multiple main classes detected, select one to run:
+ 
+ [1] pavlosgi.freecli.examples.arguments.DatabaseConfig
+ [2] pavlosgi.freecli.examples.command.Git
+ [3] pavlosgi.freecli.examples.config.DatabaseConfig
+ [4] pavlosgi.freecli.examples.options.DatabaseConfig
+ 
+Enter number: 1
+ 
+[info] Running pavlosgi.freecli.examples.arguments.DatabaseConfig 8080 host username password database
+DatabaseConfig(8080,host,username,password,database)
+[success] Total time: 22 s, completed 22-Jan-2017 23:52:26
+```
 
 #### Options
 
@@ -126,7 +155,31 @@ group[Options] {
 }
 ```  
 
-More examples can be found in [Option tests](./core/src/test/scala/pavlosgi/freecli/option/OptionDslTest.scala) and the [Option example](./examples/src/main/scala/pavlosgi/freecli/examples/options/DatabaseConfig.scala)
+More examples can be found in [Option tests](./core/src/test/scala/pavlosgi/freecli/option/OptionDslTest.scala) and the [Option example](./examples/src/main/scala/pavlosgi/freecli/examples/options/DatabaseConfig.scala) that can be run as follows:
+
+```
+$ sbt
+[info] Set current project to freecli-root (in build file:/Users/pavlos/Workspace/freecli/)
+ 
+> project freecli-examples
+[info] Set current project to freecli-examples (in build file:/Users/pavlos/Workspace/freecli/)
+ 
+> run --port 8080 --host host --username username --password password --database database
+[warn] Multiple main classes detected.  Run 'show discoveredMainClasses' to see the list
+ 
+Multiple main classes detected, select one to run:
+ 
+ [1] pavlosgi.freecli.examples.arguments.DatabaseConfig
+ [2] pavlosgi.freecli.examples.command.Git
+ [3] pavlosgi.freecli.examples.config.DatabaseConfig
+ [4] pavlosgi.freecli.examples.options.DatabaseConfig
+ 
+Enter number: 4
+ 
+[info] Running pavlosgi.freecli.examples.options.DatabaseConfig --port 8080 --host host --username username --password password --database database
+DatabaseConfig(8080,host,username,password,database)
+[success] Total time: 22 s, completed 22-Jan-2017 23:52:26
+```
 
 #### Config
 
@@ -178,7 +231,31 @@ group[Config] {
 }
 ```  
 
-More examples can be found in [Config tests](./core/src/test/scala/pavlosgi/freecli/config/ConfigDslTest.scala) and the [Config example](./examples/src/main/scala/pavlosgi/freecli/examples/config/DatabaseConfig.scala)
+More examples can be found in [Config tests](./core/src/test/scala/pavlosgi/freecli/config/ConfigDslTest.scala) and the [Config example](./examples/src/main/scala/pavlosgi/freecli/examples/config/DatabaseConfig.scala) that can be run as follows:
+
+```
+$ sbt
+[info] Set current project to freecli-root (in build file:/Users/pavlos/Workspace/freecli/)
+ 
+> project freecli-examples
+[info] Set current project to freecli-examples (in build file:/Users/pavlos/Workspace/freecli/)
+ 
+> run --port 8080 -d -v host username password database
+[warn] Multiple main classes detected.  Run 'show discoveredMainClasses' to see the list
+ 
+Multiple main classes detected, select one to run:
+ 
+ [1] pavlosgi.freecli.examples.arguments.DatabaseConfig
+ [2] pavlosgi.freecli.examples.command.Git
+ [3] pavlosgi.freecli.examples.config.DatabaseConfig
+ [4] pavlosgi.freecli.examples.options.DatabaseConfig
+ 
+Enter number: 3
+ 
+[info] Running pavlosgi.freecli.examples.config.DatabaseConfig --port 8080 -d -v host username password database
+DatabaseConfig(8080,true,true,host,username,password,database)
+[success] Total time: 22 s, completed 22-Jan-2017 23:52:26
+```
 
 #### Command
 
@@ -237,7 +314,31 @@ cmd("command1") {
 
 ```
 
-More examples can be found in [Command tests](./core/src/test/scala/pavlosgi/freecli/command/CommandDslTest.scala) and the [Git example](./examples/src/main/scala/pavlosgi/freecli/examples/command/Git.scala)
+More examples can be found in [Command tests](./core/src/test/scala/pavlosgi/freecli/command/CommandDslTest.scala) and the [Git example](./examples/src/main/scala/pavlosgi/freecli/examples/command/Git.scala) that can be run as follows:
+
+```
+$ sbt
+[info] Set current project to freecli-root (in build file:/Users/pavlos/Workspace/freecli/)
+ 
+> project freecli-examples
+[info] Set current project to freecli-examples (in build file:/Users/pavlos/Workspace/freecli/)
+ 
+> run git remote add origin git@github.com:pavlosgi/freecli.git
+[warn] Multiple main classes detected.  Run 'show discoveredMainClasses' to see the list
+ 
+Multiple main classes detected, select one to run:
+ 
+ [1] pavlosgi.freecli.examples.arguments.DatabaseConfig
+ [2] pavlosgi.freecli.examples.command.Git
+ [3] pavlosgi.freecli.examples.config.DatabaseConfig
+ [4] pavlosgi.freecli.examples.options.DatabaseConfig
+ 
+Enter number: 2
+ 
+[info] Running pavlosgi.freecli.examples.command.Git git remote add origin git@github.com:pavlosgi/freecli.git
+Remote origin git@github.com:pavlosgi/freecli.git added
+[success] Total time: 22 s, completed 22-Jan-2017 23:52:26
+```
 
 ## License
 
