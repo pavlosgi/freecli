@@ -12,6 +12,6 @@ trait AllOps extends dsl.Ops with parser.ParserOps with help.HelpOps {
       commandHelp(dsl),
       { case c@ConfigAction(_, _, _) => c.run()
       })(
-      parseCommandNonStrict(dsl))
+      parseCommand(dsl))
   }
 }

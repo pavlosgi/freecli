@@ -29,6 +29,6 @@ trait AllOps extends parser.ParserOps with help.HelpOps with AD.Ops {
       { case a@ArgumentAction(_) => a.run()
         case o@OptionAction(_) => o.run(configHelp(dsl))
       })(
-      parseConfigNonStrict(dsl))
+      parseConfig(dsl))
   }
 }

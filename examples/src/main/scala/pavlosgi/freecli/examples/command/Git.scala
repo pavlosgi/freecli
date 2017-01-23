@@ -61,7 +61,7 @@ object Git extends App {
 
   val git =
     cmd("git", des("Version control system")) {
-      takes(version --"version" -~ value("v1.0")) ::
+      takes(help --"help" :: version --"version" -~ value("v1.0")) ::
       commitCommand ::
       rmCommand ::
       remoteCommand

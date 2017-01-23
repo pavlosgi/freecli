@@ -13,6 +13,6 @@ trait AllOps extends dsl.Ops with parser.ParserOps with help.HelpOps {
       { case h: HelpAction.type => h.run(optionHelp(dsl))
         case v: VersionAction => v.run()
       })(
-      parseOptionNonStrict(dsl))
+      parseOption(dsl))
   }
 }

@@ -11,6 +11,6 @@ trait AllOps extends dsl.Ops with parser.ParserOps with help.HelpOps {
       args,
       argumentHelp(dsl),
       { case n: NoOp.type => n.run() })(
-      parseArgumentNonStrict(dsl))
+      parseArgument(dsl))
   }
 }

@@ -1,4 +1,4 @@
-package pavlosgi.freecli.examples.options
+package pavlosgi.freecli.examples.option
 
 import pavlosgi.freecli.core.all._
 import pavlosgi.freecli.option.all._

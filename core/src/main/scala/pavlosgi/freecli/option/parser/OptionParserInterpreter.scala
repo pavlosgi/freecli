@@ -102,7 +102,7 @@ object OptionParserInterpreter extends (Algebra ~> ParseResult) {
         CliParser.error[Action, OptionParsingError, Boolean](
           OptionWasFollowedByMoreArguments(field, a.map(_.name)))
 
-        case (_, _) =>
+        case (None, _) =>
           CliParser.success[Action, OptionParsingError, Boolean](false)
       }
     } yield res

@@ -270,7 +270,7 @@ object CliParser {
 
     for {
       args <- getArgs[A, E]
-      res  = args.args.zipWithIndex.sliding(2).collectFirst {
+      res  = args.args.zipWithIndex.sliding(2).map(_.toList).collectFirst {
         case List((arg1, idx1), (arg2, idx2)) if arg1.isUsable && arg2.isUsable && f(arg1.name) =>
           Extraction(List(idx1, idx2), ExtractPair(Some(arg1.name), Some(arg2.name)))
 

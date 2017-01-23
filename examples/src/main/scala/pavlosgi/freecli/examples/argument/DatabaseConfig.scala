@@ -1,4 +1,4 @@
-package pavlosgi.freecli.examples.arguments
+package pavlosgi.freecli.examples.argument
 
 import pavlosgi.freecli.core.all._
 import pavlosgi.freecli.argument.all._

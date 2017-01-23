@@ -71,7 +71,7 @@ group[Arguments] {
 }
 ```  
 
-More examples can be found in [Argument tests](./core/src/test/scala/pavlosgi/freecli/argument/ArgumentDslTest.scala) and the [Argument example](./examples/src/main/scala/pavlosgi/freecli/examples/arguments/DatabaseConfig.scala) that can be run as follows:
+More examples can be found in [Argument tests](./core/src/test/scala/pavlosgi/freecli/argument/ArgumentDslTest.scala) and the [Argument example](./examples/src/main/scala/pavlosgi/freecli/examples/argument/DatabaseConfig.scala) that can be run as follows:
 
 ```
 $ sbt
@@ -155,7 +155,7 @@ group[Options] {
 }
 ```  
 
-More examples can be found in [Option tests](./core/src/test/scala/pavlosgi/freecli/option/OptionDslTest.scala) and the [Option example](./examples/src/main/scala/pavlosgi/freecli/examples/options/DatabaseConfig.scala) that can be run as follows:
+More examples can be found in [Option tests](./core/src/test/scala/pavlosgi/freecli/option/OptionDslTest.scala) and the [Option example](./examples/src/main/scala/pavlosgi/freecli/examples/option/DatabaseConfig.scala) that can be run as follows:
 
 ```
 $ sbt
