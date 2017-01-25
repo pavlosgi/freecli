@@ -17,7 +17,7 @@ trait ParserOps {
     dsl: CommandDsl[T]):
     CliParser[Action, CommandParsingError, T] = {
 
-    parseCommandNonStrict(dsl).failIfNotAllArgumentsUsed(
-      args => AdditionalArgumentsFound(args.args.map(_.name)))
+    parseCommandNonStrict(dsl).failIfNotAllArgumentsUsed(args => OtherCommandErrors(
+      additionalArgumentsFound = Some(AdditionalArgumentsFound(args.map(_.name)))))
   }
 }

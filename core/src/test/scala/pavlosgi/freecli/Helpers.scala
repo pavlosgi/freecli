@@ -1,9 +1,11 @@
 package pavlosgi.freecli
 
+import cats.Semigroup
+
 import pavlosgi.freecli.parser._
 
 object Helpers {
-  implicit class CliFailureOps[A, E](cliFailure: EarlyTermination[A, E]) {
+  implicit class CliFailureOps[A, E: Semigroup](cliFailure: EarlyTermination[A, E]) {
     def errors = cliFailure match {
       case ActionTermination(a) =>
         throw new IllegalArgumentException(s"Tried to access errors in failure but failure was Action $a")
@@ -12,7 +14,7 @@ object Helpers {
     }
   }
 
-  implicit class ResultOps[A, E, T](result: Result[A, E, T]) {
+  implicit class ResultOps[A, E: Semigroup, T](result: Result[A, E, T]) {
     def success = result match {
       case Success(a) => a
       case a =>

@@ -4,15 +4,17 @@ import cats.data.NonEmptyList
 
 import pavlosgi.freecli.argument.{parser => A}
 import pavlosgi.freecli.option.{parser => O}
-import pavlosgi.freecli.parser.Error
+import pavlosgi.freecli.parser.DisplayErrors
 
 sealed trait ConfigParsingError {
   def message: String
 }
 
 object ConfigParsingError {
-  implicit object errorInstance extends Error[ConfigParsingError] {
-    override def message(error: ConfigParsingError): String = error.message
+  implicit object displayErrorsInstance extends DisplayErrors[NonEmptyList[ConfigParsingError]] {
+    override def display(errors: NonEmptyList[ConfigParsingError]): String = {
+      errors.map(_.message).toList.mkString("\n")
+    }
   }
 }
 
@@ -42,5 +44,5 @@ case class OptionAndArgumentErrors(
 case class AdditionalArgumentsFound(args: Seq[String])
   extends ConfigParsingError  {
 
-  val message = s"Additional arguments found: ${args.mkString(", ")}"
+  def message = s"Additional arguments found: ${args.mkString(", ")}"
 }

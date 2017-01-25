@@ -75,7 +75,7 @@ class ConfigParserTest extends Test {
         "7",
         "true")
 
-     parseConfig(dsl).run(args).success should === (
+     parseConfig(dsl).run(args)._2.success should === (
         A(
           "a1",
           true,

@@ -17,21 +17,29 @@ class CommandParserTest extends Test {
         parseCommand(
           cmd("command") {
             runs(hasRun = true)
-          }).run(Seq("command")).success.run
+          }).run(Seq("command"))._2.success.run
 
         hasRun shouldBe true
       }
 
       it("fail to parse command without config if not in args") {
-        val res =
+        val (_, res) =
           parseCommand(
             cmd("command") {
               runs(())
             }).run(Seq("command2"))
 
-        res.failure.toList.collect {
-          case c: CommandNotFound => c.getClass.getName
-        }.distinct.size should === (1)
+        res.failure should matchPattern {
+          case
+            OtherCommandErrors(
+              Some(AdditionalArgumentsFound(List(arg))),
+              None,
+              List(_),
+              None,
+              None)
+
+            if arg === "command2" =>
+        }
       }
 
       it("parse command with config") {
@@ -42,7 +50,7 @@ class CommandParserTest extends Test {
           cmd("command") {
             takesG[Config](O.string --"host" -~ req :: O.int --"port" -~ req) ::
             runs[Config](c => conf = Some(c))
-          }).run(Seq("command", "--host", "localhost", "--port", "8080")).success.run
+          }).run(Seq("command", "--host", "localhost", "--port", "8080"))._2.success.run
 
         conf.get should === (Config("localhost", 8080))
       }
@@ -51,32 +59,41 @@ class CommandParserTest extends Test {
         case class Config(host: String, port: Int)
         var conf = Option.empty[Config]
 
-        val res =
+        val (_, res) =
           parseCommand(
             cmd("command") {
               takesG[Config](O.string --"host" -~ req :: O.int --"port" -~ req) ::
               runs[Config](c => conf = Some(c))
             }).run(Seq("command2", "--host", "localhost", "--port", "8080"))
 
-        res.failure.toList.collect {
-          case c: CommandNotFound => c.getClass.getName
-        }.distinct.size should === (1)
+        res.failure should matchPattern {
+          case
+            OtherCommandErrors(
+              Some(AdditionalArgumentsFound(args)),
+              None,
+              List(CommandNotFound(CommandField(n, _))),
+              None,
+              None)
+
+            if args.diff(List("command2", "--host", "localhost", "--port", "8080")).isEmpty &&
+            n.name === "command" =>
+        }
       }
 
       it("fail to parse command with config due to config failure") {
         case class Config(host: String, port: Int)
         var conf = Option.empty[Config]
 
-        val res =
+        val (_, res) =
           parseCommand(
             cmd("command") {
               takesG[Config](O.string --"host" -~ req :: O.int --"port" -~ req) ::
               runs[Config](c => conf = Some(c))
             }).run(Seq("command", "--host", "localhost", "file1"))
 
-        res.failure.toList.collect {
-          case c: FailedToParseConfig => c.getClass.getName
-        }.distinct.size should === (1)
+        res.failure should matchPattern {
+          case OtherCommandErrors(Some(_), Some(_), Nil, None, None) =>
+        }
       }
 
       it("parse and run command with help") {
@@ -86,7 +103,7 @@ class CommandParserTest extends Test {
           cmd("command") {
             takes(O.help --"help") ::
             runs(hasRun = true)
-          }).run(Seq("command")).success.run
+          }).run(Seq("command"))._2.success.run
 
         hasRun should === (true)
       }
@@ -96,7 +113,7 @@ class CommandParserTest extends Test {
           cmd("command") {
             takes(O.help --"help") ::
             runs(())
-          }).run(Seq("command", "--help")).action
+          }).run(Seq("command", "--help"))._2.action
 
         Option(action).collect {
           case ConfigAction(_, _, OptionAction(HelpAction)) => true
@@ -110,7 +127,7 @@ class CommandParserTest extends Test {
           cmd("command") {
             takes(O.version --"version" -~ O.value("v1.0")) ::
             runs(hasRun = true)
-          }).run(Seq("command")).success.run
+          }).run(Seq("command"))._2.success.run
 
         hasRun should === (true)
       }
@@ -120,7 +137,7 @@ class CommandParserTest extends Test {
           cmd("command") {
             takes(O.version --"version" -~ O.value("v2.0")) ::
             runs(())
-          }).run(Seq("command", "--version")).action
+          }).run(Seq("command", "--version"))._2.action
 
         Option(action).collect {
           case ConfigAction(_, _, OptionAction(VersionAction(_))) => true
@@ -137,13 +154,13 @@ class CommandParserTest extends Test {
             cmd("subcommand") {
               runs(hasRun = true)
             }
-          }).run(Seq("command", "subcommand")).success.run
+          }).run(Seq("command", "subcommand"))._2.success.run
 
         hasRun shouldBe true
       }
 
       it("fail to parse command with subcommand") {
-        val res =
+        val (_, res) =
           parseCommand(
             cmd("command") {
               cmd("subcommand") {
@@ -151,8 +168,21 @@ class CommandParserTest extends Test {
               }
             }).run(Seq("command"))
 
-        res.failure.toList should contain theSameElementsAs
-          Seq(CommandNotFound(CommandField(CommandFieldName("subcommand"), None)))
+        res.failure should matchPattern {
+          case
+            ParentCommandError(
+              CommandField(parent, _),
+              OtherCommandErrors(
+                None,
+                None,
+                List(CommandNotFound(
+                  CommandField(fname, None))),
+
+                None,
+                None))
+
+            if parent.name === "command" && fname.name === "subcommand" =>
+        }
       }
 
       it("parse command with subcommand that has config from options") {
@@ -165,7 +195,7 @@ class CommandParserTest extends Test {
               takesG[Config](O.string --"host" -~ req :: O.int --"port" -~ req) ::
               runs[Config](c => conf = Some(c))
             }
-          }).run(Seq("command", "subcommand", "--host", "localhost", "--port", "8080")).success.run
+          }).run(Seq("command", "subcommand", "--host", "localhost", "--port", "8080"))._2.success.run
 
         conf.get should === (Config("localhost", 8080))
       }
@@ -180,7 +210,7 @@ class CommandParserTest extends Test {
               takesG[Config](string -~ name("arg1") :: int) ::
               runs[Config](c => conf = Some(c))
             }
-          }).run(Seq("command", "subcommand", "localhost", "8080")).success.run
+          }).run(Seq("command", "subcommand", "localhost", "8080"))._2.success.run
 
         conf.get should === (Config("localhost", 8080))
       }
@@ -195,7 +225,7 @@ class CommandParserTest extends Test {
               takesG[Config](O.string --"host" -~ req :: int) ::
               runs[Config](c => conf = Some(c))
             }
-          }).run(Seq("command", "subcommand", "--host", "localhost", "8080")).success.run
+          }).run(Seq("command", "subcommand", "--host", "localhost", "8080"))._2.success.run
 
         conf.get should === (Config("localhost", 8080))
       }
@@ -203,7 +233,7 @@ class CommandParserTest extends Test {
       it("fail to parse command with subcommand that has config") {
         case class Config(host: String, port: Int)
         var conf = Option.empty[Config]
-        val res =
+        val (_, res) =
           parseCommand(
             cmd("command") {
               cmd("subcommand") {
@@ -212,15 +242,25 @@ class CommandParserTest extends Test {
               }
             }).run(Seq("command", "subcommand", "--host", "localhost"))
 
-        res.failure.toList.collect {
-          case c: FailedToParseConfig => c.getClass.getName
-        }.distinct.size should === (1)
+        res.failure should matchPattern {
+          case
+            ParentCommandError(
+              CommandField(parent, None),
+              OtherCommandErrors(
+                None,
+                Some(FailedToParseConfig(CommandField(sub, None), _)),
+                Nil,
+                None,
+                None))
+
+            if parent.name === "command" && sub.name === "subcommand" =>
+        }
       }
 
       it("fail to parse command with subcommand that has config due to subcommand missing") {
         case class Config(host: String, port: Int)
         var conf = Option.empty[Config]
-        val res =
+        val (_, res) =
           parseCommand(
             cmd("command") {
               cmd("subcommand") {
@@ -229,8 +269,21 @@ class CommandParserTest extends Test {
               }
             }).run(Seq("command"))
 
-        res.failure.toList should contain theSameElementsAs
-          Seq(CommandNotFound(CommandField(CommandFieldName("subcommand"), None)))
+        res.failure should matchPattern {
+          case
+            ParentCommandError(
+              CommandField(parent, None),
+              OtherCommandErrors(
+                None,
+                None,
+                List(CommandNotFound(
+                  CommandField(fname, None))),
+
+                None,
+                None))
+
+            if parent.name === "command" && fname.name === "subcommand" =>
+        }
       }
 
       it("parse command that has config with subcommand that has config") {
@@ -257,7 +310,7 @@ class CommandParserTest extends Test {
           "--dbName",
           "mydb",
           "--dbPort",
-          "5432")).success.run
+          "5432"))._2.success.run
 
         conf.get should === (ParentSubConfig(Config("localhost", 8080), SubConfig("mydb", 5432)))
       }
@@ -269,7 +322,7 @@ class CommandParserTest extends Test {
 
         var conf = Option.empty[ParentSubConfig]
 
-        val res =
+        val (_, res) =
           parseCommand(
             cmd("command") {
               takesG[Config](O.string --"host" -~ req :: O.int --"port" -~ req) ::
@@ -288,10 +341,24 @@ class CommandParserTest extends Test {
             "--port",
             "8080"))
 
-        res.failure.toList.collect {
-          case c: AdditionalArgumentsFound => c.getClass.getName
-          case c: FailedToParseConfig => c.getClass.getName
-        }.distinct.size should === (2)
+        res.failure should matchPattern {
+          case
+            OtherCommandErrors(
+              Some(AdditionalArgumentsFound(args)),
+              Some(FailedToParseConfig(CommandField(field, None), _)),
+              Nil,
+              None,
+              None)
+
+            if args === List(
+                "--dbName",
+                "mydb",
+                "--dbPort",
+                "5432",
+                "subcommand") &&
+
+              field.name === "command" =>
+        }
       }
 
       it("parse command that has config with subcommand that has config if same config") {
@@ -304,7 +371,7 @@ class CommandParserTest extends Test {
               takesG[String](O.string --"host"-~ req) ::
               runs[(String, String)](c => conf = Some(c))
             }
-        }).run(Seq("command", "--host", "localhost1", "subcommand", "--host", "localhost2")).success.run
+        }).run(Seq("command", "--host", "localhost1", "subcommand", "--host", "localhost2"))._2.success.run
 
         conf.get should === ("localhost1" -> "localhost2")
       }
@@ -319,7 +386,7 @@ class CommandParserTest extends Test {
               takes(O.help --"help") ::
               runs(hasRun = true)
             }
-          }).run(Seq("command", "subcommand")).success.run
+          }).run(Seq("command", "subcommand"))._2.success.run
 
         hasRun should === (true)
       }
@@ -332,7 +399,7 @@ class CommandParserTest extends Test {
               takes(O.help --"help") ::
               runs(())
             }
-          }).run(Seq("command", "subcommand", "--help")).action
+          }).run(Seq("command", "subcommand", "--help"))._2.action
 
         Option(action).collect {
           case ConfigAction(_, _, OptionAction(HelpAction)) => true
@@ -349,7 +416,7 @@ class CommandParserTest extends Test {
               takes(O.version --"version" -~ O.value("v2.0")) ::
               runs(hasRun = true)
             }
-          }).run(Seq("command", "subcommand")).success.run
+          }).run(Seq("command", "subcommand"))._2.success.run
 
         hasRun should === (true)
       }
@@ -362,7 +429,7 @@ class CommandParserTest extends Test {
               takes(O.version --"version" -~ O.value("v2")) ::
               runs(())
             }
-          }).run(Seq("command", "subcommand", "--version")).action
+          }).run(Seq("command", "subcommand", "--version"))._2.action
 
         Option(action).collect {
           case ConfigAction(_, _, OptionAction(VersionAction(_))) => true
@@ -407,7 +474,7 @@ class CommandParserTest extends Test {
           "--dbName1",
           "mydb",
           "--dbPort1",
-          "5432")).success.run
+          "5432"))._2.success.run
 
         conf.get should === (ParentSubConfig(Config("localhost", 8080), SubConfig("mydb", 5432)))
       }
@@ -425,13 +492,13 @@ class CommandParserTest extends Test {
           "--dbName3",
           "mydb",
           "--dbPort3",
-          "5432")).success.run
+          "5432"))._2.success.run
 
         conf.get should === (ParentSubConfig(Config("localhost", 8080), SubConfig("mydb", 5432)))
       }
 
       it("fail to parse command with multiple subcommands if multiple commands match") {
-        val res =
+        val (_, res) =
           parseCommand(dsl).run(Seq(
             "command",
             "--host",
@@ -449,10 +516,11 @@ class CommandParserTest extends Test {
             "--dbPort3",
             "5432"))
 
-        res.failure}
+        res.failure
+      }
 
       it("fail to parse command with multiple subcommands if subcommands have the same name") {
-        val res =
+        val (_, res) =
           parseCommand(dsl).run(Seq(
             "command",
             "--host",
@@ -470,7 +538,8 @@ class CommandParserTest extends Test {
             "--dbPort1",
             "5432"))
 
-        res.failure}
+        res.failure
+      }
     }
 
     describe("Multiple subcommands similar names") {
@@ -501,19 +570,18 @@ class CommandParserTest extends Test {
             }
           }
 
-        val res =
-          parseCommand(dsl).run(Seq(
-            "command",
-            "--host",
-            "localhost",
-            "--port",
-            "8080",
-            "subcommand1",
-            "subcommand2",
-            "--dbName1",
-            "mydb",
-            "--dbPort1",
-            "5432")).success.run
+        parseCommand(dsl).run(Seq(
+          "command",
+          "--host",
+          "localhost",
+          "--port",
+          "8080",
+          "subcommand1",
+          "subcommand2",
+          "--dbName1",
+          "mydb",
+          "--dbPort1",
+          "5432"))._2.success.run
 
         conf.get should === (ParentSubConfig(Config("localhost", 8080), SubConfig("mydb", 5432)))
       }
@@ -539,19 +607,18 @@ class CommandParserTest extends Test {
             }
           }
 
-        val res =
-          parseCommand(dsl).run(Seq(
-            "command",
-            "--host",
-            "localhost",
-            "--port",
-            "8080",
-            "subcommand1",
-            "subcommand2",
-            "--dbName1",
-            "mydb",
-            "--dbPort1",
-            "5432")).success.run
+        parseCommand(dsl).run(Seq(
+          "command",
+          "--host",
+          "localhost",
+          "--port",
+          "8080",
+          "subcommand1",
+          "subcommand2",
+          "--dbName1",
+          "mydb",
+          "--dbPort1",
+          "5432"))._2.success.run
 
         conf.get should === (ParentSubConfig(Config("localhost", 8080), SubConfig("mydb", 5432)))
       }

@@ -9,17 +9,17 @@ class ArgumentParserTest extends Test {
   describe("Arguments parser") {
 
     it("parse string argument") {
-      val res = parseArgument(string).run(Seq("localhost"))
+      val (_, res) = parseArgument(string).run(Seq("localhost"))
       res.success should === ("localhost")
     }
 
     it("parse int argument") {
-      val res = parseArgument(int).run(Seq("1"))
+      val (_, res) = parseArgument(int).run(Seq("1"))
       res.success should === (1)
     }
 
     it("parse multiple tuple") {
-      val res = parseArgument(
+      val (_, res) = parseArgument(
         groupT {
           string ::
           int    ::
@@ -31,7 +31,7 @@ class ArgumentParserTest extends Test {
 
     it("parse multiple case class") {
       case class A(c1: String, c2: Int, c3: String)
-      val res = parseArgument(
+      val (_, res) = parseArgument(
         group[A] {
           string ::
           int    ::

@@ -12,12 +12,12 @@ object ConfigParserInterpreter extends (Algebra ~> ParseResult) {
     fa match {
       case Args(args) =>
         A.ops.parseArgumentNonStrict(args)
-          .mapErrors[ConfigParsingError](ers => NonEmptyList.of(ArgumentErrors(ers)))
+          .mapError[ConfigParsingErrors](ers => NonEmptyList.of(ArgumentErrors(ers)))
           .mapAction[Action] { a => ArgumentAction(a) }
 
       case Opts(opts) =>
         O.ops.parseOptionNonStrict(opts)
-          .mapErrors[ConfigParsingError](ers => NonEmptyList.of(OptionErrors(ers)))
+          .mapError[ConfigParsingErrors](ers => NonEmptyList.of(OptionErrors(ers)))
           .mapAction[Action] { o => OptionAction(o) }
 
       case OptsAndArgs(opts, args, f) =>

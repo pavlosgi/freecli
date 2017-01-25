@@ -1,18 +1,20 @@
 package pavlosgi.freecli.argument.parser
 
+import cats.data.NonEmptyList
+
 import pavlosgi.freecli.argument.api.ArgumentField
 import pavlosgi.freecli.core.api.StringDecoderError
 import pavlosgi.freecli.core.formatting._
-import pavlosgi.freecli.parser.Error
+import pavlosgi.freecli.parser.DisplayErrors
 
 sealed trait ArgumentParsingError {
-  val message: String
+  def message: String
 }
 
 object ArgumentParsingError {
-  implicit object errorInstance extends Error[ArgumentParsingError] {
-    def message(error: ArgumentParsingError): String = {
-      error.message
+  implicit object displayErrorsInstance extends DisplayErrors[NonEmptyList[ArgumentParsingError]] {
+    def display(errors: NonEmptyList[ArgumentParsingError]): String = {
+      errors.map(_.message).toList.mkString("\n")
     }
   }
 }
@@ -20,13 +22,13 @@ object ArgumentParsingError {
 case class AdditionalArgumentsFound(args: Seq[String])
   extends ArgumentParsingError  {
 
-  val message = s"Additional arguments found: ${args.mkString(", ")}"
+  def message = s"Additional arguments found: ${args.mkString(", ")}"
 }
 
 case class ArgumentValueMissing(field: ArgumentField)
   extends ArgumentParsingError  {
 
-  val message = {
+  def message = {
     field match {
       case ArgumentField(None, None) =>
         s"Argument is missing"
@@ -35,7 +37,7 @@ case class ArgumentValueMissing(field: ArgumentField)
         s"Argument ${name.value.yellow} is missing"
 
       case ArgumentField(None, Some(description)) =>
-        s"""Argument with description "${description.value}" is missing"""
+        s"""Argument ${description.value.yellow} is missing"""
     }
   }
 }
@@ -43,6 +45,6 @@ case class ArgumentValueMissing(field: ArgumentField)
 case class FailedToDecodeArgument(details: ArgumentField, error: StringDecoderError)
   extends ArgumentParsingError  {
 
-  val message =
+  def message =
     s"Failed to decode argument ${details.shortDescription.yellow}. ${error.message}"
 }

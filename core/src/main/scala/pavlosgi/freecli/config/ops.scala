@@ -2,7 +2,7 @@ package pavlosgi.freecli.config
 
 import pavlosgi.freecli.argument.{dsl => AD}
 import pavlosgi.freecli.config.api.{Action, ArgumentAction, OptionAction}
-import pavlosgi.freecli.config.parser.ConfigParsingError
+import pavlosgi.freecli.config.parser.ConfigParsingErrors
 import pavlosgi.freecli.core.api.{Description, StringDecoder}
 import pavlosgi.freecli.option.{ops => Op}
 import pavlosgi.freecli.option.{dsl => OD}
@@ -23,7 +23,7 @@ trait AllOps extends parser.ParserOps with help.HelpOps with AD.Ops {
   object O extends OD.Ops
 
   def parseConfigOrFail[A](args: Seq[String])(dsl: ConfigDsl[A]): A = {
-    CliParser.runOrFail[Action, ConfigParsingError, A](
+    CliParser.runOrFail[Action, ConfigParsingErrors, A](
       args,
       configHelp(dsl),
       { case a@ArgumentAction(_) => a.run()
