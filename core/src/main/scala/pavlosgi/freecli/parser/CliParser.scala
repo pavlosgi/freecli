@@ -56,12 +56,12 @@ case class CliParser[A, E: Semigroup, T](value: EitherT[State[CliParserState, ?]
 
   def runOrFail(
     args: Seq[String],
-    failMessage: String,
-    action: A => Unit)
+    failMessage: Option[String],
+    actionHandler: A => Unit)
    (implicit ev: DisplayErrors[E]):
     T = {
 
-    CliParser.runOrFail[A, E, T](args, failMessage, action)(this)
+    CliParser.runOrFail[A, E, T](args, failMessage, actionHandler)(this)
   }
 }
 
@@ -129,8 +129,8 @@ object CliParser {
 
   def runOrFail[A, E: Semigroup, T](
     args: Seq[String],
-    failMessage: String,
-    action: A => Unit)
+    failMessage: Option[String],
+    actionHandler: A => Unit)
    (cliParser: CliParser[A, E, T])
    (implicit ev: DisplayErrors[E]):
     T = {
@@ -139,7 +139,7 @@ object CliParser {
     res match {
       case Success(v)  => v
       case Action(a) =>
-        action(a)
+        actionHandler(a)
         sys.exit(1)
 
       case Failure(err) =>
@@ -166,7 +166,7 @@ object CliParser {
           s"""$errorsDisplay
              |
              |$parsingDetailDisplay
-             |${state.failMessage.getOrElse(failMessage)}
+             |${state.failMessage.orElse(failMessage).getOrElse("")}
              |""".stripMargin)
 
         sys.exit(1)

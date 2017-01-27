@@ -67,5 +67,5 @@ object Git extends App {
       remoteCommand
     }
 
-  val res = parseCommandOrFail(args)(git).run
+  val res = runCommandOrFail(git)(args).run
 }

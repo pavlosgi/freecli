@@ -2,41 +2,8 @@ import sbt._
 import Keys._
 import ReleaseTransformations._
 
-lazy val root = Project("freecli-root", file("."))
-  .settings(projectSettings:_*)
-  .settings(noPublishSettings:_*)
-  .aggregate(freecli_circe)
-  .aggregate(freecli_core)
-  .aggregate(freecli_examples)
-  .aggregate(freecli_testkit)
-
-lazy val freecli_circe = Project("freecli-circe", file("circe"))
-  .settings(projectSettings:_*)
-  .settings(publishSettings:_*)
-  .settings(libraryDependencies ++= circe)
-  .dependsOn(freecli_core)
-  .dependsOn(freecli_testkit % Test)
-
-lazy val freecli_core = Project("freecli-core", file("core"))
-  .settings(projectSettings:_*)
-  .settings(publishSettings:_*)
-  .settings(libraryDependencies ++=
-    cats ++
-    shapeless)
-
-  .dependsOn(freecli_testkit % Test)
-
-lazy val freecli_examples = Project("freecli-examples", file("examples"))
-  .settings(projectSettings:_*)
-  .settings(noPublishSettings:_*)
-  .dependsOn(freecli_core)
-
-lazy val freecli_testkit = Project("freecli-testkit", file("testkit"))
-  .settings(projectSettings:_*)
-  .settings(noPublishSettings:_*)
-  .settings(libraryDependencies ++= cats ++ scalatest)
-
-lazy val projectSettings = commonSettings ++ scalacSettings
+lazy val coreSettings =
+  commonSettings ++ scalacSettings ++ scoverageSettings ++ releaseSettings
 
 lazy val commonSettings = Seq(
   organization := "com.pavlosgi",
@@ -46,6 +13,7 @@ lazy val commonSettings = Seq(
   offline := true,
   excludeFilter in unmanagedResources := NothingFilter,
   resolvers := Seq(
+    Resolver.sonatypeRepo("public"),
     Resolver.sonatypeRepo("public"),
     Opts.resolver.sonatypeReleases,
     Opts.resolver.sonatypeSnapshots,
@@ -84,6 +52,13 @@ lazy val scalacSettings = Seq(
     "-Ywarn-value-discard",
     "-Xfuture",
     "-Xfatal-warnings"))
+
+lazy val scoverageSettings = Seq(
+  coverageMinimum := 60,
+  coverageFailOnMinimum := false,
+  coverageExcludedFiles := ".*/src/test/.*",
+  coverageExcludedPackages := "pavlosgi.freecli.(examples.*|testkit.*)"
+)
 
 lazy val publishSettings = Seq(
   releasePublishArtifactsAction := PgpKeys.publishSigned.value,
@@ -155,6 +130,40 @@ lazy val noPublishSettings = Seq(
   publishArtifact := false
 )
 
+lazy val root = Project("freecli-root", file("."))
+  .settings(coreSettings:_*)
+  .settings(noPublishSettings:_*)
+  .aggregate(freecli_circe)
+  .aggregate(freecli_core)
+  .aggregate(freecli_examples)
+  .aggregate(freecli_testkit)
+
+lazy val freecli_circe = Project("freecli-circe", file("circe"))
+  .settings(coreSettings:_*)
+  .settings(publishSettings:_*)
+  .settings(libraryDependencies ++= circe)
+  .dependsOn(freecli_core)
+  .dependsOn(freecli_testkit % Test)
+
+lazy val freecli_core = Project("freecli-core", file("core"))
+  .settings(coreSettings:_*)
+  .settings(publishSettings:_*)
+  .settings(libraryDependencies ++=
+    cats ++
+    shapeless)
+
+  .dependsOn(freecli_testkit % Test)
+
+lazy val freecli_examples = Project("freecli-examples", file("examples"))
+  .settings(coreSettings:_*)
+  .settings(noPublishSettings:_*)
+  .dependsOn(freecli_core)
+
+lazy val freecli_testkit = Project("freecli-testkit", file("testkit"))
+  .settings(coreSettings:_*)
+  .settings(noPublishSettings:_*)
+  .settings(libraryDependencies ++= cats ++ scalatest)
+
 lazy val catsV = "0.8.1"
 lazy val circeV = "0.6.0"
 lazy val shapelessV = "2.3.2"
@@ -172,3 +181,14 @@ lazy val scalatest = Seq(
 "org.scalactic" %% "scalactic" % scalatestV,
 "org.scalatest" %% "scalatest" % scalatestV
 )
+
+
+addCommandAlias("root", ";project freecli-root")
+addCommandAlias("core", ";project freecli-core")
+addCommandAlias("examples", ";project freecli-examples")
+addCommandAlias("circe", ";project freecli-circe")
+
+addCommandAlias("validate", ";root;validateJVM")
+addCommandAlias("validateJVM", ";freecli-core/compile;freecli-core/mimaReportBinaryIssues;freecli-core/test;freecli-examples/compile;freecli-circe/compile;freecli-circe/test;freecli-testkit/compile")
+
+addCommandAlias("releaseAll", ";root;release skip-tests")

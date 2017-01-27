@@ -22,10 +22,10 @@ trait AllOps extends parser.ParserOps with help.HelpOps with AD.Ops {
 
   object O extends OD.Ops
 
-  def parseConfigOrFail[A](args: Seq[String])(dsl: ConfigDsl[A]): A = {
+  def runConfigOrFail[A](dsl: ConfigDsl[A])(args: Seq[String]): A = {
     CliParser.runOrFail[Action, ConfigParsingErrors, A](
       args,
-      configHelp(dsl),
+      Some(configHelp(dsl)),
       { case a@ArgumentAction(_) => a.run()
         case o@OptionAction(_) => o.run(configHelp(dsl))
       })(

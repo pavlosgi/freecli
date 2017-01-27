@@ -1,6 +1,7 @@
 # FreeCLI
 
 [![Build Status](https://api.travis-ci.org/pavlosgi/freecli.png?branch=master)](https://travis-ci.org/pavlosgi/freecli)
+[![codecov.io](http://codecov.io/github/pavlosgi/freecli/coverage.svg?branch=master)](http://codecov.io/github/pavlosgi/freecli?branch=master)
 
 ### Overview
 
@@ -21,6 +22,11 @@ Before diving in, this is what your CLI configuration will produce:
 ![preview](preview.png)
 
 ### Getting Started
+
+To get started with SBT, simply add the following to your `build.sbt`
+file:
+
+To get started in code you can use the following imports.
 
 ```scala
  import pavlosgi.freecli.core.all._     // provides core operations
@@ -52,23 +58,42 @@ Allows defining positional arguments
 * `-~` modifier for optional configuration of the arguments
 
 ##### Parsing
-* `parseArgument`
-* `parseArgumentOrFail`
+* `parseArgument` will return a CliParser that will need to be `run` 
+* `runArgumentOrFail` will return the value or fail printing the errors and help
 
 ##### Examples
 ```scala
 import pavlosgi.freecli.core.all._
 import pavlosgi.freecli.argument.all._
  
-string 
-string -~ name("arg1")
-string -~ name("arg1") -~ des("argument description")
+val dsl = string
+val res: String = runArgumentOrFail(dsl)(Seq("one"))
+ 
+val dsl2 = string -~ name("arg1")
+val res2: String = runArgumentOrFail(dsl2)(Seq("one"))
+ 
+val dsl3 = string -~ name("arg1") -~ des("argument description")
+val res3: String =
+  runArgumentOrFail(dsl3)(Seq("one"))
  
 case class Arguments(arg1: String, arg2: Int)
-group[Arguments] {
-  string :: 
-  int
-}
+val dsl4 =
+  group[Arguments] {
+    string ::
+    int
+  }
+ 
+val res4: Arguments =
+  runArgumentOrFail(dsl4)(Seq("one", "2"))
+ 
+val dsl5 =
+  groupT {
+    string ::
+    int
+  }
+ 
+val res5: (String, Int) =
+  runArgumentOrFail(dsl5)(Seq("one", "2"))
 ```  
 
 More examples can be found in [Argument tests](./core/src/test/scala/pavlosgi/freecli/argument/ArgumentDslTest.scala) and the [Argument example](./examples/src/main/scala/pavlosgi/freecli/examples/argument/DatabaseConfig.scala) that can be run as follows:
@@ -124,27 +149,45 @@ Allows defining named options
 * `-~` modifier for optional configuration of the options
 
 ##### Parsing
-* `parseOption`
-* `parseOptionOrFail`
+* `parseOption` will return a CliParser that will need to be `run` 
+* `runOptionOrFail` will return the value or fail printing the errors and help
 
 ##### Examples
 ```scala
 import pavlosgi.freecli.core.all._
 import pavlosgi.freecli.option.all._
  
-string --"opt1"
-string --"opt1" -~ des("option description")
-string -'o'
-string -'o' -~ des("option description")
-string --"opt1" -'o'
-string --"opt1" -'o' -~ des("option description")
+val dsl = string --"opt1"
+val res: Option[String] =
+runOptionOrFail(dsl)(Seq("--opt1", "one"))
+ 
+val dsl2 = string --"opt1" -~ des("option description")
+val res2: Option[String] =
+runOptionOrFail(dsl2)(Seq("--opt1", "one"))
+ 
+val dsl3 = string -'o'
+val res3: Option[String] =
+runOptionOrFail(dsl3)(Seq("-o", "one"))
+ 
+val dsl4 = string -'o' -~ des("option description")
+val res4: Option[String] =
+runOptionOrFail(dsl4)(Seq("-o", "one"))
+ 
+val dsl5 = string --"opt1" -'o'
+val res5: Option[String] =
+runOptionOrFail(dsl5)(Seq("--opt1", "one"))
+ 
+val dsl6 = string --"opt1" -'o' -~ des("option description")
+val res6: Option[String] =
+runOptionOrFail(dsl6)(Seq("-o", "one"))
  
 case class Options(
-  opt1: Option[String], 
-  opt2: Int, 
-  opt3: Int, 
-  opt4: Boolean)
+opt1: Option[String],
+opt2: Int,
+opt3: Int,
+opt4: Boolean)
  
+val dsl7 =
 group[Options] {
   string  --"opt1"          ::
   int     --"opt2" -~ req   ::
@@ -153,6 +196,21 @@ group[Options] {
   help    --"help" ::
   version --"version" -~ value("v1.0")
 }
+ 
+val res7: Options =
+runOptionOrFail(dsl7)(
+  Seq(
+    "--opt1", "one",
+    "--opt2", "two",
+    "--opt3", "three",
+    "--opt4"
+  ))
+ 
+val res7b: Options =
+runOptionOrFail(dsl7)(
+  Seq(
+    "--opt2", "two",
+    "--opt3", "three"))
 ```  
 
 More examples can be found in [Option tests](./core/src/test/scala/pavlosgi/freecli/option/OptionDslTest.scala) and the [Option example](./examples/src/main/scala/pavlosgi/freecli/examples/option/DatabaseConfig.scala) that can be run as follows:
@@ -198,29 +256,47 @@ The syntax for config re-exports Argument syntax and Option syntax and resolves 
 * `O.newFile`
 
 ##### Parsing
-* `parseConfig`
-* `parseConfigOrFail`
+* `parseConfig` will return a CliParser that will need to be `run` 
+* `runConfigOrFail` will return the value or fail printing the errors and help
 
 ##### Examples
 ```scala
 import pavlosgi.freecli.core.all._
 import pavlosgi.freecli.config.all._
  
-O.string --"opt1"
-O.string --"opt1" -~ des("option description")
-O.string -'o'
-O.string -'o' -~ des("option description")
-O.string --"opt1" -'o'
-O.string --"opt1" -'o' -~ des("option description")
+val dsl = O.string --"opt1"
+val res: Option[String] =
+runConfigOrFail(dsl)(Seq("--opt1", "one"))
+ 
+val dsl2 = O.string --"opt1" -~ des("option description")
+val res2: Option[String] =
+runConfigOrFail(dsl2)(Seq("--opt1", "one"))
+ 
+val dsl3 = O.string -'o'
+val res3: Option[String] =
+runConfigOrFail(dsl3)(Seq("-o", "one"))
+ 
+val dsl4 = O.string -'o' -~ des("option description")
+val res4: Option[String] =
+runConfigOrFail(dsl4)(Seq("-o", "one"))
+ 
+val dsl5 = O.string --"opt1" -'o' -~ or ("1")
+val res5: String =
+runConfigOrFail(dsl5)(Seq("--opt1", "one"))
+ 
+val dsl6 = O.string --"opt1" -'o' -~ req -~ des("option description")
+val res6: String =
+runConfigOrFail(dsl6)(Seq("--opt1", "one"))
  
 case class Config(
-  opt1: Option[String], 
-  opt2: Int, 
-  opt3: Int, 
-  opt4: Boolean,
-  arg1: String,
-  arg2: Int)
+opt1: Option[String],
+opt2: Int,
+opt3: Int,
+opt4: Boolean,
+arg1: String,
+arg2: Int)
  
+val dsl7 =
 group[Config] {
   O.string --"opt1"          ::
   O.int    --"opt2" -~ req   ::
@@ -229,6 +305,16 @@ group[Config] {
   string                     ::
   int
 }
+ 
+val res7: Config =
+runConfigOrFail(dsl7)(
+  Seq(
+   "--opt1", "one",
+   "--opt2", "two",
+   "--opt3", "three",
+   "--opt4",
+   "five",
+   "six"))
 ```  
 
 More examples can be found in [Config tests](./core/src/test/scala/pavlosgi/freecli/config/ConfigDslTest.scala) and the [Config example](./examples/src/main/scala/pavlosgi/freecli/examples/config/DatabaseConfig.scala) that can be run as follows:
@@ -272,8 +358,8 @@ the product of the parent configuration and the nested command configuration.
 * `runs[T]` specify function that takes T and executes when running the command
 
 ##### Parsing
-* `parseCommand`
-* `parseCommandOrFail`
+* `parseCommand` will return a CliParser that will need to be `run` 
+* `runCommandOrFail` will return the value or fail printing the errors and help
 
 ##### Examples
 ```scala
@@ -285,6 +371,7 @@ case class Command1Config(opt1: Option[Int], opt2: String)
 case class Command2Config(opt3: Int, arg1: String)
 case class Command3Config(arg2: String)
  
+val dsl =
 cmd("command1") {
   takesG[Command1Config] {
     O.help   --"help" ::
@@ -311,7 +398,20 @@ cmd("command1") {
     }
   }
 }
-
+ 
+val res: Unit =
+runCommandOrFail(dsl)(
+  Seq(
+   "command1", "--opt1", "1", "opt2", "two",
+     "command2", "--opt3", "3", "four")).run
+ 
+/*
+//Fails and prints errors and help for failing command
+runCommandOrFail(dsl)(
+Seq(
+ "command1", "--opt1", "1", "opt2", "two",
+   "command2", "--opt3", "3")).run
+*/
 ```
 
 More examples can be found in [Command tests](./core/src/test/scala/pavlosgi/freecli/command/CommandDslTest.scala) and the [Git example](./examples/src/main/scala/pavlosgi/freecli/examples/command/Git.scala) that can be run as follows:

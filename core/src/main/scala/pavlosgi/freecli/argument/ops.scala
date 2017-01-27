@@ -6,10 +6,10 @@ import pavlosgi.freecli.parser.CliParser
 
 object ops extends AllOps
 trait AllOps extends dsl.Ops with parser.ParserOps with help.HelpOps {
-  def parseArgumentOrFail[A](args: Seq[String])(dsl: ArgumentDsl[A]): A = {
+  def runArgumentOrFail[A](dsl: ArgumentDsl[A])(args: Seq[String]): A = {
     CliParser.runOrFail[Action, ArgumentParsingErrors, A](
       args,
-      argumentHelp(dsl),
+      Some(argumentHelp(dsl)),
       { case n: NoOp.type => n.run() })(
       parseArgument(dsl))
   }

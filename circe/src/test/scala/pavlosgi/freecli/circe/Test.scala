@@ -19,6 +19,10 @@ class Test extends testkit.Test {
         parse("""{"test": "test"}""").toOption.get)
     }
 
+    it("fail to decode inline string to json") {
+      implicitly[StringDecoder[Json]].apply("""{"test: "test"}""").invalid
+    }
+
     it("decode inline to case class via json") {
       case class Foo(test: String)
 
@@ -30,12 +34,27 @@ class Test extends testkit.Test {
         Foo("test"))
     }
 
+    it("fail decode inline to case class via json") {
+      case class Foo(test: String)
+
+      implicit val s = new Show[Foo] {
+        override def show(f: Foo): String = f.test
+      }
+
+      implicitly[StringDecoder[Foo]].apply("""{"test": 1}""").invalid
+    }
+
     it("decode file to json") {
       val file = getClass.getResource("/test.json").getFile
       val fileContents = Source.fromFile(file).mkString
 
       implicitly[StringDecoder[Json]].apply(file).valid should
         === (parse(fileContents).toOption.get)
+    }
+
+    it("fail decode file to json") {
+      val file = getClass.getResource("/invalid_test.json").getFile
+      implicitly[StringDecoder[Json]].apply(file).invalid
     }
 
     it("decode file to case class via json") {
@@ -51,6 +70,18 @@ class Test extends testkit.Test {
 
       implicitly[StringDecoder[Foo]].apply(file).valid should === (
         decode[Foo](fileContents).toOption.get)
+    }
+
+    it("fail to decode file to case class via json") {
+      val file = getClass.getResource("/test.json").getFile
+      case class Foo(foo: String, bar1: Bar)
+      case class Bar(bar: String)
+
+      implicit val s = new Show[Foo] {
+        override def show(f: Foo): String = f.toString
+      }
+
+      implicitly[StringDecoder[Foo]].apply(file).invalid
     }
   }
 }

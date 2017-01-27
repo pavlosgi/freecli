@@ -22,6 +22,6 @@ object DatabaseConfig extends App {
       version --"version" -~ des("Displays version") -~ value("v1.0")
     }
 
-  val res = parseOptionOrFail(args)(databaseConfig)
+  val res = runOptionOrFail(databaseConfig)(args)
   println(res)
 }
