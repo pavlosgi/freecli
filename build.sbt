@@ -14,7 +14,6 @@ lazy val commonSettings = Seq(
   excludeFilter in unmanagedResources := NothingFilter,
   resolvers := Seq(
     Resolver.sonatypeRepo("public"),
-    Resolver.sonatypeRepo("public"),
     Opts.resolver.sonatypeReleases,
     Opts.resolver.sonatypeSnapshots,
     Classpaths.sbtPluginReleases
