@@ -80,17 +80,12 @@ lazy val publishSettings = Seq(
     )
   ),
   developers := List(
-    Developer("pavlosgi", "Pavlos Georgiou", "pavlos.georgiou.p@gmail.com",
+    Developer(
+      "pavlosgi",
+      "Pavlos Georgiou",
+      "pavlos.georgiou.p@gmail.com",
       url("https://twitter.com/pavlosgi"))
-  ),
-  pomExtra :=
-    <developers>
-      <developer>
-        <id>pavlosgi</id>
-        <name>Pavlos Georgiou</name>
-        <url>https://github.com/pavlosgi/</url>
-      </developer>
-    </developers>
+  )
 )
 
 
