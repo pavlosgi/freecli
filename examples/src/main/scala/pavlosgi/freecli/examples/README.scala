@@ -203,3 +203,35 @@ object Command {
   */
 
 }
+
+object CustomDecoder {
+  import cats.data.{Validated, ValidatedNel}
+
+  import pavlosgi.freecli.argument.all._
+  import pavlosgi.freecli.core.api.{StringDecoder, StringDecoderError}
+
+  sealed trait FooBar
+  case object Foo extends FooBar
+  case object Bar extends FooBar
+
+  implicit object fooBarStringDecoder extends StringDecoder[FooBar] {
+    override def apply(value: String): ValidatedNel[StringDecoderError, FooBar] = {
+      value match {
+        case v if v.equalsIgnoreCase("Foo") => Validated.valid(Foo)
+        case v if v.equalsIgnoreCase("Bar") => Validated.valid(Bar)
+        case v =>
+          Validated.invalidNel(StringDecoderError(s"$v did not match any of (Foo, Bar)"))
+      }
+    }
+
+    override def toString(v: FooBar): String = {
+      v match {
+        case Foo => "Foo"
+        case Bar => "Bar"
+      }
+    }
+  }
+
+  val x: FooBar = runArgumentOrFail(arg[FooBar])(Seq("Foo"))
+}
+

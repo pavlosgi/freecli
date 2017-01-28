@@ -120,10 +120,11 @@ $ sbt
  
 Multiple main classes detected, select one to run:
  
- [1] pavlosgi.freecli.examples.arguments.DatabaseConfig
+ [1] pavlosgi.freecli.examples.argument.DatabaseConfig
  [2] pavlosgi.freecli.examples.command.Git
  [3] pavlosgi.freecli.examples.config.DatabaseConfig
- [4] pavlosgi.freecli.examples.options.DatabaseConfig
+ [4] pavlosgi.freecli.examples.decoder.Decoder
+ [5] pavlosgi.freecli.examples.option.DatabaseConfig
  
 Enter number: 1
  
@@ -237,12 +238,13 @@ $ sbt
  
 Multiple main classes detected, select one to run:
  
- [1] pavlosgi.freecli.examples.arguments.DatabaseConfig
+ [1] pavlosgi.freecli.examples.argument.DatabaseConfig
  [2] pavlosgi.freecli.examples.command.Git
  [3] pavlosgi.freecli.examples.config.DatabaseConfig
- [4] pavlosgi.freecli.examples.options.DatabaseConfig
+ [4] pavlosgi.freecli.examples.decoder.Decoder
+ [5] pavlosgi.freecli.examples.option.DatabaseConfig
  
-Enter number: 4
+Enter number: 5
  
 [info] Running pavlosgi.freecli.examples.options.DatabaseConfig --port 8080 --host host --username username --password password --database database
 DatabaseConfig(8080,host,username,password,database)
@@ -341,10 +343,11 @@ $ sbt
  
 Multiple main classes detected, select one to run:
  
- [1] pavlosgi.freecli.examples.arguments.DatabaseConfig
+ [1] pavlosgi.freecli.examples.argument.DatabaseConfig
  [2] pavlosgi.freecli.examples.command.Git
  [3] pavlosgi.freecli.examples.config.DatabaseConfig
- [4] pavlosgi.freecli.examples.options.DatabaseConfig
+ [4] pavlosgi.freecli.examples.decoder.Decoder
+ [5] pavlosgi.freecli.examples.option.DatabaseConfig
  
 Enter number: 3
  
@@ -438,16 +441,80 @@ $ sbt
  
 Multiple main classes detected, select one to run:
  
- [1] pavlosgi.freecli.examples.arguments.DatabaseConfig
+ [1] pavlosgi.freecli.examples.argument.DatabaseConfig
  [2] pavlosgi.freecli.examples.command.Git
  [3] pavlosgi.freecli.examples.config.DatabaseConfig
- [4] pavlosgi.freecli.examples.options.DatabaseConfig
+ [4] pavlosgi.freecli.examples.decoder.Decoder
+ [5] pavlosgi.freecli.examples.option.DatabaseConfig
  
 Enter number: 2
  
 [info] Running pavlosgi.freecli.examples.command.Git git remote add origin git@github.com:pavlosgi/freecli.git
 Remote origin git@github.com:pavlosgi/freecli.git added
 [success] Total time: 22 s, completed 22-Jan-2017 23:52:26
+```
+
+#### StringDecoder
+
+You can define your own string decoder to parse custom types from the command line.
+
+#### Examples
+```scala
+import cats.data.{Validated, ValidatedNel}
+ 
+import pavlosgi.freecli.argument.all._
+import pavlosgi.freecli.core.api.{StringDecoder, StringDecoderError}
+ 
+sealed trait FooBar
+case object Foo extends FooBar
+case object Bar extends FooBar
+ 
+implicit object fooBarStringDecoder extends StringDecoder[FooBar] {
+  override def apply(value: String): ValidatedNel[StringDecoderError, FooBar] = {
+    value match {
+      case v if v.equalsIgnoreCase("Foo") => Validated.valid(Foo)
+      case v if v.equalsIgnoreCase("Bar") => Validated.valid(Bar)
+      case v =>
+        Validated.invalidNel(StringDecoderError(s"$v did not match any of (Foo, Bar)"))
+    }
+  }
+ 
+  override def toString(v: FooBar): String = {
+    v match {
+      case Foo => "Foo"
+      case Bar => "Bar"
+    }
+  }
+}
+ 
+val x: FooBar = runArgumentOrFail(arg[FooBar])(Seq("Foo"))
+```
+
+More examples can be found in [StringDecoder](./core/src/main/scala/pavlosgi/freecli/core/api/StringDecoder.scala) and the [Decoder example](./examples/src/main/scala/pavlosgi/freecli/examples/decoder/Decoder.scala) that can be run as follows:
+
+```
+$ sbt
+[info] Set current project to freecli-root (in build file:/Users/pavlos/Workspace/freecli/)
+ 
+> project freecli-examples
+[info] Set current project to freecli-examples (in build file:/Users/pavlos/Workspace/freecli/)
+ 
+> run Apple
+[warn] Multiple main classes detected.  Run 'show discoveredMainClasses' to see the list
+ 
+Multiple main classes detected, select one to run:
+ 
+ [1] pavlosgi.freecli.examples.argument.DatabaseConfig
+ [2] pavlosgi.freecli.examples.command.Git
+ [3] pavlosgi.freecli.examples.config.DatabaseConfig
+ [4] pavlosgi.freecli.examples.decoder.Decoder
+ [5] pavlosgi.freecli.examples.option.DatabaseConfig
+ 
+Enter number: 4
+ 
+[info] Running pavlosgi.freecli.examples.decoder.Decoder Apple
+Apple
+[success] Total time: 6 s, completed 22-Jan-2017 23:52:26
 ```
 
 ## License
