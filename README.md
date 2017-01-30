@@ -39,9 +39,9 @@ libraryDependencies += "com.pavlosgi" %% "freecli-circe" % "0.1.0"
 To get started in code you can use the following imports.
 
 ```scala
- import pavlosgi.freecli.core.all._     // provides core operations
- import pavlosgi.freecli.command.all._  // provides command operations
- import pavlosgi.freecli.config.all._   // provides config operations
+ import freecli.core.all._     // provides core operations
+ import freecli.command.all._  // provides command operations
+ import freecli.config.all._   // provides config operations
 ```
 
 ### Core 
@@ -73,8 +73,8 @@ Allows defining positional arguments
 
 ##### Examples
 ```scala
-import pavlosgi.freecli.core.all._
-import pavlosgi.freecli.argument.all._
+import freecli.core.all._
+import freecli.argument.all._
  
 val dsl = string
 val res: String = runArgumentOrFail(dsl)(Seq("one"))
@@ -120,15 +120,15 @@ $ sbt
  
 Multiple main classes detected, select one to run:
  
- [1] pavlosgi.freecli.examples.argument.DatabaseConfig
- [2] pavlosgi.freecli.examples.command.Git
- [3] pavlosgi.freecli.examples.config.DatabaseConfig
- [4] pavlosgi.freecli.examples.decoder.Decoder
- [5] pavlosgi.freecli.examples.option.DatabaseConfig
+ [1] freecli.examples.argument.DatabaseConfig
+ [2] freecli.examples.command.Git
+ [3] freecli.examples.config.DatabaseConfig
+ [4] freecli.examples.decoder.Decoder
+ [5] freecli.examples.option.DatabaseConfig
  
 Enter number: 1
  
-[info] Running pavlosgi.freecli.examples.arguments.DatabaseConfig 8080 host username password database
+[info] Running freecli.examples.arguments.DatabaseConfig 8080 host username password database
 DatabaseConfig(8080,host,username,password,database)
 [success] Total time: 22 s, completed 22-Jan-2017 23:52:26
 ```
@@ -165,8 +165,8 @@ Allows defining named options
 
 ##### Examples
 ```scala
-import pavlosgi.freecli.core.all._
-import pavlosgi.freecli.option.all._
+import freecli.core.all._
+import freecli.option.all._
  
 val dsl = string --"opt1"
 val res: Option[String] =
@@ -238,15 +238,15 @@ $ sbt
  
 Multiple main classes detected, select one to run:
  
- [1] pavlosgi.freecli.examples.argument.DatabaseConfig
- [2] pavlosgi.freecli.examples.command.Git
- [3] pavlosgi.freecli.examples.config.DatabaseConfig
- [4] pavlosgi.freecli.examples.decoder.Decoder
- [5] pavlosgi.freecli.examples.option.DatabaseConfig
+ [1] freecli.examples.argument.DatabaseConfig
+ [2] freecli.examples.command.Git
+ [3] freecli.examples.config.DatabaseConfig
+ [4] freecli.examples.decoder.Decoder
+ [5] freecli.examples.option.DatabaseConfig
  
 Enter number: 5
  
-[info] Running pavlosgi.freecli.examples.options.DatabaseConfig --port 8080 --host host --username username --password password --database database
+[info] Running freecli.examples.options.DatabaseConfig --port 8080 --host host --username username --password password --database database
 DatabaseConfig(8080,host,username,password,database)
 [success] Total time: 22 s, completed 22-Jan-2017 23:52:26
 ```
@@ -273,8 +273,8 @@ The syntax for config re-exports Argument syntax and Option syntax and resolves 
 
 ##### Examples
 ```scala
-import pavlosgi.freecli.core.all._
-import pavlosgi.freecli.config.all._
+import freecli.core.all._
+import freecli.config.all._
  
 val dsl = O.string --"opt1"
 val res: Option[String] =
@@ -343,15 +343,15 @@ $ sbt
  
 Multiple main classes detected, select one to run:
  
- [1] pavlosgi.freecli.examples.argument.DatabaseConfig
- [2] pavlosgi.freecli.examples.command.Git
- [3] pavlosgi.freecli.examples.config.DatabaseConfig
- [4] pavlosgi.freecli.examples.decoder.Decoder
- [5] pavlosgi.freecli.examples.option.DatabaseConfig
+ [1] freecli.examples.argument.DatabaseConfig
+ [2] freecli.examples.command.Git
+ [3] freecli.examples.config.DatabaseConfig
+ [4] freecli.examples.decoder.Decoder
+ [5] freecli.examples.option.DatabaseConfig
  
 Enter number: 3
  
-[info] Running pavlosgi.freecli.examples.config.DatabaseConfig --port 8080 -d -v host username password database
+[info] Running freecli.examples.config.DatabaseConfig --port 8080 -d -v host username password database
 DatabaseConfig(8080,true,true,host,username,password,database)
 [success] Total time: 22 s, completed 22-Jan-2017 23:52:26
 ```
@@ -376,9 +376,9 @@ the product of the parent configuration and the nested command configuration.
 
 ##### Examples
 ```scala
-import pavlosgi.freecli.core.all._
-import pavlosgi.freecli.config.all._
-import pavlosgi.freecli.command.all._
+import freecli.core.all._
+import freecli.config.all._
+import freecli.command.all._
  
 case class Command1Config(opt1: Option[Int], opt2: String)
 case class Command2Config(opt3: Int, arg1: String)
@@ -441,15 +441,15 @@ $ sbt
  
 Multiple main classes detected, select one to run:
  
- [1] pavlosgi.freecli.examples.argument.DatabaseConfig
- [2] pavlosgi.freecli.examples.command.Git
- [3] pavlosgi.freecli.examples.config.DatabaseConfig
- [4] pavlosgi.freecli.examples.decoder.Decoder
- [5] pavlosgi.freecli.examples.option.DatabaseConfig
+ [1] freecli.examples.argument.DatabaseConfig
+ [2] freecli.examples.command.Git
+ [3] freecli.examples.config.DatabaseConfig
+ [4] freecli.examples.decoder.Decoder
+ [5] freecli.examples.option.DatabaseConfig
  
 Enter number: 2
  
-[info] Running pavlosgi.freecli.examples.command.Git git remote add origin git@github.com:pavlosgi/freecli.git
+[info] Running freecli.examples.command.Git git remote add origin git@github.com:pavlosgi/freecli.git
 Remote origin git@github.com:pavlosgi/freecli.git added
 [success] Total time: 22 s, completed 22-Jan-2017 23:52:26
 ```
@@ -462,8 +462,8 @@ You can define your own string decoder to parse custom types from the command li
 ```scala
 import cats.data.{Validated, ValidatedNel}
  
-import pavlosgi.freecli.argument.all._
-import pavlosgi.freecli.core.api.{StringDecoder, StringDecoderError}
+import freecli.argument.all._
+import freecli.core.api.{StringDecoder, StringDecoderError}
  
 sealed trait FooBar
 case object Foo extends FooBar
@@ -504,15 +504,15 @@ $ sbt
  
 Multiple main classes detected, select one to run:
  
- [1] pavlosgi.freecli.examples.argument.DatabaseConfig
- [2] pavlosgi.freecli.examples.command.Git
- [3] pavlosgi.freecli.examples.config.DatabaseConfig
- [4] pavlosgi.freecli.examples.decoder.Decoder
- [5] pavlosgi.freecli.examples.option.DatabaseConfig
+ [1] freecli.examples.argument.DatabaseConfig
+ [2] freecli.examples.command.Git
+ [3] freecli.examples.config.DatabaseConfig
+ [4] freecli.examples.decoder.Decoder
+ [5] freecli.examples.option.DatabaseConfig
  
 Enter number: 4
  
-[info] Running pavlosgi.freecli.examples.decoder.Decoder Apple
+[info] Running freecli.examples.decoder.Decoder Apple
 Apple
 [success] Total time: 6 s, completed 22-Jan-2017 23:52:26
 ```

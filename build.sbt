@@ -56,7 +56,7 @@ lazy val scoverageSettings = Seq(
   coverageMinimum := 60,
   coverageFailOnMinimum := false,
   coverageExcludedFiles := ".*/src/test/.*",
-  coverageExcludedPackages := "pavlosgi.freecli.(examples.*|testkit.*)"
+  coverageExcludedPackages := "freecli.(examples.*|testkit.*)"
 )
 
 lazy val publishSettings = Seq(
