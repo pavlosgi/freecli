@@ -106,7 +106,7 @@ val res5: (String, Int) =
   runArgumentOrFail(dsl5)(Seq("one", "2"))
 ```  
 
-More examples can be found in [Argument tests](./core/src/test/scala/pavlosgi/freecli/argument/ArgumentDslTest.scala) and the [Argument example](./examples/src/main/scala/pavlosgi/freecli/examples/argument/DatabaseConfig.scala) that can be run as follows:
+More examples can be found in [Argument tests](./core/src/test/scala/freecli/argument/ArgumentDslTest.scala) and the [Argument example](./examples/src/main/scala/freecli/examples/argument/DatabaseConfig.scala) that can be run as follows:
 
 ```
 $ sbt
@@ -224,7 +224,7 @@ runOptionOrFail(dsl7)(
     "--opt3", "three"))
 ```  
 
-More examples can be found in [Option tests](./core/src/test/scala/pavlosgi/freecli/option/OptionDslTest.scala) and the [Option example](./examples/src/main/scala/pavlosgi/freecli/examples/option/DatabaseConfig.scala) that can be run as follows:
+More examples can be found in [Option tests](./core/src/test/scala/freecli/option/OptionDslTest.scala) and the [Option example](./examples/src/main/scala/freecli/examples/option/DatabaseConfig.scala) that can be run as follows:
 
 ```
 $ sbt
@@ -329,7 +329,7 @@ runConfigOrFail(dsl7)(
    "six"))
 ```  
 
-More examples can be found in [Config tests](./core/src/test/scala/pavlosgi/freecli/config/ConfigDslTest.scala) and the [Config example](./examples/src/main/scala/pavlosgi/freecli/examples/config/DatabaseConfig.scala) that can be run as follows:
+More examples can be found in [Config tests](./core/src/test/scala/freecli/config/ConfigDslTest.scala) and the [Config example](./examples/src/main/scala/freecli/examples/config/DatabaseConfig.scala) that can be run as follows:
 
 ```
 $ sbt
@@ -427,7 +427,7 @@ Seq(
 */
 ```
 
-More examples can be found in [Command tests](./core/src/test/scala/pavlosgi/freecli/command/CommandDslTest.scala) and the [Git example](./examples/src/main/scala/pavlosgi/freecli/examples/command/Git.scala) that can be run as follows:
+More examples can be found in [Command tests](./core/src/test/scala/freecli/command/CommandDslTest.scala) and the [Git example](./examples/src/main/scala/freecli/examples/command/Git.scala) that can be run as follows:
 
 ```
 $ sbt
@@ -490,7 +490,7 @@ implicit object fooBarStringDecoder extends StringDecoder[FooBar] {
 val x: FooBar = runArgumentOrFail(arg[FooBar])(Seq("Foo"))
 ```
 
-More examples can be found in [StringDecoder](./core/src/main/scala/pavlosgi/freecli/core/api/StringDecoder.scala) and the [Decoder example](./examples/src/main/scala/pavlosgi/freecli/examples/decoder/Decoder.scala) that can be run as follows:
+More examples can be found in [StringDecoder](./core/src/main/scala/freecli/core/api/StringDecoder.scala) and the [Decoder example](./examples/src/main/scala/freecli/examples/decoder/Decoder.scala) that can be run as follows:
 
 ```
 $ sbt
