@@ -17,7 +17,7 @@ class CommandParserTest extends Test {
         var hasRun = false
         parseCommand(
           cmd("command") {
-            runs(hasRun = true)
+            runs({hasRun = true})
           }).run(Seq("command"))._2.success.run
 
         hasRun shouldBe true
@@ -103,7 +103,7 @@ class CommandParserTest extends Test {
         parseCommand(
           cmd("command") {
             takes(O.help --"help") ::
-            runs(hasRun = true)
+            runs({hasRun = true})
           }).run(Seq("command"))._2.success.run
 
         hasRun should === (true)
@@ -127,7 +127,7 @@ class CommandParserTest extends Test {
         parseCommand(
           cmd("command") {
             takes(O.version --"version" -~ O.value("v1.0")) ::
-            runs(hasRun = true)
+            runs({hasRun = true})
           }).run(Seq("command"))._2.success.run
 
         hasRun should === (true)
@@ -153,7 +153,7 @@ class CommandParserTest extends Test {
         parseCommand(
           cmd("command") {
             cmd("subcommand") {
-              runs(hasRun = true)
+              runs({hasRun = true})
             }
           }).run(Seq("command", "subcommand"))._2.success.run
 
@@ -385,7 +385,7 @@ class CommandParserTest extends Test {
             takes(O.help --"help") ::
             cmd("subcommand") {
               takes(O.help --"help") ::
-              runs(hasRun = true)
+              runs({hasRun = true})
             }
           }).run(Seq("command", "subcommand"))._2.success.run
 
@@ -415,7 +415,7 @@ class CommandParserTest extends Test {
             takes(O.version --"version" -~ O.value("v1.0")) ::
             cmd("subcommand") {
               takes(O.version --"version" -~ O.value("v2.0")) ::
-              runs(hasRun = true)
+              runs({hasRun = true})
             }
           }).run(Seq("command", "subcommand"))._2.success.run
 
