@@ -3,13 +3,12 @@ import Keys._
 import ReleaseTransformations._
 
 lazy val coreSettings =
-  commonSettings ++ scalacSettings ++ scoverageSettings ++ releaseSettings
+  commonSettings ++ scalacSettings ++ xlintOptions ++ scoverageSettings ++ releaseSettings
 
 lazy val commonSettings = Seq(
   organization := "com.pavlosgi",
-  scalaOrganization := "org.typelevel",
-  scalaVersion := "2.12.0",
-  crossScalaVersions := Seq("2.11.8", "2.12.0"),
+  scalaVersion := "2.12.7",
+  crossScalaVersions := Seq("2.11.12", "2.12.7"),
   offline := true,
   excludeFilter in unmanagedResources := NothingFilter,
   resolvers := Seq(
@@ -31,6 +30,31 @@ lazy val commonSettings = Seq(
   })
 //  excludeFilter in Compile := "config" || "command" || "argument",
 //  excludeFilter in Test := "config" || "command" || "argument")
+lazy val xlintOptions = Seq(
+  scalacOptions ++= {
+    CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, scalaMajor)) if scalaMajor >= 12 =>
+        Seq(
+        "-Xlint:adapted-args",
+        "-Xlint:nullary-unit",
+        "-Xlint:inaccessible",
+        "-Xlint:nullary-override",
+        "-Xlint:infer-any",
+        "-Xlint:missing-interpolator",
+        "-Xlint:doc-detached",
+        "-Xlint:private-shadow",
+        "-Xlint:type-parameter-shadow",
+        "-Xlint:poly-implicit-overload",
+        "-Xlint:option-implicit",
+        "-Xlint:delayedinit-select",
+        "-Xlint:by-name-right-associative",
+        "-Xlint:package-object-classes",
+        "-Xlint:unsound-match",
+        "-Xlint:stars-align",
+        "-Xlint:constant")
+      case _ => Seq("-Xlint")
+    }
+  })
 
 lazy val scalacSettings = Seq(
   scalacOptions ++= Seq(
@@ -43,8 +67,6 @@ lazy val scalacSettings = Seq(
     "-language:existentials",
     "-Ywarn-unused-import",
     "-Ypartial-unification",
-    "-Yliteral-types",
-    "-Xlint",
     "-Yno-adapted-args",
     "-Ywarn-dead-code",
     "-Ywarn-numeric-widen",
@@ -119,6 +141,13 @@ credentials in ThisBuild ++= (for {
 } yield Credentials("Sonatype Nexus Repository Manager", "oss.sonatype.org", username, password)).toSeq
 
 lazy val noPublishSettings = Seq(
+  publishTo := {
+    val nexus = "https://oss.sonatype.org/"
+    if (isSnapshot.value)
+      Some("snapshots" at nexus + "content/repositories/snapshots")
+    else
+      Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+  },
   publish := (),
   publishLocal := (),
   publishArtifact := false
