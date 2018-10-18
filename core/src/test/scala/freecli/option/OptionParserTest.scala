@@ -274,6 +274,26 @@ class OptionParserTest extends Test {
       }.exists(identity) should === (true)
     }
 
+    it("fail to parse options if arguments left") {
+      case class ServerConfig(host: Option[String], port: Option[Int], debug: Boolean)
+
+      val dsl =
+        group[ServerConfig] {
+          string --"host"  ::
+          int    --"port"  ::
+          flag   --"debug1"
+        }
+
+      val (_, res) =
+        parseOption(dsl)
+          .run(Seq("--host", "localhost", "--port", "8080", "extra", "--debug1"))
+
+      res.failure.toList.collect {
+        case c: AdditionalArgumentsFound => c.getClass.getName
+      }.distinct.size should === (1)
+    }
+
+
     it("should throw a runtime exception for bad field names") {
       assertThrows[IllegalArgumentException](string --"--host")
       assertThrows[IllegalArgumentException](string --"123")

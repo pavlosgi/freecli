@@ -27,7 +27,7 @@ object CommandParserInterpreter extends (Algebra ~> ParseResult) {
           _ <- CliParser.setFailMessage[Action, CommandParsingError](
             H.ops.commandHelp(FreeAlternative.lift(p)))
 
-          conf <- C.ops.parseConfigNonStrict(config).mapError[CommandParsingError](ers =>
+          conf <- C.ops.parseConfigNonStrict(config, optsLookAhead = false).mapError[CommandParsingError](ers =>
               OtherCommandErrors(failedToParseConfig = Some(FailedToParseConfig(field, ers))))
 
             .mapAction[Action] { c =>
@@ -54,7 +54,7 @@ object CommandParserInterpreter extends (Algebra ~> ParseResult) {
           _ <- CliParser.setFailMessage[Action, CommandParsingError](
             H.ops.commandHelp(FreeAlternative.lift(p)))
 
-          conf <- C.ops.parseConfigNonStrict(config).mapError[CommandParsingError](ers =>
+          conf <- C.ops.parseConfigNonStrict(config, optsLookAhead = false).mapError[CommandParsingError](ers =>
               OtherCommandErrors(failedToParseConfig = Some(FailedToParseConfig(field, ers))))
 
             .mapAction[Action] { c =>

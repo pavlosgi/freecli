@@ -11,7 +11,8 @@ import freecli.parser.{CliArgument, CliParser}
 object ops extends ParserOps
 trait ParserOps {
   private[freecli] def parseOptionNonStrict[T](
-    dsl: OptionDsl[T]):
+    dsl: OptionDsl[T],
+    lookAhead: Boolean = true):
     CliParser[Action, OptionParsingErrors, T] = {
 
     def unusedOutOfOrder(args: Seq[CliArgument]) = {
@@ -22,19 +23,24 @@ trait ParserOps {
     for {
       r <- dsl.foldMap(OptionParserInterpreter)
       args <- CliParser.getArgs[Action, OptionParsingErrors]
-      _ <- unusedOutOfOrder(args) match {
-        case Nil => CliParser.success[Action, OptionParsingErrors, Unit](())
-        case l   => CliParser.error[Action, OptionParsingErrors, Unit](
-          NonEmptyList.of(ArgumentsDidNotMatchAnyOptions(l.map(_.name))))
+      _ <- if (lookAhead) {
+        CliParser.success[Action, OptionParsingErrors, Unit](())
+      } else {
+        unusedOutOfOrder(args) match {
+          case Nil => CliParser.success[Action, OptionParsingErrors, Unit](())
+          case l   => CliParser.error[Action, OptionParsingErrors, Unit](
+            NonEmptyList.of(ArgumentsDidNotMatchAnyOptions(l.map(_.name))))
+        }
       }
     } yield r
   }
 
   def parseOption[T](
-    dsl: OptionDsl[T]):
+    dsl: OptionDsl[T],
+    lookAhead: Boolean = true):
     CliParser[Action, OptionParsingErrors, T] = {
 
-    parseOptionNonStrict(dsl).failIfNotAllArgumentsUsed(
+    parseOptionNonStrict(dsl, lookAhead).failIfNotAllArgumentsUsed(
       args => NonEmptyList.of(AdditionalArgumentsFound(args.map(_.name))))
   }
 }

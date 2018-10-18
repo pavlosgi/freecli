@@ -70,11 +70,11 @@ class ConfigParserTest extends Test {
         "--c2",
         "2",
         "--d1",
-        "--a5",
-        "a5",
-        "a6",
+        "--optionLikeArgument",
         "7",
-        "true")
+        "true",
+        "--a5",
+        "a5")
 
      parseConfig(dsl).run(args)._2.success should === (
         A(
@@ -83,7 +83,7 @@ class ConfigParserTest extends Test {
           3,
           B("b1", true, Some(3), C("c1", 2), D(true)),
           "a5",
-          "a6",
+          "--optionLikeArgument",
           7,
           true))
     }

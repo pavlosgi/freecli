@@ -11,17 +11,19 @@ import freecli.parser.CliParser
 object ops extends ParserOps
 trait ParserOps {
   private[freecli] def parseConfigNonStrict[T](
-    dsl: ConfigDsl[T]):
+    dsl: ConfigDsl[T],
+    optsLookAhead: Boolean = true):
     CliParser[Action, ConfigParsingErrors, T] = {
 
-    dsl.foldMap(ConfigParserInterpreter)
+    dsl.foldMap(new ConfigParserInterpreter(optsLookAhead))
   }
 
   def parseConfig[T](
-    dsl: ConfigDsl[T]):
+    dsl: ConfigDsl[T],
+    optsLookAhead: Boolean = true):
     CliParser[Action, ConfigParsingErrors, T] = {
 
-    parseConfigNonStrict(dsl).failIfNotAllArgumentsUsed(
+    parseConfigNonStrict(dsl, optsLookAhead).failIfNotAllArgumentsUsed(
       args => NonEmptyList.of(AdditionalArgumentsFound(args.map(_.name))))
   }
 }
