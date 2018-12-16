@@ -25,7 +25,7 @@ trait MergerImplicits {
     new CanMerge[ArgumentDsl[A1], ArgumentDsl[A2]] {
       type Out = ArgumentDsl[A]
       def apply(f1: ArgumentDsl[A1], f2: ArgumentDsl[A2]): Out = {
-        (f1 |@| f2).map((ff1, ff2) => folder(ff1 :: ff2 :: HNil, HNil))
+        (f1, f2).mapN((ff1, ff2) => folder(ff1 :: ff2 :: HNil, HNil))
       }
     }
   }

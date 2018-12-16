@@ -22,12 +22,13 @@ class ArgumentParserTest extends Test {
     it("parse multiple tuple") {
       val (_, res) = parseArgument(
         groupT {
-          string ::
-          int    ::
-          string
-        }).run(Seq("c1", "2", "c3"))
+          string -~ name("aa") ::
+          int   -~ name("aa2")  ::
+          boolean  -~ name("aa3") ::
+          double -~ name("aa4")
+        }).run(Seq("c1", "2", "true", "2.0"))
 
-      res.success should === (("c1", 2, "c3"))
+      res.success should === (("c1", 2, true, 2.0))
     }
 
     it("parse multiple case class") {

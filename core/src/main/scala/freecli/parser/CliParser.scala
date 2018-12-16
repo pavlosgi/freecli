@@ -3,8 +3,7 @@ package parser
 
 import cats.{Monad, Semigroup}
 import cats.data._
-import cats.instances.all._
-import cats.syntax.all._
+import cats.implicits._
 
 import core.formatting._
 
@@ -82,8 +81,8 @@ object CliParser {
 
     override def ap[T, B](ff: CliParser[A, E, T => B])(fa: CliParser[A, E, T]): CliParser[A, E, B] = {
       CliParser(EitherT(
-        fa.value.value.flatMap { ei =>
-          ff.value.withValidated(f => Validated.fromEither(ei).ap(f)).value
+        ff.value.value.flatMap { eiF =>
+          fa.value.withValidated(f => f.ap(Validated.fromEither(eiF))).value
         }))
     }
 
@@ -249,7 +248,7 @@ object CliParser {
 
       }.getOrElse(None -> None)
 
-      _    <- res._1.traverseU(idx => markUnusable[A, E](idx))
+      _    <- res._1.traverse(idx => markUnusable[A, E](idx))
     } yield res._2
   }
 
@@ -264,7 +263,7 @@ object CliParser {
           None -> None
       }
 
-      _    <- res._1.traverseU(idx => markUnusable[A, E](idx))
+      _    <- res._1.traverse(idx => markUnusable[A, E](idx))
     } yield res._2
   }
 
@@ -277,7 +276,7 @@ object CliParser {
 
       }.getOrElse(None -> None)
 
-      _    <- res._1.traverseU(idx => markUnusable[A, E](idx))
+      _    <- res._1.traverse(idx => markUnusable[A, E](idx))
     } yield res._2
   }
 
@@ -295,7 +294,7 @@ object CliParser {
 
       }.getOrElse(Extraction(List.empty, ExtractPair(None, None)))
 
-      _    <- res.markUnused.traverseU(idx => markUnusable[A, E](idx))
+      _    <- res.markUnused.traverse(idx => markUnusable[A, E](idx))
 
     } yield res.extractPair
   }
@@ -310,7 +309,7 @@ object CliParser {
         case (a, _) => a
       }
 
-      _ <- setArgs(newArgs)
+      _ <- setArgs(newArgs)(implicitly[Semigroup[E]])
 
     } yield ()
   }

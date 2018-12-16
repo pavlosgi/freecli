@@ -3,8 +3,7 @@ package argument
 package help
 
 import cats.Monoid
-import cats.instances.all._
-import cats.syntax.all._
+import cats.implicits._
 
 import api._
 import core.formatting._
@@ -12,7 +11,7 @@ import printer.{Printer, PrinterParts}
 
 case class ArgumentsHelp(list: List[ArgumentField]) {
   def oneline: PrinterParts = {
-    list.zipWithIndex.traverseU {
+    list.zipWithIndex.traverse {
       case (ArgumentField(Some(name), _), _) =>
         Printer.appendWithSpace(s"<${name.value}>")
 
@@ -23,7 +22,7 @@ case class ArgumentsHelp(list: List[ArgumentField]) {
   }
 
   def result: PrinterParts = {
-    list.zipWithIndex.traverseU {
+    list.zipWithIndex.traverse {
       case (ArgumentField(Some(name), description), _) =>
         for {
           _ <- Printer.row

@@ -3,8 +3,7 @@ package option
 package help
 
 import cats.Monoid
-import cats.instances.all._
-import cats.syntax.all._
+import cats.implicits._
 
 import core.formatting._
 import option.api._
@@ -20,7 +19,7 @@ case class SubOptionHelp(description: String, options: OptionsHelp)
 case class OptionsHelp(list: List[OptionHelp]) {
 
   def result: PrinterParts = {
-    list.traverseU {
+    list.traverse {
       case SingleOptionHelp(field, default, required) =>
         for {
           _ <- Printer.row

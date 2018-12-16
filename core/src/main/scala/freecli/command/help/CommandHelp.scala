@@ -3,8 +3,7 @@ package command
 package help
 
 import cats.Monoid
-import cats.instances.all._
-import cats.syntax.all._
+import cats.implicits._
 
 import api.CommandField
 import core.api.Description
@@ -41,7 +40,7 @@ case class CommandsHelp(list: List[CommandHelp]) {
   }
 
   def result: PrinterParts = {
-    list.traverseU {
+    list.traverse {
       case SimpleHelpCommand(field) =>
         for {
           _ <- Printer.line(field.name.name.bold)
