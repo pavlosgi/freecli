@@ -2,8 +2,7 @@ package freecli
 package printer
 
 import cats.Monoid
-import cats.instances.all._
-import cats.syntax.all._
+import cats.implicits._
 
 import core.formatting._
 

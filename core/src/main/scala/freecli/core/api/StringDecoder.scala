@@ -5,8 +5,7 @@ package api
 import java.io.File
 
 import cats.data.{Validated, ValidatedNel}
-import cats.instances.all._
-import cats.syntax.all._
+import cats.implicits._
 
 trait StringDecoder[T] {
   type Out = T
@@ -147,7 +146,7 @@ object StringDecoder {
 
   implicit def listDecoder[T](implicit ev: StringDecoder[T]) = new StringDecoder[List[T]] {
     def apply(value: String): ValidatedNel[StringDecoderError, List[T]] = {
-      value.split(",").toList.traverseU(ev.apply)
+      value.split(",").toList.traverse(ev.apply)
     }
 
     def toString(v: List[T]): String = v.map(ev.toString).mkString(",")
@@ -156,9 +155,9 @@ object StringDecoder {
   implicit def mapDecoder[K, V](implicit ev: StringDecoder[K], ev2: StringDecoder[V]) =
     new StringDecoder[Map[K, V]] {
       def apply(value: String): ValidatedNel[StringDecoderError, Map[K, V]] = {
-        value.split(",").map(_.split("=", 2)).toList.traverseU {
+        value.split(",").map(_.split("=", 2)).toList.traverse {
           case Array(k, v) =>
-            (ev(k) |@| ev2(v)).map(_ -> _)
+            (ev(k), ev2(v)).mapN(_ -> _)
 
           case arr =>
             Validated.invalidNel(

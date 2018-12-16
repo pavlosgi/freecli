@@ -3,8 +3,7 @@ package option
 package parser
 
 import cats.data.NonEmptyList
-import cats.instances.all._
-import cats.syntax.all._
+import cats.implicits._
 import cats.~>
 import shapeless.HNil
 
@@ -63,7 +62,7 @@ object OptionParserInterpreter extends (Algebra ~> ParseResult) {
 
   def parseOpt[T](field: OptionField, value: Option[String], g: StringDecoder[T]): ParseResult[Option[T]] = {
     CliParser.fromValidated[Action, NonEmptyList[StringDecoderError], Option[T]](
-      value.traverseU(g.apply)).mapError[OptionParsingErrors](e =>
+      value.traverse(g.apply)).mapError[OptionParsingErrors](e =>
         e.map(err => FailedToDecodeOption(field, err)))
   }
 

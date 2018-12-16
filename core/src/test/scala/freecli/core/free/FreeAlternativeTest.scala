@@ -3,7 +3,7 @@ package core
 package free
 
 import cats.~>
-import cats.instances.all._
+import cats.implicits._
 
 import testkit.Test
 

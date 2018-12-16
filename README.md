@@ -528,6 +528,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Copyright 2015-2017 Pavlos Georgiou
+Copyright 2015-2019 Pavlos Georgiou
 
 [apache]: http://www.apache.org/licenses/LICENSE-2.0

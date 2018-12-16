@@ -3,8 +3,7 @@ package command
 package parser
 
 import cats.{Alternative, Semigroup}
-import cats.instances.all._
-import cats.syntax.all._
+import cats.implicits._
 
 import api.CommandField
 import config.parser.ConfigParsingErrors

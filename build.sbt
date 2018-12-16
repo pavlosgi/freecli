@@ -158,12 +158,15 @@ lazy val freecli_testkit = Project("freecli-testkit", file("testkit"))
   .settings(noPublishSettings:_*)
   .settings(libraryDependencies ++= cats ++ scalatest)
 
-lazy val catsV = "0.8.1"
-lazy val circeV = "0.6.0"
-lazy val shapelessV = "2.3.2"
-lazy val scalatestV = "3.0.0"
+lazy val catsV = "1.5.0"
+lazy val circeV = "0.10.1"
+lazy val shapelessV = "2.3.3"
+lazy val scalatestV = "3.0.5"
 
-lazy val cats = Seq("org.typelevel" %% "cats" % catsV)
+lazy val cats = Seq(
+  "org.typelevel" %% "cats-core" % catsV,
+  "org.typelevel" %% "cats-free" % catsV)
+
 lazy val circe = Seq(
   "io.circe" %% "circe-core",
   "io.circe" %% "circe-generic",

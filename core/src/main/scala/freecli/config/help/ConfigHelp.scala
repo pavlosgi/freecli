@@ -3,8 +3,7 @@ package config
 package help
 
 import cats.Monoid
-import cats.instances.all._
-import cats.syntax.all._
+import cats.implicits._
 
 import argument.{help => A}
 import option.{help => O}

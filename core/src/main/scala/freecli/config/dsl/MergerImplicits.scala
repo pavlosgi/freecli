@@ -51,8 +51,8 @@ trait MergerImplicits {
         b2: ConfigDslBuilder[O.OptionDsl[O2] :: A.ArgumentDsl[A2] :: HNil, O2, A2]):
         Out = {
 
-        val opts = (b1 |@| b2.list.head)
-          .map((o1, o2) => ev(o1 :: o2 :: HNil, HNil))
+        val opts = (b1, b2.list.head)
+          .mapN((o1, o2) => ev(o1 :: o2 :: HNil, HNil))
 
         ConfigDslBuilder(opts :: b2.list.tail.head :: HNil)
       }

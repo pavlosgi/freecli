@@ -26,7 +26,7 @@ trait MergerImplicits {
     new CanMerge[OptionDsl[O1], OptionDsl[O2]] {
       type Out = OptionDsl[O]
       def apply(f1: OptionDsl[O1], f2: OptionDsl[O2]): Out = {
-        (f1 |@| f2).map((ff1, ff2) => folder(ff1 :: ff2 :: HNil, HNil))
+        (f1, f2).mapN((ff1, ff2) => folder(ff1 :: ff2 :: HNil, HNil))
       }
     }
   }

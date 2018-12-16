@@ -10,7 +10,6 @@ case class Merger[F](f: F) {
 
 trait CanMerge[F1, F2] {
   type Out
-
   def apply(f1: F1, f2: F2): Out
 }
 

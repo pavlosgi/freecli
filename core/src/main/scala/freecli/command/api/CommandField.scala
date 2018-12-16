@@ -3,8 +3,7 @@ package command
 package api
 
 import cats.Show
-import cats.instances.all._
-import cats.syntax.all._
+import cats.implicits._
 
 import core.api.Description
 import core.formatting._
