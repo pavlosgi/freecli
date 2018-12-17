@@ -27,13 +27,13 @@ To get started with SBT, simply add the following to your `build.sbt`
 file:
 
 ```scala
-libraryDependencies += "com.pavlosgi" %% "freecli-core" % "0.1.1"
+libraryDependencies += "com.pavlosgi" %% "freecli-core" % "0.1.4"
 ```
 
 If you require `circe` bindings then add the following:
 
 ```scala
-libraryDependencies += "com.pavlosgi" %% "freecli-circe" % "0.1.1"
+libraryDependencies += "com.pavlosgi" %% "freecli-circe" % "0.1.4"
 ```
 
 To get started in code you can use the following imports.
