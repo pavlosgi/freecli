@@ -5,15 +5,15 @@ object Argument {
   import freecli.core.all._
   import freecli.argument.all._
 
-  val dsl = string
-  val res: String = runArgumentOrFail(dsl)(Seq("one"))
+  val dsl         = string
+  val res: String = runArgumentOrFail(dsl)(Array("one"))
 
-  val dsl2 = string -~ name("arg1")
-  val res2: String = runArgumentOrFail(dsl2)(Seq("one"))
+  val dsl2         = string -~ name("arg1")
+  val res2: String = runArgumentOrFail(dsl2)(Array("one"))
 
   val dsl3 = string -~ name("arg1") -~ des("argument description")
   val res3: String =
-    runArgumentOrFail(dsl3)(Seq("one"))
+    runArgumentOrFail(dsl3)(Array("one"))
 
   case class Arguments(arg1: String, arg2: Int)
   val dsl4 =
@@ -23,7 +23,7 @@ object Argument {
     }
 
   val res4: Arguments =
-    runArgumentOrFail(dsl4)(Seq("one", "2"))
+    runArgumentOrFail(dsl4)(Array("one", "2"))
 
   val dsl5 =
     groupT {
@@ -32,96 +32,93 @@ object Argument {
     }
 
   val res5: (String, Int) =
-    runArgumentOrFail(dsl5)(Seq("one", "2"))
+    runArgumentOrFail(dsl5)(Array("one", "2"))
 }
 
 object Option {
   import freecli.core.all._
   import freecli.option.all._
 
-  val dsl = string --"opt1"
+  val dsl = string -- "opt1"
   val res: Option[String] =
-    runOptionOrFail(dsl)(Seq("--opt1", "one"))
+    runOptionOrFail(dsl)(Array("--opt1", "one"))
 
-  val dsl2 = string --"opt1" -~ des("option description")
+  val dsl2 = string -- "opt1" -~ des("option description")
   val res2: Option[String] =
-    runOptionOrFail(dsl2)(Seq("--opt1", "one"))
+    runOptionOrFail(dsl2)(Array("--opt1", "one"))
 
-  val dsl3 = string -'o'
+  val dsl3 = string - 'o'
   val res3: Option[String] =
-    runOptionOrFail(dsl3)(Seq("-o", "one"))
+    runOptionOrFail(dsl3)(Array("-o", "one"))
 
-  val dsl4 = string -'o' -~ des("option description")
+  val dsl4 = string - 'o' -~ des("option description")
   val res4: Option[String] =
-    runOptionOrFail(dsl4)(Seq("-o", "one"))
+    runOptionOrFail(dsl4)(Array("-o", "one"))
 
-  val dsl5 = string --"opt1" -'o'
+  val dsl5 = string -- "opt1" - 'o'
   val res5: Option[String] =
-    runOptionOrFail(dsl5)(Seq("--opt1", "one"))
+    runOptionOrFail(dsl5)(Array("--opt1", "one"))
 
-  val dsl6 = string --"opt1" -'o' -~ des("option description")
+  val dsl6 = string -- "opt1" - 'o' -~ des("option description")
   val res6: Option[String] =
-   runOptionOrFail(dsl6)(Seq("-o", "one"))
+    runOptionOrFail(dsl6)(Array("-o", "one"))
 
-  case class Options(
-    opt1: Option[String],
-    opt2: Int,
-    opt3: Int,
-    opt4: Boolean)
+  case class Options(opt1: Option[String], opt2: Int, opt3: Int, opt4: Boolean)
 
   val dsl7 =
     group[Options] {
-      string  --"opt1"          ::
-      int     --"opt2" -~ req   ::
-      int     --"opt3" -~ or(1) ::
-      flag    --"opt4" ::
-      help    --"help" ::
-      version --"version" -~ value("v1.0")
+      string -- "opt1" ::
+      int -- "opt2" -~ req ::
+      int -- "opt3" -~ or(1) ::
+      flag -- "opt4" ::
+      help -- "help" ::
+      version -- "version" -~ value("v1.0")
     }
 
   val res7: Options =
     runOptionOrFail(dsl7)(
-      Seq(
-        "--opt1", "one",
-        "--opt2", "two",
-        "--opt3", "three",
+      Array(
+        "--opt1",
+        "one",
+        "--opt2",
+        "two",
+        "--opt3",
+        "three",
         "--opt4"
-      ))
+      )
+    )
 
   val res7b: Options =
-    runOptionOrFail(dsl7)(
-      Seq(
-        "--opt2", "two",
-        "--opt3", "three"))
+    runOptionOrFail(dsl7)(Array("--opt2", "two", "--opt3", "three"))
 }
 
 object Config {
   import freecli.core.all._
   import freecli.config.all._
 
-  val dsl = O.string --"opt1"
+  val dsl = O.string -- "opt1"
   val res: Option[String] =
-    runConfigOrFail(dsl)(Seq("--opt1", "one"))
+    runConfigOrFail(dsl)(Array("--opt1", "one"))
 
-  val dsl2 = O.string --"opt1" -~ des("option description")
+  val dsl2 = O.string -- "opt1" -~ des("option description")
   val res2: Option[String] =
-    runConfigOrFail(dsl2)(Seq("--opt1", "one"))
+    runConfigOrFail(dsl2)(Array("--opt1", "one"))
 
-  val dsl3 = O.string -'o'
+  val dsl3 = O.string - 'o'
   val res3: Option[String] =
-    runConfigOrFail(dsl3)(Seq("-o", "one"))
+    runConfigOrFail(dsl3)(Array("-o", "one"))
 
-  val dsl4 = O.string -'o' -~ des("option description")
+  val dsl4 = O.string - 'o' -~ des("option description")
   val res4: Option[String] =
-    runConfigOrFail(dsl4)(Seq("-o", "one"))
+    runConfigOrFail(dsl4)(Array("-o", "one"))
 
-  val dsl5 = O.string --"opt1" -'o' -~ or ("1")
+  val dsl5 = O.string -- "opt1" - 'o' -~ or("1")
   val res5: String =
-    runConfigOrFail(dsl5)(Seq("--opt1", "one"))
+    runConfigOrFail(dsl5)(Array("--opt1", "one"))
 
-  val dsl6 = O.string --"opt1" -'o' -~ req -~ des("option description")
+  val dsl6 = O.string -- "opt1" - 'o' -~ req -~ des("option description")
   val res6: String =
-    runConfigOrFail(dsl6)(Seq("--opt1", "one"))
+    runConfigOrFail(dsl6)(Array("--opt1", "one"))
 
   case class Config(
     opt1: Option[String],
@@ -129,27 +126,33 @@ object Config {
     opt3: Int,
     opt4: Boolean,
     arg1: String,
-    arg2: Int)
+    arg2: Int
+  )
 
   val dsl7 =
     group[Config] {
-      O.string --"opt1"          ::
-      O.int    --"opt2" -~ req   ::
-      O.int    --"opt3" -~ or(1) ::
-      flag     --"opt4"          ::
-      string                     ::
+      O.string -- "opt1" ::
+      O.int -- "opt2" -~ req ::
+      O.int -- "opt3" -~ or(1) ::
+      flag -- "opt4" ::
+      string ::
       int
     }
 
   val res7: Config =
     runConfigOrFail(dsl7)(
-      Seq(
-       "--opt1", "one",
-       "--opt2", "two",
-       "--opt3", "three",
-       "--opt4",
-       "five",
-       "six"))
+      Array(
+        "--opt1",
+        "one",
+        "--opt2",
+        "two",
+        "--opt3",
+        "three",
+        "--opt4",
+        "five",
+        "six"
+      )
+    )
 }
 
 object Command {
@@ -164,14 +167,14 @@ object Command {
   val dsl =
     cmd("command1") {
       takesG[Command1Config] {
-        O.help   --"help" ::
-        O.int    --"opt1" -~ des("opt1 description") ::
-        O.string --"opt2" -~ req
+        O.help -- "help" ::
+        O.int -- "opt1" -~ des("opt1 description") ::
+        O.string -- "opt2" -~ req
       } ::
       cmd("command2") {
         takesG[Command2Config] {
-          O.help --"help" ::
-          O.int  --"opt3" -~ or(1) ::
+          O.help -- "help" ::
+          O.int -- "opt3" -~ or(1) ::
           string -~ name("arg1")
         } ::
         runs[ParentWith[Command1Config, Command2Config]] { conf =>
@@ -180,7 +183,7 @@ object Command {
       } ::
       cmd("command3") {
         takesG[Command3Config] {
-          O.help --"help" ::
+          O.help -- "help" ::
           string -~ name("arg2")
         } ::
         runs[ParentWith[Command1Config, Command3Config]] { conf =>
@@ -191,17 +194,26 @@ object Command {
 
   val res: Unit =
     runCommandOrFail(dsl)(
-      Seq(
-       "command1", "--opt1", "1", "opt2", "two",
-         "command2", "--opt3", "3", "four")).run
+      Array(
+        "command1",
+        "--opt1",
+        "1",
+        "opt2",
+        "two",
+        "command2",
+        "--opt3",
+        "3",
+        "four"
+      )
+    ).run
 
   /*
   //Fails and prints errors and help for failing command
   runCommandOrFail(dsl)(
-    Seq(
+    Array(
      "command1", "--opt1", "1", "opt2", "two",
        "command2", "--opt3", "3")).run
-  */
+ */
 
 }
 
@@ -216,23 +228,24 @@ object CustomDecoder {
   case object Bar extends FooBar
 
   implicit object fooBarStringDecoder extends StringDecoder[FooBar] {
-    override def apply(value: String): ValidatedNel[StringDecoderError, FooBar] = {
+    override def apply(
+      value: String
+    ): ValidatedNel[StringDecoderError, FooBar] =
       value match {
         case v if v.equalsIgnoreCase("Foo") => Validated.valid(Foo)
         case v if v.equalsIgnoreCase("Bar") => Validated.valid(Bar)
         case v =>
-          Validated.invalidNel(StringDecoderError(s"$v did not match any of (Foo, Bar)"))
+          Validated.invalidNel(
+            StringDecoderError(s"$v did not match any of (Foo, Bar)")
+          )
       }
-    }
 
-    override def toString(v: FooBar): String = {
+    override def toString(v: FooBar): String =
       v match {
         case Foo => "Foo"
         case Bar => "Bar"
       }
-    }
   }
 
-  val x: FooBar = runArgumentOrFail(arg[FooBar])(Seq("Foo"))
+  val x: FooBar = runArgumentOrFail(arg[FooBar])(Array("Foo"))
 }
-

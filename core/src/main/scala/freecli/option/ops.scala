@@ -7,13 +7,12 @@ import freecli.parser.CliParser
 
 object ops extends AllOps
 trait AllOps extends dsl.Ops with parser.ParserOps with help.HelpOps {
-  def runOptionOrFail[A](dsl: OptionDsl[A])(args: Seq[String]): A = {
+  def runOptionOrFail[A](dsl: OptionDsl[A])(args: Array[String]): A =
     CliParser.runOrFail[Action, OptionParsingErrors, A](
-      args,
-      Some(optionHelp(dsl)),
-      { case h: HelpAction.type => h.run(optionHelp(dsl))
-        case v: VersionAction => v.run()
-      })(
-      parseOption(dsl))
-  }
+      args.toIndexedSeq,
+      Some(optionHelp(dsl)), {
+        case h: HelpAction.type => h.run(optionHelp(dsl))
+        case v: VersionAction   => v.run()
+      }
+    )(parseOption(dsl))
 }

@@ -7,12 +7,9 @@ import freecli.parser.CliParser
 
 object ops extends AllOps
 trait AllOps extends dsl.Ops with parser.ParserOps with help.HelpOps {
-  def runCommandOrFail[A](dsl: CommandDsl[A])(args: Seq[String]): A = {
+  def runCommandOrFail[A](dsl: CommandDsl[A])(args: Array[String]): A =
     CliParser.runOrFail[Action, CommandParsingError, A](
-      args,
-      Some(commandHelp(dsl)),
-      { case c@ConfigAction(_, _, _) => c.run()
-      })(
-      parseCommand(dsl))
-  }
+      args.toIndexedSeq,
+      Some(commandHelp(dsl)), { case c @ ConfigAction(_, _, _) => c.run() }
+    )(parseCommand(dsl))
 }

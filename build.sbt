@@ -7,18 +7,23 @@ lazy val coreSettings =
 
 lazy val commonSettings = Seq(
   organization := "com.pavlosgi",
-  scalaVersion := "2.12.7",
-  crossScalaVersions := Seq("2.11.12", "2.12.7"),
+  scalaVersion := "2.12.10",
+  crossScalaVersions := Seq("2.11.12", "2.12.10", "2.13.1"),
   offline := true,
   excludeFilter in unmanagedResources := NothingFilter,
+  libraryDependencies ++=
+    (CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, scalaMajor)) if scalaMajor == 12 =>
+        compilerPlugin("org.spire-math" %% "kind-projector" % "0.9.3") :: Nil
+      case _ =>
+        compilerPlugin("org.typelevel" % "kind-projector" % "0.11.0" cross CrossVersion.full) :: Nil
+    }),
   resolvers := Seq(
     Resolver.sonatypeRepo("public"),
     Opts.resolver.sonatypeReleases,
     Opts.resolver.sonatypeSnapshots,
     Classpaths.sbtPluginReleases
   ),
-  addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.3"),
-  addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
   scalacOptions in (Compile, console) := Seq.empty,
   scalacOptions in (Test, console) := Seq.empty,
   initialCommands in console := """""",
@@ -28,6 +33,7 @@ lazy val commonSettings = Seq(
   unmanagedSourceDirectories in Test += {
     (sourceDirectory in Test).value / ("scala_" + scalaBinaryVersion.value)
   })
+
 //  excludeFilter in Compile := "config" || "command" || "argument",
 //  excludeFilter in Test := "config" || "command" || "argument")
 lazy val xlintOptions = Seq(
@@ -47,11 +53,10 @@ lazy val xlintOptions = Seq(
         "-Xlint:poly-implicit-overload",
         "-Xlint:option-implicit",
         "-Xlint:delayedinit-select",
-        "-Xlint:by-name-right-associative",
         "-Xlint:package-object-classes",
-        "-Xlint:unsound-match",
         "-Xlint:stars-align",
         "-Xlint:constant")
+//        "-Ymacro-annotations")
       case _ => Seq("-Xlint")
     }
   })
@@ -65,14 +70,19 @@ lazy val scalacSettings = Seq(
     "-language:postfixOps",
     "-language:experimental.macros",
     "-language:existentials",
-    "-Ywarn-unused-import",
-    "-Ypartial-unification",
-    "-Yno-adapted-args",
     "-Ywarn-dead-code",
     "-Ywarn-numeric-widen",
     "-Ywarn-value-discard",
-    "-Xfuture",
-    "-Xfatal-warnings"))
+    "-Xfatal-warnings") ++
+    (CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, scalaMajor)) if scalaMajor >= 13 => Seq.empty
+      case _ =>
+        Seq("-Ywarn-unused-import",
+          "-Ypartial-unification",
+          "-Yno-adapted-args",
+          "-Xfuture")
+    })
+)
 
 lazy val scoverageSettings = Seq(
   coverageMinimum := 60,
@@ -88,6 +98,7 @@ lazy val publishSettings = Seq(
   publishMavenStyle := true,
   publishArtifact in Test := false,
   pomIncludeRepository := Function.const(false),
+  homepage := Some(url("https://github.com/pavlosgi/freecli")),
   publishTo := {
     val nexus = "https://oss.sonatype.org/"
     if (isSnapshot.value)
@@ -156,15 +167,15 @@ lazy val noPublishSettings = Seq(
 lazy val root = Project("freecli-root", file("."))
   .settings(coreSettings:_*)
   .settings(noPublishSettings:_*)
+  .aggregate(freecli_testkit)
   .aggregate(freecli_circe)
   .aggregate(freecli_core)
   .aggregate(freecli_examples)
-  .aggregate(freecli_testkit)
 
 lazy val freecli_circe = Project("freecli-circe", file("circe"))
   .settings(coreSettings:_*)
   .settings(publishSettings:_*)
-  .settings(libraryDependencies ++= circe)
+  .settings(libraryDependencies ++= circe(scalaVersion.value))
   .dependsOn(freecli_core)
   .dependsOn(freecli_testkit % Test)
 
@@ -172,8 +183,8 @@ lazy val freecli_core = Project("freecli-core", file("core"))
   .settings(coreSettings:_*)
   .settings(publishSettings:_*)
   .settings(libraryDependencies ++=
-    cats ++
-    shapeless)
+    cats(scalaVersion.value) ++
+    shapeless(scalaVersion.value))
 
   .dependsOn(freecli_testkit % Test)
 
@@ -185,27 +196,39 @@ lazy val freecli_examples = Project("freecli-examples", file("examples"))
 lazy val freecli_testkit = Project("freecli-testkit", file("testkit"))
   .settings(coreSettings:_*)
   .settings(noPublishSettings:_*)
-  .settings(libraryDependencies ++= cats ++ scalatest)
+  .settings(libraryDependencies ++= cats(scalaVersion.value) ++ scalatest(scalaVersion.value))
 
-lazy val catsV = "1.5.0"
-lazy val circeV = "0.10.1"
-lazy val shapelessV = "2.3.3"
-lazy val scalatestV = "3.0.5"
+def crossVersions(version: String) =
+  CrossVersion.partialVersion(version) match {
+    case Some((2, scalaMajor)) if scalaMajor >= 13 =>
+      val catsV = "2.1.1"
+      val circeV = "0.13.0"
+      val shapelessV = "2.3.3"
+      val scalatestV = "3.1.1"
+      (catsV, circeV, shapelessV, scalatestV)
 
-lazy val cats = Seq(
-  "org.typelevel" %% "cats-core" % catsV,
-  "org.typelevel" %% "cats-free" % catsV)
+    case _ =>
+      val catsV = "1.5.0"
+      val circeV = "0.10.1"
+      val shapelessV = "2.3.3"
+      val scalatestV = "3.1.1"
+      (catsV, circeV, shapelessV, scalatestV)
+  }
 
-lazy val circe = Seq(
+def cats(scalaVersion: String) = Seq(
+  "org.typelevel" %% "cats-core" % crossVersions(scalaVersion)._1,
+  "org.typelevel" %% "cats-free" % crossVersions(scalaVersion)._1)
+
+def circe(scalaVersion: String) = Seq(
   "io.circe" %% "circe-core",
   "io.circe" %% "circe-generic",
   "io.circe" %% "circe-parser"
-).map(_ % circeV)
+).map(_ % crossVersions(scalaVersion)._2)
 
-lazy val shapeless = Seq("com.chuusai" %% "shapeless" % shapelessV)
-lazy val scalatest = Seq(
-"org.scalactic" %% "scalactic" % scalatestV,
-"org.scalatest" %% "scalatest" % scalatestV
+def shapeless(scalaVersion: String) = Seq("com.chuusai" %% "shapeless" % crossVersions(scalaVersion)._3)
+def scalatest(scalaVersion: String) = Seq(
+"org.scalactic" %% "scalactic" % crossVersions(scalaVersion)._4,
+"org.scalatest" %% "scalatest" % crossVersions(scalaVersion)._4
 )
 
 
@@ -215,6 +238,6 @@ addCommandAlias("examples", ";project freecli-examples")
 addCommandAlias("circe", ";project freecli-circe")
 
 addCommandAlias("validate", ";root;validateJVM")
-addCommandAlias("validateJVM", ";freecli-core/compile;freecli-core/mimaReportBinaryIssues;freecli-core/test;freecli-examples/compile;freecli-circe/compile;freecli-circe/test;freecli-testkit/compile")
+addCommandAlias("validateJVM", ";freecli-core/compile;freecli-core/test;freecli-examples/compile;freecli-circe/compile;freecli-circe/test;freecli-testkit/compile")
 
 addCommandAlias("releaseAll", ";root;release skip-tests")

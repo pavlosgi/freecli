@@ -11,14 +11,15 @@ object DatabaseConfig extends App {
     host: String,
     user: String,
     password: String,
-    database: String)
+    database: String
+  )
 
   val databaseConfig =
     group[DatabaseConfig] {
-      int    -~ name("port")     -~ des("Database port")      ::
-      string -~ name("host")     -~ des("Database host")      ::
-      string -~ name("username") -~ des("Database user")      ::
-      string -~ name("password") -~ des("Database password")  ::
+      int -~ name("port") -~ des("Database port") ::
+      string -~ name("host") -~ des("Database host") ::
+      string -~ name("username") -~ des("Database user") ::
+      string -~ name("password") -~ des("Database password") ::
       string -~ name("database") -~ des("Database name")
     }
 
