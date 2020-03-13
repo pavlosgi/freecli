@@ -517,6 +517,25 @@ Apple
 [success] Total time: 6 s, completed 22-Jan-2017 23:52:26
 ```
 
+## Release
+Create key if no key exists
+```
+gpg --gen-key
+gpg --list-keys
+gpg --keyserver hkp://pool.sks-keyservers.net --send-keys key-id
+```
+
+Set sonatype credentials
+```
+export SONATYPE_USERNAME=username
+export SONATYPE_PASSWORD=password
+```
+
+Release
+```
+sbt releaseAll
+```
+
 ## License
 
 freecli is licensed under the **[Apache License, Version 2.0][apache]** (the
